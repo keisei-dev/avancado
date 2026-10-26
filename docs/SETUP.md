@@ -50,7 +50,9 @@ This version differs from most tutorials online:
 
 ### Prerequisites
 
-- **Node.js 20.9 or newer** (`node -v` to check). The LTS release is recommended.
+- **Node.js 22 or newer** (`node -v` to check). The Supabase packages require
+  it. If you use [nvm](https://github.com/nvm-sh/nvm), run `nvm install` then
+  `nvm use` in the project folder; it reads the version from `.nvmrc`.
 - **Git**
 - Recommended editor extensions: **ESLint** and **Prettier** (enable
   "format on save").
@@ -104,14 +106,15 @@ Rules:
 
 ### npm scripts
 
-| Command                | What it does                             |
-| ---------------------- | ---------------------------------------- |
-| `npm run dev`          | Start the dev server at `localhost:3000` |
-| `npm run build`        | Production build (same as Vercel runs)   |
-| `npm run start`        | Serve the production build locally       |
-| `npm run lint`         | Run ESLint on the whole project          |
-| `npm run format`       | Format every file with Prettier          |
-| `npm run format:check` | Check formatting without changing files  |
+| Command                | What it does                                            |
+| ---------------------- | ------------------------------------------------------- |
+| `npm run dev`          | Start the dev server at `localhost:3000`                |
+| `npm run build`        | Production build (same as Vercel runs)                  |
+| `npm run start`        | Serve the production build locally                      |
+| `npm run lint`         | Run ESLint on the whole project                         |
+| `npm run typecheck`    | Generate route types, then run TypeScript type checking |
+| `npm run format`       | Format every file with Prettier                         |
+| `npm run format:check` | Check formatting without changing files                 |
 
 ---
 
@@ -251,6 +254,7 @@ git pull origin dev
 
 # 5. Before pushing, make sure these pass
 npm run lint
+npm run typecheck
 npm run format:check
 npm run build
 
