@@ -1,0 +1,15 @@
+# Dependencies and build output
+node_modules
+.next
+out
+build
+coverage
+.vercel
+
+# Generated files
+package-lock.json
+next-env.d.ts
+*.tsbuildinfo
+
+# The original project README must stay byte-for-byte unchanged
+Readme.md
