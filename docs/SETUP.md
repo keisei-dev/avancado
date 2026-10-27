@@ -210,8 +210,8 @@ const supabase = createClient();
 
 ## 4. Folder ownership
 
-Every route and component folder has an owner, listed with its Notion flows in
-[`docs/OWNERS.md`](./OWNERS.md).
+Who works on which route and component folder follows the assignments on our
+Notion task board.
 
 - Build your features inside the folders you own.
 - Each placeholder `page.tsx` starts with a `// Notion flow:` comment naming
