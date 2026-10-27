@@ -1,21 +1,24 @@
-import { PawPrint } from "lucide-react";
+import Image from "next/image";
 
 type BrandMarkProps = {
   size?: "sm" | "md";
-  inverted?: boolean;
 };
 
-export function BrandMark({ size = "md", inverted = false }: BrandMarkProps) {
+export function BrandMark({ size = "md" }: BrandMarkProps) {
   const box = size === "sm" ? "h-9 w-9 rounded-10" : "h-11 w-11 rounded-12";
-  const icon = size === "sm" ? 18 : 22;
+  const icon = size === "sm" ? 28 : 34;
 
   return (
-    <span
-      className={`grid place-items-center ${box} ${
-        inverted ? "bg-white text-olive-hover" : "bg-sage-soft text-olive-hover"
-      }`}
-    >
-      <PawPrint aria-hidden="true" size={icon} strokeWidth={2} />
+    <span className={`grid place-items-center overflow-hidden bg-white ${box}`}>
+      <Image
+        src="/images/avancado-icon.png"
+        alt="Avancado"
+        width={266}
+        height={387}
+        className="object-contain"
+        style={{ width: icon, height: icon }}
+        priority
+      />
     </span>
   );
 }

@@ -24,7 +24,7 @@ export default function AdminLoginPage() {
         </Link>
         <div className="relative z-10 my-auto max-w-lg">
           <div className="flex items-center gap-3">
-            <BrandMark inverted />
+            <BrandMark />
             <p className="font-display text-lg font-bold">Avancado</p>
           </div>
           <p className="mt-10 text-xs font-semibold tracking-[0.1em] text-sage uppercase">

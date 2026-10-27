@@ -44,7 +44,7 @@ export function AdminSidebar({
         }`}
       >
         <div className="mb-3.5 flex items-center gap-2.5 border-b border-white/10 px-2.5 pb-5">
-          <BrandMark size="sm" inverted />
+          <BrandMark size="sm" />
           <div>
             <p className="font-display text-[15px] font-bold tracking-tight">
               Avancado
