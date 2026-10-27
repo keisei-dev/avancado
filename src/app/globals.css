@@ -10,6 +10,32 @@
   --color-foreground: var(--foreground);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
+  --font-admin: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  --font-display:
+    var(--font-plus-jakarta), ui-sans-serif, system-ui, sans-serif;
+
+  --color-olive: #568203;
+  --color-olive-hover: #354f05;
+  --color-sage: #d2e0ae;
+  --color-sage-soft: #e5edcf;
+  --color-brown: #3a2d20;
+  --color-muted: #7a6857;
+  --color-ivory: #faf8f0;
+  --color-cream: #f3efe2;
+  --color-line: #ece6d8;
+  --color-sidebar: #2b2118;
+  --color-amber-soft: #fff4d1;
+  --color-amber-ink: #6b4a00;
+  --color-coral: #b84536;
+  --color-coral-soft: #fcede9;
+  --color-success: #1e7046;
+
+  --radius-10: 10px;
+  --radius-12: 12px;
+  --radius-16: 16px;
+  --radius-20: 20px;
+
+  --shadow-admin: 0 1px 2px rgb(58 45 32 / 0.05);
 }
 
 @media (prefers-color-scheme: dark) {
