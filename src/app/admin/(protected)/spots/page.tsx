@@ -1,13 +1,13 @@
-// Notion flow: Sitter Board: Report (admin side)
+// Notion flow: Admin: Map
 // TODO: implement
 
 import type { Metadata } from "next";
 import { ComingSoon } from "@/components/admin/coming-soon";
 
 export const metadata: Metadata = {
-  title: "Reports",
+  title: "Pet-Friendly Spots",
 };
 
-export default function AdminReportsPage() {
-  return <ComingSoon title="Reports" />;
+export default function AdminSpotsPage() {
+  return <ComingSoon title="Pet-Friendly Spots" />;
 }

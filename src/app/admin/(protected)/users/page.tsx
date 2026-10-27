@@ -5,9 +5,14 @@ import type { Metadata } from "next";
 import { ComingSoon } from "@/components/admin/coming-soon";
 
 export const metadata: Metadata = {
-  title: "Users",
+  title: "User Management",
 };
 
 export default function AdminUsersPage() {
-  return <ComingSoon title="Users" />;
+  return (
+    <ComingSoon
+      title="User Management"
+      description="Identity verification will live here. This page is a placeholder until its feature owner implements it."
+    />
+  );
 }

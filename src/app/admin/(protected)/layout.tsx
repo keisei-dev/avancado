@@ -2,8 +2,8 @@
 // TODO: implement
 
 import { Suspense } from "react";
-import { AdminHeader } from "@/components/admin/header";
-import { AdminSidebar } from "@/components/admin/sidebar";
+import { AdminShellFrame } from "@/components/admin/shell";
+import { getAdminNavCounts } from "@/lib/admin/mock-data";
 import { requireAdmin } from "@/lib/auth/admin";
 
 export default function ProtectedAdminLayout({
@@ -20,27 +20,28 @@ export default function ProtectedAdminLayout({
 
 async function AdminShell({ children }: { children: React.ReactNode }) {
   const admin = await requireAdmin();
+  const counts = await getAdminNavCounts();
 
   return (
-    <div className="min-h-full bg-slate-50">
-      <AdminSidebar />
-      <div className="md:ml-64">
-        <AdminHeader email={admin.email} />
-        <div className="mx-auto max-w-[1450px] px-4 py-8 md:px-8">
-          {children}
-        </div>
+    <AdminShellFrame
+      displayName={admin.displayName}
+      initials={admin.initials}
+      counts={counts}
+    >
+      <div className="mx-auto max-w-[1280px] px-4 py-5 md:px-8 md:py-8">
+        {children}
       </div>
-    </div>
+    </AdminShellFrame>
   );
 }
 
 function AdminShellFallback() {
   return (
-    <div className="min-h-full bg-slate-50">
-      <div className="hidden bg-slate-900 md:fixed md:inset-y-0 md:left-0 md:block md:w-64" />
-      <div className="md:ml-64">
-        <div className="h-[72px] border-b border-slate-200 bg-white" />
-        <div className="px-8 py-8 text-sm text-slate-500">Loading…</div>
+    <div className="min-h-full bg-ivory md:grid md:grid-cols-[264px_minmax(0,1fr)]">
+      <div className="hidden bg-sidebar md:block" />
+      <div>
+        <div className="h-16 border-b border-line bg-ivory/88" />
+        <div className="px-8 py-8 text-sm text-muted">Loading…</div>
       </div>
     </div>
   );

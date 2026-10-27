@@ -3,7 +3,9 @@
 
 import type { Metadata } from "next";
 import Link from "next/link";
+import { ArrowLeft } from "lucide-react";
 import { LoginForm } from "@/app/admin/login/login-form";
+import { BrandMark } from "@/components/admin/brand-mark";
 
 export const metadata: Metadata = {
   title: "Admin login",
@@ -11,32 +13,32 @@ export const metadata: Metadata = {
 
 export default function AdminLoginPage() {
   return (
-    <div className="grid min-h-full flex-1 bg-white lg:grid-cols-[46%_54%]">
-      <section className="relative hidden flex-col overflow-hidden bg-slate-900 px-12 py-10 text-white lg:flex">
-        <div
-          aria-hidden="true"
-          className="pointer-events-none absolute -right-44 -bottom-44 h-[440px] w-[440px] rounded-full border-[80px] border-sky-400/10"
-        />
+    <div className="grid min-h-full flex-1 bg-ivory lg:grid-cols-2">
+      <section className="relative hidden flex-col justify-between overflow-hidden bg-linear-to-br from-olive-hover to-sidebar px-12 py-10 text-white lg:flex">
         <Link
           href="/"
-          className="relative z-10 text-sm font-medium text-slate-300 hover:text-white"
+          className="relative z-10 inline-flex items-center gap-2 text-sm font-medium text-white/80 hover:text-white"
         >
-          ← Back to Avancado
+          <ArrowLeft aria-hidden="true" size={17} />
+          Back to Avancado
         </Link>
         <div className="relative z-10 my-auto max-w-lg">
-          <p className="text-lg font-bold">Avancado</p>
-          <p className="mt-6 text-[10px] font-extrabold uppercase tracking-[0.2em] text-sky-300">
+          <div className="flex items-center gap-3">
+            <BrandMark inverted />
+            <p className="font-display text-lg font-bold">Avancado</p>
+          </div>
+          <p className="mt-10 text-xs font-semibold tracking-[0.1em] text-sage uppercase">
             Operations Console
           </p>
-          <h1 className="mt-6 text-5xl font-bold tracking-tight">
+          <h1 className="font-display mt-3.5 text-[44px] leading-[1.08] font-bold tracking-tight">
             Care for the community behind every walk.
           </h1>
-          <p className="mt-6 max-w-md text-base leading-7 text-slate-400">
-            Review content, manage reports, and keep Avancado safe and
+          <p className="mt-4 max-w-md text-base leading-7 text-white/75">
+            Review content, manage local places, and keep Avancado safe and
             welcoming.
           </p>
         </div>
-        <p className="relative z-10 text-xs text-slate-500">
+        <p className="relative z-10 text-[13px] text-white/60">
           Trusted tools for a trusted pet community.
         </p>
       </section>

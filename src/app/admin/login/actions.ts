@@ -30,13 +30,17 @@ export async function loginAdmin(
   const { error } = await supabase.auth.signInWithPassword({ email, password });
 
   if (error) {
-    return { error: error.message };
+    return {
+      error: "The email or password does not match an admin account.",
+    };
   }
 
   const { data } = await supabase.auth.getClaims();
   if (!isAdmin(data?.claims)) {
     await supabase.auth.signOut();
-    return { error: "This account is not an administrator." };
+    return {
+      error: "The email or password does not match an admin account.",
+    };
   }
 
   redirect("/admin");

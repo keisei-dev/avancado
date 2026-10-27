@@ -2,48 +2,70 @@
 // TODO: implement
 
 import type { Metadata } from "next";
+import { Suspense } from "react";
+import { PostingChart } from "@/components/admin/posting-chart";
+import { ReviewQueue } from "@/components/admin/review-queue";
 import { StatCard } from "@/components/admin/stat-card";
-import { getDashboardStats } from "@/lib/admin/mock-data";
+import {
+  getDashboardStats,
+  getPostingTimes,
+  getReviewQueue,
+} from "@/lib/admin/mock-data";
+import { requireAdmin } from "@/lib/auth/admin";
 
 export const metadata: Metadata = {
   title: "Admin",
 };
 
-export default async function AdminDashboardPage() {
-  const stats = await getDashboardStats();
+export default function AdminDashboardPage() {
+  return (
+    <Suspense fallback={<p className="text-sm text-muted">Loading…</p>}>
+      <DashboardContent />
+    </Suspense>
+  );
+}
+
+async function DashboardContent() {
+  const [admin, stats, postingTimes, reviewQueue] = await Promise.all([
+    requireAdmin(),
+    getDashboardStats(),
+    getPostingTimes(),
+    getReviewQueue(),
+  ]);
+
+  const openCount = reviewQueue.filter(
+    (item) => item.target !== "verification",
+  ).length;
 
   return (
     <div>
-      <p className="text-[11px] font-extrabold uppercase tracking-[0.16em] text-sky-600">
-        Overview
+      <p className="text-xs font-semibold uppercase tracking-[0.06em] text-olive-hover">
+        {new Date().toLocaleDateString("en-CA", {
+          weekday: "long",
+          month: "long",
+          day: "numeric",
+        })}
       </p>
-      <h1 className="mt-1 text-[28px] font-bold tracking-tight text-slate-900">
-        Dashboard
+      <h1 className="font-display mt-1 text-[30px] font-bold tracking-tight text-brown">
+        Good morning, {admin.displayName}
       </h1>
-      <p className="mt-1 text-sm text-slate-500">
-        What is happening across Avancado today.
+      <p className="mt-1 text-sm text-muted">
+        Here is what is happening across Avancado today.
       </p>
-      <div className="mt-7 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        <StatCard
-          label="総ユーザー数"
-          value={stats.totalUsers}
-          hint="Registered members"
-        />
-        <StatCard
-          label="未対応の通報"
-          value={stats.openReports}
-          hint="Needs review"
-        />
-        <StatCard
-          label="本人確認の申請待ち"
-          value={stats.pendingVerifications}
-          hint="Waiting for approval"
-        />
-        <StatCard
-          label="シッター依頼の件数"
-          value={stats.sitterRequests}
-          hint="Open requests"
-        />
+      <div className="mt-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+        {stats.metrics.map((metric) => (
+          <StatCard
+            key={metric.key}
+            metricKey={metric.key}
+            label={metric.label}
+            value={metric.value}
+            hint={metric.hint}
+          />
+        ))}
+      </div>
+      <div className="mt-5 grid gap-4 xl:grid-cols-[1.4fr_1fr]">
+        <PostingChart buckets={postingTimes} />
+        <ReviewQueue items={reviewQueue} openCount={openCount} />
       </div>
     </div>
   );

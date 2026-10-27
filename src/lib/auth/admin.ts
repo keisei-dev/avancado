@@ -31,6 +31,8 @@ export function hasSupabaseEnv(): boolean {
 export type AdminUser = {
   id: string;
   email: string;
+  displayName: string;
+  initials: string;
 };
 
 /**
@@ -50,8 +52,35 @@ export async function requireAdmin(): Promise<AdminUser> {
     redirect(ADMIN_LOGIN_PATH);
   }
 
+  const email = claims?.email ?? "";
+
   return {
     id: claims?.sub ?? "",
-    email: claims?.email ?? "",
+    email,
+    displayName: displayNameFromEmail(email),
+    initials: initialsFromName(displayNameFromEmail(email)),
   };
+}
+
+function displayNameFromEmail(email: string): string {
+  const local = email.split("@")[0]?.trim() ?? "";
+  const parts = local.split(/[._-]+/).filter(Boolean);
+  if (parts.length === 0) {
+    return "Admin";
+  }
+
+  return parts
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1).toLowerCase())
+    .join(" ");
+}
+
+function initialsFromName(name: string): string {
+  const parts = name.split(/\s+/).filter(Boolean);
+  if (parts.length === 0) {
+    return "AD";
+  }
+  if (parts.length === 1) {
+    return parts[0].slice(0, 2).toUpperCase();
+  }
+  return `${parts[0][0]}${parts[1][0]}`.toUpperCase();
 }

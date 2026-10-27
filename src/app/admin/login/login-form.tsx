@@ -1,6 +1,7 @@
 "use client";
 
 import { useActionState } from "react";
+import { ArrowRight, LockKeyhole } from "lucide-react";
 import { loginAdmin, type LoginState } from "@/app/admin/login/actions";
 
 const initialState: LoginState = { error: null };
@@ -9,31 +10,31 @@ export function LoginForm() {
   const [state, formAction, pending] = useActionState(loginAdmin, initialState);
 
   return (
-    <form action={formAction} className="w-full max-w-md">
-      <div className="mb-6 grid h-12 w-12 place-items-center rounded-xl bg-sky-100 text-sky-600">
-        <LockIcon />
+    <form action={formAction} className="grid w-full max-w-[420px] gap-3.5">
+      <div className="grid h-[52px] w-[52px] place-items-center rounded-16 bg-sage-soft text-olive-hover">
+        <LockKeyhole aria-hidden="true" size={24} />
       </div>
-      <p className="text-[11px] font-extrabold uppercase tracking-[0.16em] text-sky-600">
+      <p className="text-xs font-semibold tracking-[0.06em] text-olive-hover uppercase">
         Secure admin access
       </p>
-      <h2 className="mt-2 text-3xl font-bold tracking-tight text-slate-900">
+      <h2 className="font-display text-3xl font-bold tracking-tight text-brown">
         Welcome back
       </h2>
-      <p className="mt-2 mb-8 text-sm text-slate-500">
+      <p className="mb-2 text-sm text-muted">
         Sign in with your administrator account to continue.
       </p>
-      <label className="mb-4 grid gap-2 text-sm font-semibold text-slate-700">
-        Email address
+      <label className="grid gap-1.5 text-[13px] font-semibold text-brown">
+        Email
         <input
           name="email"
           type="email"
           autoComplete="email"
           required
-          placeholder="admin@example.com"
-          className="h-12 rounded-lg border border-slate-200 bg-white px-3 text-sm font-normal text-slate-900 outline-none focus:border-sky-400 focus:ring-3 focus:ring-sky-600/10"
+          placeholder="you@example.com"
+          className="h-12 rounded-12 border border-line bg-white px-3 text-sm font-normal text-brown outline-none focus:border-olive focus:ring-3 focus:ring-olive/25"
         />
       </label>
-      <label className="mb-4 grid gap-2 text-sm font-semibold text-slate-700">
+      <label className="grid gap-1.5 text-[13px] font-semibold text-brown">
         Password
         <input
           name="password"
@@ -41,13 +42,13 @@ export function LoginForm() {
           autoComplete="current-password"
           required
           placeholder="Enter password"
-          className="h-12 rounded-lg border border-slate-200 bg-white px-3 text-sm font-normal text-slate-900 outline-none focus:border-sky-400 focus:ring-3 focus:ring-sky-600/10"
+          className="h-12 rounded-12 border border-line bg-white px-3 text-sm font-normal text-brown outline-none focus:border-olive focus:ring-3 focus:ring-olive/25"
         />
       </label>
       {state.error ? (
         <p
           role="alert"
-          className="mb-4 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700"
+          className="rounded-12 border border-coral/20 bg-coral-soft px-3 py-2 text-sm text-coral"
         >
           {state.error}
         </p>
@@ -55,26 +56,11 @@ export function LoginForm() {
       <button
         type="submit"
         disabled={pending}
-        className="flex h-12 w-full items-center justify-center rounded-xl bg-sky-600 text-sm font-bold text-white hover:bg-sky-700 disabled:opacity-70"
+        className="mt-1.5 flex h-12 w-full items-center justify-center gap-2 rounded-16 bg-olive text-sm font-bold text-white shadow-admin hover:bg-olive-hover disabled:opacity-70"
       >
-        {pending ? "Signing in…" : "Sign in to console"}
+        {pending ? "Signing in…" : "Sign in"}
+        {pending ? null : <ArrowRight aria-hidden="true" size={17} />}
       </button>
     </form>
-  );
-}
-
-function LockIcon() {
-  return (
-    <svg
-      aria-hidden="true"
-      viewBox="0 0 24 24"
-      className="h-6 w-6"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="1.8"
-    >
-      <rect x="5" y="11" width="14" height="10" rx="2" />
-      <path d="M8 11V8a4 4 0 0 1 8 0v3" />
-    </svg>
   );
 }
