@@ -131,6 +131,14 @@ model User {
   reviewedVerifications IdVerification[] @relation("VerificationReviewer")
   adminActionLogs       AdminActionLog[]
   pets                  Pet[]
+
+  sitterRequests     SitterRequest[]
+  sitterApplications SitterApply[]
+  sittingReports     SittingReport[]
+  reviewsWritten     Review[]        @relation("ReviewAuthor")
+  reviewsReceived    Review[]        @relation("ReviewTarget")
+  communityPosts     CommunityPost[]
+  postLikes          PostLike[]
 }
 
 model IdVerification {
@@ -185,6 +193,8 @@ model Pet {
   walkLogs          PetWalkLog[]
   toiletLogs        PetToiletLog[]
   emergencyContacts EmergencyContact[]
+
+  sitterRequests SitterRequest[]
 }
 
 model PetVaccine {
@@ -266,4 +276,101 @@ model EmergencyContact {
   notes      String?
 
   pet Pet @relation(fields: [petId], references: [id], onDelete: Cascade)
+}
+
+// ---------- Sitter Board ----------
+
+model SitterRequest {
+  id              String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  authorId        String        @db.Uuid
+  petId           String        @db.Uuid
+  title           String
+  description     String // Care notes.
+  areaName        String // Neighbourhood only, e.g. Kitsilano. Exact details are shared in Chat.
+  startAt         DateTime      @db.Timestamptz
+  endAt           DateTime      @db.Timestamptz
+  durationMinutes Int // Meaning is still an open item in the data structure doc.
+  status          RequestStatus @default(OPEN)
+  createdAt       DateTime      @default(now()) @db.Timestamptz
+  updatedAt       DateTime      @updatedAt @db.Timestamptz
+
+  author         User            @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  pet            Pet             @relation(fields: [petId], references: [id], onDelete: Restrict)
+  applications   SitterApply[]
+  sittingReports SittingReport[]
+  reviews        Review[]
+}
+
+model SitterApply {
+  id          String      @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  requestId   String      @db.Uuid
+  applicantId String      @db.Uuid
+  message     String // Short one-line message.
+  status      ApplyStatus @default(PENDING)
+  createdAt   DateTime    @default(now()) @db.Timestamptz
+
+  request   SitterRequest @relation(fields: [requestId], references: [id], onDelete: Cascade)
+  applicant User          @relation(fields: [applicantId], references: [id], onDelete: Cascade)
+
+  // One application per sitter per request.
+  @@unique([requestId, applicantId])
+}
+
+model SittingReport {
+  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  requestId String   @db.Uuid
+  authorId  String   @db.Uuid // The sitter.
+  notes     String // Raw notes written by the sitter.
+  summary   String[] // 3 bullet points from Gemini. An empty array means "not generated yet".
+  createdAt DateTime @default(now()) @db.Timestamptz
+
+  request SitterRequest @relation(fields: [requestId], references: [id], onDelete: Cascade)
+  author  User          @relation(fields: [authorId], references: [id], onDelete: Cascade)
+}
+
+model Review {
+  id         String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  requestId  String       @db.Uuid
+  reviewerId String       @db.Uuid // Author of the review.
+  revieweeId String       @db.Uuid // Person being reviewed.
+  rating     Int          @db.SmallInt // 1 to 5 (the CHECK is added in the migration SQL).
+  comment    String
+  status     ReviewStatus @default(ACTIVE)
+  createdAt  DateTime     @default(now()) @db.Timestamptz
+
+  request  SitterRequest @relation(fields: [requestId], references: [id], onDelete: Cascade)
+  reviewer User          @relation("ReviewAuthor", fields: [reviewerId], references: [id], onDelete: Cascade)
+  reviewee User          @relation("ReviewTarget", fields: [revieweeId], references: [id], onDelete: Cascade)
+
+  // One review per reviewer per request.
+  @@unique([requestId, reviewerId])
+}
+
+// ---------- Community ----------
+
+model CommunityPost {
+  id        String     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  authorId  String     @db.Uuid
+  type      PostType   @default(GENERAL)
+  imageUrl  String // One image per post.
+  caption   String
+  likeCount Int        @default(0) // Copy of the PostLike count for fast display.
+  status    PostStatus @default(ACTIVE)
+  createdAt DateTime   @default(now()) @db.Timestamptz
+  updatedAt DateTime   @updatedAt @db.Timestamptz
+
+  author User       @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  likes  PostLike[]
+}
+
+model PostLike {
+  postId    String   @db.Uuid
+  userId    String   @db.Uuid
+  createdAt DateTime @default(now()) @db.Timestamptz
+
+  post CommunityPost @relation(fields: [postId], references: [id], onDelete: Cascade)
+  user User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // The pair is the primary key, so one user cannot like a post twice.
+  @@id([postId, userId])
 }
