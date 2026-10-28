@@ -139,6 +139,14 @@ model User {
   reviewsReceived    Review[]        @relation("ReviewTarget")
   communityPosts     CommunityPost[]
   postLikes          PostLike[]
+
+  reportsFiled             Report[]                  @relation("ReportFiler")
+  reportsAgainst           Report[]                  @relation("ReportedUser")
+  reportsHandled           Report[]                  @relation("ReportHandler")
+  notifications            Notification[]
+  conversationsStarted     Conversation[]
+  conversationParticipants ConversationParticipant[]
+  messagesSent             Message[]
 }
 
 model IdVerification {
@@ -299,6 +307,9 @@ model SitterRequest {
   applications   SitterApply[]
   sittingReports SittingReport[]
   reviews        Review[]
+
+  reports       Report[]
+  conversations Conversation[]
 }
 
 model SitterApply {
@@ -342,6 +353,8 @@ model Review {
   reviewer User          @relation("ReviewAuthor", fields: [reviewerId], references: [id], onDelete: Cascade)
   reviewee User          @relation("ReviewTarget", fields: [revieweeId], references: [id], onDelete: Cascade)
 
+  reports Report[]
+
   // One review per reviewer per request.
   @@unique([requestId, reviewerId])
 }
@@ -361,6 +374,9 @@ model CommunityPost {
 
   author User       @relation(fields: [authorId], references: [id], onDelete: Cascade)
   likes  PostLike[]
+
+  reports       Report[]
+  conversations Conversation[]
 }
 
 model PostLike {
@@ -373,4 +389,120 @@ model PostLike {
 
   // The pair is the primary key, so one user cannot like a post twice.
   @@id([postId, userId])
+}
+
+// ---------- Pet-Friendly Map ----------
+
+model PlaceCategory {
+  id        String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name      String
+  slug      String @unique // e.g. food-drink
+  sortOrder Int // Order of the filter chips.
+
+  places Place[]
+}
+
+model Place {
+  id           String                               @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  categoryId   String                               @db.Uuid
+  name         String
+  description  String?
+  address      String
+  latitude     Decimal                              @db.Decimal(9, 6) // Used by Leaflet.
+  longitude    Decimal                              @db.Decimal(9, 6) // Used by Leaflet.
+  // PostGIS point for distance search. Prisma cannot read or write this type,
+  // so it is filled with SQL.
+  location     Unsupported("geography(Point,4326)")
+  openingHours String?
+  phone        String?
+  imageUrl     String?
+  status       PlaceStatus                          @default(ACTIVE)
+  createdAt    DateTime                             @default(now()) @db.Timestamptz
+  updatedAt    DateTime                             @updatedAt @db.Timestamptz
+
+  category PlaceCategory @relation(fields: [categoryId], references: [id], onDelete: Restrict)
+  reports  Report[]
+}
+
+// ---------- Chat ----------
+
+model Conversation {
+  id              String           @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  type            ConversationType
+  initiatorId     String           @db.Uuid // Who started the chat.
+  sitterRequestId String?          @db.Uuid // Set when type = SITTING.
+  postId          String?          @db.Uuid // Set when type = LOST_FOUND.
+  createdAt       DateTime         @default(now()) @db.Timestamptz
+
+  initiator     User                      @relation(fields: [initiatorId], references: [id], onDelete: Cascade)
+  sitterRequest SitterRequest?            @relation(fields: [sitterRequestId], references: [id], onDelete: Cascade)
+  post          CommunityPost?            @relation(fields: [postId], references: [id], onDelete: Cascade)
+  participants  ConversationParticipant[]
+  messages      Message[]
+
+  // One thread per person per request or post.
+  @@unique([sitterRequestId, initiatorId])
+  @@unique([postId, initiatorId])
+}
+
+model ConversationParticipant {
+  conversationId String    @db.Uuid
+  userId         String    @db.Uuid
+  archivedAt     DateTime? @db.Timestamptz // Per-person Archive.
+  lastReadAt     DateTime? @db.Timestamptz // Used to count unread messages.
+
+  conversation Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([conversationId, userId])
+}
+
+model Message {
+  id             String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  conversationId String   @db.Uuid
+  senderId       String   @db.Uuid
+  content        String
+  createdAt      DateTime @default(now()) @db.Timestamptz
+
+  conversation Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  sender       User         @relation(fields: [senderId], references: [id], onDelete: Cascade)
+}
+
+// ---------- Shared ----------
+
+model Report {
+  id             String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  reporterId     String       @db.Uuid
+  // Exactly one of the next five columns is filled (the CHECK is added in the migration SQL).
+  postId         String?      @db.Uuid
+  requestId      String?      @db.Uuid
+  reviewId       String?      @db.Uuid
+  placeId        String?      @db.Uuid
+  reportedUserId String?      @db.Uuid
+  reason         String
+  status         ReportStatus @default(OPEN)
+  handledById    String?      @db.Uuid
+  handledAt      DateTime?    @db.Timestamptz
+  createdAt      DateTime     @default(now()) @db.Timestamptz
+
+  reporter     User           @relation("ReportFiler", fields: [reporterId], references: [id], onDelete: Cascade)
+  post         CommunityPost? @relation(fields: [postId], references: [id], onDelete: Cascade)
+  request      SitterRequest? @relation(fields: [requestId], references: [id], onDelete: Cascade)
+  review       Review?        @relation(fields: [reviewId], references: [id], onDelete: Cascade)
+  place        Place?         @relation(fields: [placeId], references: [id], onDelete: Cascade)
+  reportedUser User?          @relation("ReportedUser", fields: [reportedUserId], references: [id], onDelete: Cascade)
+  handledBy    User?          @relation("ReportHandler", fields: [handledById], references: [id], onDelete: SetNull)
+}
+
+model Notification {
+  id        String           @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId    String           @db.Uuid // Recipient.
+  type      NotificationType
+  title     String
+  body      String?
+  linkPath  String? // App path to open when tapped, e.g. /sitter-board/123.
+  isRead    Boolean          @default(false)
+  createdAt DateTime         @default(now()) @db.Timestamptz
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
