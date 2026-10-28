@@ -422,6 +422,9 @@ model Place {
 
   category PlaceCategory @relation(fields: [categoryId], references: [id], onDelete: Restrict)
   reports  Report[]
+
+  // Spatial index for "nearby" searches. It is created in the migration SQL.
+  @@index([location], type: Gist)
 }
 
 // ---------- Chat ----------
