@@ -130,6 +130,7 @@ model User {
   idVerifications       IdVerification[] @relation("VerificationSubmitter")
   reviewedVerifications IdVerification[] @relation("VerificationReviewer")
   adminActionLogs       AdminActionLog[]
+  pets                  Pet[]
 }
 
 model IdVerification {
@@ -157,4 +158,112 @@ model AdminActionLog {
   createdAt  DateTime @default(now()) @db.Timestamptz
 
   admin User @relation(fields: [adminId], references: [id], onDelete: Restrict)
+}
+
+// ---------- Pets ----------
+
+model Pet {
+  id         String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  ownerId    String    @db.Uuid
+  name       String
+  species    Species
+  breed      String
+  birthDate  DateTime? @db.Date
+  weight     Decimal?  @db.Decimal(5, 2)
+  gender     Gender
+  isNeutered Boolean
+  notes      String? // Personality, allergies, behaviour issues, medication.
+  imageUrl   String?
+  createdAt  DateTime  @default(now()) @db.Timestamptz
+  updatedAt  DateTime  @updatedAt @db.Timestamptz
+
+  owner             User               @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  vaccines          PetVaccine[]
+  vetVisits         PetVetVisit[]
+  weightLogs        PetWeightLog[]
+  foodLogs          PetFoodLog[]
+  walkLogs          PetWalkLog[]
+  toiletLogs        PetToiletLog[]
+  emergencyContacts EmergencyContact[]
+}
+
+model PetVaccine {
+  id             String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  petId          String    @db.Uuid
+  vaccineName    String
+  administeredOn DateTime  @db.Date
+  nextDueOn      DateTime? @db.Date // Next booster date.
+  notes          String?
+  createdAt      DateTime  @default(now()) @db.Timestamptz
+
+  pet Pet @relation(fields: [petId], references: [id], onDelete: Cascade)
+}
+
+model PetVetVisit {
+  id         String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  petId      String   @db.Uuid
+  visitedOn  DateTime @db.Date
+  clinicName String?
+  reason     String
+  notes      String?
+  createdAt  DateTime @default(now()) @db.Timestamptz
+
+  pet Pet @relation(fields: [petId], references: [id], onDelete: Cascade)
+}
+
+model PetWeightLog {
+  id         String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  petId      String   @db.Uuid
+  weight     Decimal  @db.Decimal(5, 2) // kg
+  measuredOn DateTime @db.Date
+  createdAt  DateTime @default(now()) @db.Timestamptz
+
+  pet Pet @relation(fields: [petId], references: [id], onDelete: Cascade)
+}
+
+// Draft columns: confirm against the My Pets screens later.
+model PetFoodLog {
+  id       String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  petId    String   @db.Uuid
+  foodName String
+  amount   Decimal? @db.Decimal(8, 2)
+  unit     String? // e.g. g, cup
+  eatenAt  DateTime @db.Timestamptz
+  notes    String?
+
+  pet Pet @relation(fields: [petId], references: [id], onDelete: Cascade)
+}
+
+// Draft columns: confirm against the My Pets screens later.
+model PetWalkLog {
+  id              String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  petId           String   @db.Uuid
+  startedAt       DateTime @db.Timestamptz
+  durationMinutes Int
+  distanceKm      Decimal? @db.Decimal(6, 2)
+  notes           String?
+
+  pet Pet @relation(fields: [petId], references: [id], onDelete: Cascade)
+}
+
+// Draft columns: confirm against the My Pets screens later.
+model PetToiletLog {
+  id       String     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  petId    String     @db.Uuid
+  type     ToiletType
+  loggedAt DateTime   @db.Timestamptz
+  notes    String?
+
+  pet Pet @relation(fields: [petId], references: [id], onDelete: Cascade)
+}
+
+model EmergencyContact {
+  id         String  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  petId      String  @db.Uuid
+  clinicName String
+  phone      String
+  address    String?
+  notes      String?
+
+  pet Pet @relation(fields: [petId], references: [id], onDelete: Cascade)
 }
