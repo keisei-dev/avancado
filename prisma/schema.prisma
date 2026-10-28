@@ -11,3 +11,150 @@ generator client {
 datasource db {
   provider = "postgresql"
 }
+
+// ---------- Enums ----------
+// An enum limits a column to a fixed list of values.
+// The database rejects any other value.
+
+enum UserRole {
+  USER
+  ADMIN
+}
+
+enum AccountStatus {
+  ACTIVE
+  HIDDEN
+}
+
+enum VerificationStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum DocumentType {
+  BCID
+  PASSPORT
+  OTHER
+}
+
+enum Gender {
+  MALE
+  FEMALE
+  UNKNOWN
+}
+
+enum Species {
+  DOG
+  CAT
+}
+
+enum ToiletType {
+  POOP
+  PEE
+}
+
+enum RequestStatus {
+  OPEN
+  MATCHED
+  DONE
+  CANCELLED
+  HIDDEN
+}
+
+enum ApplyStatus {
+  PENDING
+  ACCEPTED
+  REJECTED
+}
+
+enum PostType {
+  GENERAL
+  LOST_PET
+}
+
+enum PostStatus {
+  ACTIVE
+  FOUND
+  HIDDEN
+}
+
+enum ReviewStatus {
+  ACTIVE
+  HIDDEN
+}
+
+enum PlaceStatus {
+  ACTIVE
+  HIDDEN
+}
+
+enum ReportStatus {
+  OPEN
+  RESOLVED
+  DISMISSED
+}
+
+enum NotificationType {
+  APPLICATION_RECEIVED
+  APPLICATION_ACCEPTED
+  APPLICATION_REJECTED
+  REQUEST_COMPLETED
+  VERIFICATION_APPROVED
+  VERIFICATION_REJECTED
+  NEW_MESSAGE
+}
+
+enum ConversationType {
+  SITTING
+  LOST_FOUND
+}
+
+// ---------- Account & Safety ----------
+
+model User {
+  // Same value as Supabase Auth's auth.users.id, so there is no default here.
+  id              String        @id @db.Uuid
+  email           String        @unique
+  name            String
+  phoneNumber     String? // Never shown to other users.
+  image           String? // Path in Supabase Storage.
+  role            UserRole      @default(USER)
+  accountStatus   AccountStatus @default(ACTIVE)
+  isVerified      Boolean       @default(false)
+  termsAcceptedAt DateTime      @db.Timestamptz
+  createdAt       DateTime      @default(now()) @db.Timestamptz
+  updatedAt       DateTime      @updatedAt @db.Timestamptz
+
+  // Relation fields (not real columns): they let us write user.idVerifications.
+  idVerifications       IdVerification[] @relation("VerificationSubmitter")
+  reviewedVerifications IdVerification[] @relation("VerificationReviewer")
+  adminActionLogs       AdminActionLog[]
+}
+
+model IdVerification {
+  id              String             @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId          String             @db.Uuid
+  documentType    DocumentType
+  documentPath    String? // Set to NULL after the file is deleted post-review.
+  status          VerificationStatus @default(PENDING)
+  reviewedById    String?            @db.Uuid
+  reviewedAt      DateTime?          @db.Timestamptz
+  rejectionReason String?
+  submittedAt     DateTime           @default(now()) @db.Timestamptz
+
+  user       User  @relation("VerificationSubmitter", fields: [userId], references: [id], onDelete: Cascade)
+  reviewedBy User? @relation("VerificationReviewer", fields: [reviewedById], references: [id], onDelete: SetNull)
+}
+
+model AdminActionLog {
+  id         String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  adminId    String   @db.Uuid
+  action     String // e.g. HIDE_POST, APPROVE_VERIFICATION
+  targetType String // Plain text on purpose: the log must survive deletion of the target.
+  targetId   String   @db.Uuid // No foreign key, for the same reason.
+  note       String?
+  createdAt  DateTime @default(now()) @db.Timestamptz
+
+  admin User @relation(fields: [adminId], references: [id], onDelete: Restrict)
+}
