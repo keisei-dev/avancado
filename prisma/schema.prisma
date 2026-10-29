@@ -1,0 +1,511 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Get a free hosted Postgres database in seconds: `npx create-db`
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ---------- Enums ----------
+// An enum limits a column to a fixed list of values.
+// The database rejects any other value.
+
+enum UserRole {
+  USER
+  ADMIN
+}
+
+enum AccountStatus {
+  ACTIVE
+  HIDDEN
+}
+
+enum VerificationStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum DocumentType {
+  BCID
+  PASSPORT
+  OTHER
+}
+
+enum Gender {
+  MALE
+  FEMALE
+  UNKNOWN
+}
+
+enum Species {
+  DOG
+  CAT
+}
+
+enum ToiletType {
+  POOP
+  PEE
+}
+
+enum RequestStatus {
+  OPEN
+  MATCHED
+  DONE
+  CANCELLED
+  HIDDEN
+}
+
+enum ApplyStatus {
+  PENDING
+  ACCEPTED
+  REJECTED
+}
+
+enum PostType {
+  GENERAL
+  LOST_PET
+}
+
+enum PostStatus {
+  ACTIVE
+  FOUND
+  HIDDEN
+}
+
+enum ReviewStatus {
+  ACTIVE
+  HIDDEN
+}
+
+enum PlaceStatus {
+  ACTIVE
+  HIDDEN
+}
+
+enum ReportStatus {
+  OPEN
+  RESOLVED
+  DISMISSED
+}
+
+enum NotificationType {
+  APPLICATION_RECEIVED
+  APPLICATION_ACCEPTED
+  APPLICATION_REJECTED
+  REQUEST_COMPLETED
+  VERIFICATION_APPROVED
+  VERIFICATION_REJECTED
+  NEW_MESSAGE
+}
+
+enum ConversationType {
+  SITTING
+  LOST_FOUND
+}
+
+// ---------- Account & Safety ----------
+
+model User {
+  // Same value as Supabase Auth's auth.users.id, so there is no default here.
+  id              String        @id @db.Uuid
+  email           String        @unique
+  name            String
+  phoneNumber     String? // Never shown to other users.
+  image           String? // Path in Supabase Storage.
+  role            UserRole      @default(USER)
+  accountStatus   AccountStatus @default(ACTIVE)
+  isVerified      Boolean       @default(false)
+  termsAcceptedAt DateTime      @db.Timestamptz
+  createdAt       DateTime      @default(now()) @db.Timestamptz
+  updatedAt       DateTime      @updatedAt @db.Timestamptz
+
+  // Relation fields (not real columns): they let us write user.idVerifications.
+  idVerifications       IdVerification[] @relation("VerificationSubmitter")
+  reviewedVerifications IdVerification[] @relation("VerificationReviewer")
+  adminActionLogs       AdminActionLog[]
+  pets                  Pet[]
+
+  sitterRequests     SitterRequest[]
+  sitterApplications SitterApply[]
+  sittingReports     SittingReport[]
+  reviewsWritten     Review[]        @relation("ReviewAuthor")
+  reviewsReceived    Review[]        @relation("ReviewTarget")
+  communityPosts     CommunityPost[]
+  postLikes          PostLike[]
+
+  reportsFiled             Report[]                  @relation("ReportFiler")
+  reportsAgainst           Report[]                  @relation("ReportedUser")
+  reportsHandled           Report[]                  @relation("ReportHandler")
+  notifications            Notification[]
+  conversationsStarted     Conversation[]
+  conversationParticipants ConversationParticipant[]
+  messagesSent             Message[]
+}
+
+model IdVerification {
+  id              String             @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId          String             @db.Uuid
+  documentType    DocumentType
+  documentPath    String? // Set to NULL after the file is deleted post-review.
+  status          VerificationStatus @default(PENDING)
+  reviewedById    String?            @db.Uuid
+  reviewedAt      DateTime?          @db.Timestamptz
+  rejectionReason String?
+  submittedAt     DateTime           @default(now()) @db.Timestamptz
+
+  user       User  @relation("VerificationSubmitter", fields: [userId], references: [id], onDelete: Cascade)
+  reviewedBy User? @relation("VerificationReviewer", fields: [reviewedById], references: [id], onDelete: SetNull)
+}
+
+model AdminActionLog {
+  id         String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  adminId    String   @db.Uuid
+  action     String // e.g. HIDE_POST, APPROVE_VERIFICATION
+  targetType String // Plain text on purpose: the log must survive deletion of the target.
+  targetId   String   @db.Uuid // No foreign key, for the same reason.
+  note       String?
+  createdAt  DateTime @default(now()) @db.Timestamptz
+
+  admin User @relation(fields: [adminId], references: [id], onDelete: Restrict)
+}
+
+// ---------- Pets ----------
+
+model Pet {
+  id         String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  ownerId    String    @db.Uuid
+  name       String
+  species    Species
+  breed      String
+  birthDate  DateTime? @db.Date
+  weight     Decimal?  @db.Decimal(5, 2)
+  gender     Gender
+  isNeutered Boolean
+  notes      String? // Personality, allergies, behaviour issues, medication.
+  imageUrl   String?
+  createdAt  DateTime  @default(now()) @db.Timestamptz
+  updatedAt  DateTime  @updatedAt @db.Timestamptz
+
+  owner             User               @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  vaccines          PetVaccine[]
+  vetVisits         PetVetVisit[]
+  weightLogs        PetWeightLog[]
+  foodLogs          PetFoodLog[]
+  walkLogs          PetWalkLog[]
+  toiletLogs        PetToiletLog[]
+  emergencyContacts EmergencyContact[]
+
+  sitterRequests SitterRequest[]
+}
+
+model PetVaccine {
+  id             String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  petId          String    @db.Uuid
+  vaccineName    String
+  administeredOn DateTime  @db.Date
+  nextDueOn      DateTime? @db.Date // Next booster date.
+  notes          String?
+  createdAt      DateTime  @default(now()) @db.Timestamptz
+
+  pet Pet @relation(fields: [petId], references: [id], onDelete: Cascade)
+}
+
+model PetVetVisit {
+  id         String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  petId      String   @db.Uuid
+  visitedOn  DateTime @db.Date
+  clinicName String?
+  reason     String
+  notes      String?
+  createdAt  DateTime @default(now()) @db.Timestamptz
+
+  pet Pet @relation(fields: [petId], references: [id], onDelete: Cascade)
+}
+
+model PetWeightLog {
+  id         String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  petId      String   @db.Uuid
+  weight     Decimal  @db.Decimal(5, 2) // kg
+  measuredOn DateTime @db.Date
+  createdAt  DateTime @default(now()) @db.Timestamptz
+
+  pet Pet @relation(fields: [petId], references: [id], onDelete: Cascade)
+}
+
+// Draft columns: confirm against the My Pets screens later.
+model PetFoodLog {
+  id       String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  petId    String   @db.Uuid
+  foodName String
+  amount   Decimal? @db.Decimal(8, 2)
+  unit     String? // e.g. g, cup
+  eatenAt  DateTime @db.Timestamptz
+  notes    String?
+
+  pet Pet @relation(fields: [petId], references: [id], onDelete: Cascade)
+}
+
+// Draft columns: confirm against the My Pets screens later.
+model PetWalkLog {
+  id              String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  petId           String   @db.Uuid
+  startedAt       DateTime @db.Timestamptz
+  durationMinutes Int
+  distanceKm      Decimal? @db.Decimal(6, 2)
+  notes           String?
+
+  pet Pet @relation(fields: [petId], references: [id], onDelete: Cascade)
+}
+
+// Draft columns: confirm against the My Pets screens later.
+model PetToiletLog {
+  id       String     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  petId    String     @db.Uuid
+  type     ToiletType
+  loggedAt DateTime   @db.Timestamptz
+  notes    String?
+
+  pet Pet @relation(fields: [petId], references: [id], onDelete: Cascade)
+}
+
+model EmergencyContact {
+  id         String  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  petId      String  @db.Uuid
+  clinicName String
+  phone      String
+  address    String?
+  notes      String?
+
+  pet Pet @relation(fields: [petId], references: [id], onDelete: Cascade)
+}
+
+// ---------- Sitter Board ----------
+
+model SitterRequest {
+  id              String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  authorId        String        @db.Uuid
+  petId           String        @db.Uuid
+  title           String
+  description     String // Care notes.
+  areaName        String // Neighbourhood only, e.g. Kitsilano. Exact details are shared in Chat.
+  startAt         DateTime      @db.Timestamptz
+  endAt           DateTime      @db.Timestamptz
+  durationMinutes Int // Meaning is still an open item in the data structure doc.
+  status          RequestStatus @default(OPEN)
+  createdAt       DateTime      @default(now()) @db.Timestamptz
+  updatedAt       DateTime      @updatedAt @db.Timestamptz
+
+  author         User            @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  pet            Pet             @relation(fields: [petId], references: [id], onDelete: Restrict)
+  applications   SitterApply[]
+  sittingReports SittingReport[]
+  reviews        Review[]
+
+  reports       Report[]
+  conversations Conversation[]
+}
+
+model SitterApply {
+  id          String      @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  requestId   String      @db.Uuid
+  applicantId String      @db.Uuid
+  message     String // Short one-line message.
+  status      ApplyStatus @default(PENDING)
+  createdAt   DateTime    @default(now()) @db.Timestamptz
+
+  request   SitterRequest @relation(fields: [requestId], references: [id], onDelete: Cascade)
+  applicant User          @relation(fields: [applicantId], references: [id], onDelete: Cascade)
+
+  // One application per sitter per request.
+  @@unique([requestId, applicantId])
+}
+
+model SittingReport {
+  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  requestId String   @db.Uuid
+  authorId  String   @db.Uuid // The sitter.
+  notes     String // Raw notes written by the sitter.
+  summary   String[] // 3 bullet points from Gemini. An empty array means "not generated yet".
+  createdAt DateTime @default(now()) @db.Timestamptz
+
+  request SitterRequest @relation(fields: [requestId], references: [id], onDelete: Cascade)
+  author  User          @relation(fields: [authorId], references: [id], onDelete: Cascade)
+}
+
+model Review {
+  id         String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  requestId  String       @db.Uuid
+  reviewerId String       @db.Uuid // Author of the review.
+  revieweeId String       @db.Uuid // Person being reviewed.
+  rating     Int          @db.SmallInt // 1 to 5 (the CHECK is added in the migration SQL).
+  comment    String
+  status     ReviewStatus @default(ACTIVE)
+  createdAt  DateTime     @default(now()) @db.Timestamptz
+
+  request  SitterRequest @relation(fields: [requestId], references: [id], onDelete: Cascade)
+  reviewer User          @relation("ReviewAuthor", fields: [reviewerId], references: [id], onDelete: Cascade)
+  reviewee User          @relation("ReviewTarget", fields: [revieweeId], references: [id], onDelete: Cascade)
+
+  reports Report[]
+
+  // One review per reviewer per request.
+  @@unique([requestId, reviewerId])
+}
+
+// ---------- Community ----------
+
+model CommunityPost {
+  id        String     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  authorId  String     @db.Uuid
+  type      PostType   @default(GENERAL)
+  imageUrl  String // One image per post.
+  caption   String
+  likeCount Int        @default(0) // Copy of the PostLike count for fast display.
+  status    PostStatus @default(ACTIVE)
+  createdAt DateTime   @default(now()) @db.Timestamptz
+  updatedAt DateTime   @updatedAt @db.Timestamptz
+
+  author User       @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  likes  PostLike[]
+
+  reports       Report[]
+  conversations Conversation[]
+}
+
+model PostLike {
+  postId    String   @db.Uuid
+  userId    String   @db.Uuid
+  createdAt DateTime @default(now()) @db.Timestamptz
+
+  post CommunityPost @relation(fields: [postId], references: [id], onDelete: Cascade)
+  user User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // The pair is the primary key, so one user cannot like a post twice.
+  @@id([postId, userId])
+}
+
+// ---------- Pet-Friendly Map ----------
+
+model PlaceCategory {
+  id        String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name      String
+  slug      String @unique // e.g. food-drink
+  sortOrder Int // Order of the filter chips.
+
+  places Place[]
+}
+
+model Place {
+  id           String                               @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  categoryId   String                               @db.Uuid
+  name         String
+  description  String?
+  address      String
+  latitude     Decimal                              @db.Decimal(9, 6) // Used by Leaflet.
+  longitude    Decimal                              @db.Decimal(9, 6) // Used by Leaflet.
+  // PostGIS point for distance search. Prisma cannot read or write this type,
+  // so it is filled with SQL.
+  location     Unsupported("geography(Point,4326)")
+  openingHours String?
+  phone        String?
+  imageUrl     String?
+  status       PlaceStatus                          @default(ACTIVE)
+  createdAt    DateTime                             @default(now()) @db.Timestamptz
+  updatedAt    DateTime                             @updatedAt @db.Timestamptz
+
+  category PlaceCategory @relation(fields: [categoryId], references: [id], onDelete: Restrict)
+  reports  Report[]
+
+  // Spatial index for "nearby" searches. It is created in the migration SQL.
+  @@index([location], type: Gist)
+}
+
+// ---------- Chat ----------
+
+model Conversation {
+  id              String           @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  type            ConversationType
+  initiatorId     String           @db.Uuid // Who started the chat.
+  sitterRequestId String?          @db.Uuid // Set when type = SITTING.
+  postId          String?          @db.Uuid // Set when type = LOST_FOUND.
+  createdAt       DateTime         @default(now()) @db.Timestamptz
+
+  initiator     User                      @relation(fields: [initiatorId], references: [id], onDelete: Cascade)
+  sitterRequest SitterRequest?            @relation(fields: [sitterRequestId], references: [id], onDelete: Cascade)
+  post          CommunityPost?            @relation(fields: [postId], references: [id], onDelete: Cascade)
+  participants  ConversationParticipant[]
+  messages      Message[]
+
+  // One thread per person per request or post.
+  @@unique([sitterRequestId, initiatorId])
+  @@unique([postId, initiatorId])
+}
+
+model ConversationParticipant {
+  conversationId String    @db.Uuid
+  userId         String    @db.Uuid
+  archivedAt     DateTime? @db.Timestamptz // Per-person Archive.
+  lastReadAt     DateTime? @db.Timestamptz // Used to count unread messages.
+
+  conversation Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([conversationId, userId])
+}
+
+model Message {
+  id             String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  conversationId String   @db.Uuid
+  senderId       String   @db.Uuid
+  content        String
+  createdAt      DateTime @default(now()) @db.Timestamptz
+
+  conversation Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  sender       User         @relation(fields: [senderId], references: [id], onDelete: Cascade)
+}
+
+// ---------- Shared ----------
+
+model Report {
+  id             String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  reporterId     String       @db.Uuid
+  // Exactly one of the next five columns is filled (the CHECK is added in the migration SQL).
+  postId         String?      @db.Uuid
+  requestId      String?      @db.Uuid
+  reviewId       String?      @db.Uuid
+  placeId        String?      @db.Uuid
+  reportedUserId String?      @db.Uuid
+  reason         String
+  status         ReportStatus @default(OPEN)
+  handledById    String?      @db.Uuid
+  handledAt      DateTime?    @db.Timestamptz
+  createdAt      DateTime     @default(now()) @db.Timestamptz
+
+  reporter     User           @relation("ReportFiler", fields: [reporterId], references: [id], onDelete: Cascade)
+  post         CommunityPost? @relation(fields: [postId], references: [id], onDelete: Cascade)
+  request      SitterRequest? @relation(fields: [requestId], references: [id], onDelete: Cascade)
+  review       Review?        @relation(fields: [reviewId], references: [id], onDelete: Cascade)
+  place        Place?         @relation(fields: [placeId], references: [id], onDelete: Cascade)
+  reportedUser User?          @relation("ReportedUser", fields: [reportedUserId], references: [id], onDelete: Cascade)
+  handledBy    User?          @relation("ReportHandler", fields: [handledById], references: [id], onDelete: SetNull)
+}
+
+model Notification {
+  id        String           @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId    String           @db.Uuid // Recipient.
+  type      NotificationType
+  title     String
+  body      String?
+  linkPath  String? // App path to open when tapped, e.g. /sitter-board/123.
+  isRead    Boolean          @default(false)
+  createdAt DateTime         @default(now()) @db.Timestamptz
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
