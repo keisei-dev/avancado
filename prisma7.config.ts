@@ -2,7 +2,7 @@
 // npm install --save-dev prisma dotenv
 
 import { config } from "dotenv";
-import { defineConfig, env } from "prisma/config";
+import { defineConfig } from "prisma/config";
 
 config({ path: ".env.local" });
 
@@ -13,6 +13,10 @@ export default defineConfig({
   },
   datasource: {
     // Migrations use the session-mode connection (port 5432).
-    url: env("DIRECT_URL"),
+    // `prisma generate` never connects to the database, so it must still work
+
+    url:
+      process.env.DIRECT_URL ??
+      "postgresql://missing-direct-url.invalid:5432/postgres",
   },
 });
