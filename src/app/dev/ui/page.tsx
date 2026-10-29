@@ -2,6 +2,8 @@
 // Add a section here each time a component in components/ui or
 // components/layout is built, so reviewers can check it in the browser.
 import type { Metadata } from "next";
+import { Plus, Search, Trash2 } from "lucide-react";
+import { Button, IconButton } from "@/components/ui/button";
 
 export const metadata: Metadata = {
   title: "UI library",
@@ -60,6 +62,8 @@ const COMPONENTS: { level: string; items: string[] }[] = [
   },
 ];
 
+const DONE = new Set(["Button"]);
+
 export default function UiLibraryPage() {
   return (
     <main className="font-admin mx-auto w-full max-w-5xl flex-1 bg-ivory px-4 py-10 text-brown sm:px-8">
@@ -87,6 +91,39 @@ export default function UiLibraryPage() {
       </section>
 
       <section className="mt-10">
+        <h2 className="font-display text-xl font-bold">Button</h2>
+        <div className="mt-4 space-y-4 rounded-16 border border-line bg-white p-6 shadow-card">
+          <div className="flex flex-wrap items-center gap-3">
+            <Button>Primary</Button>
+            <Button variant="secondary">Secondary</Button>
+            <Button variant="text">Text button</Button>
+            <Button variant="danger">
+              <Trash2 className="size-4" aria-hidden="true" /> Delete
+            </Button>
+          </div>
+          <div className="flex flex-wrap items-center gap-3">
+            <Button size="sm">Small</Button>
+            <Button size="sm" variant="secondary">
+              Small secondary
+            </Button>
+            <Button>
+              <Plus className="size-4" aria-hidden="true" /> With icon
+            </Button>
+          </div>
+          <div className="flex flex-wrap items-center gap-3">
+            <Button disabled>Disabled</Button>
+            <Button loading>Saving…</Button>
+            <Button variant="secondary" loading>
+              Loading
+            </Button>
+            <IconButton aria-label="Search">
+              <Search className="size-[18px]" aria-hidden="true" />
+            </IconButton>
+          </div>
+        </div>
+      </section>
+
+      <section className="mt-10">
         <h2 className="font-display text-xl font-bold">Components</h2>
         {COMPONENTS.map((group) => (
           <div key={group.level} className="mt-4">
@@ -97,7 +134,12 @@ export default function UiLibraryPage() {
                   key={item}
                   className="rounded-full border border-line bg-white px-3 py-1 text-sm"
                 >
-                  {item} <span className="text-muted">· to do</span>
+                  {item}{" "}
+                  <span
+                    className={DONE.has(item) ? "text-success" : "text-muted"}
+                  >
+                    · {DONE.has(item) ? "done" : "to do"}
+                  </span>
                 </li>
               ))}
             </ul>

@@ -1,83 +1,96 @@
 @import "tailwindcss";
 @import "leaflet/dist/leaflet.css";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+/*
+ * Design tokens. Every value here becomes a Tailwind class:
+ *   --color-olive    → bg-olive, text-olive, border-olive …
+ *   --radius-12      → rounded-12
+ *   --shadow-card    → shadow-card
+ *   --breakpoint-wide → wide:…
+ * Use the classes in components. Don't write custom CSS rules.
+ */
+@theme {
+  /* fonts (loaded with next/font in src/app/layout.tsx) */
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-geist-mono), ui-monospace, monospace;
   --font-admin: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
   --font-display:
-    var(--font-plus-jakarta), ui-sans-serif, system-ui, sans-serif;
+    var(--font-plus-jakarta), var(--font-inter), ui-sans-serif, system-ui,
+    sans-serif;
 
-  --color-olive: #568203;
-  --color-olive-hover: #354f05;
-  --color-sage: #d2e0ae;
-  --color-sage-soft: #e5edcf;
-  --color-brown: #3a2d20;
-  --color-muted: #7a6857;
-  --color-ivory: #faf8f0;
-  --color-cream: #f3efe2;
-  --color-line: #ece6d8;
-  --color-sidebar: #2b2118;
-  --color-amber-soft: #fff4d1;
-  --color-amber-ink: #6b4a00;
-  --color-coral: #b84536;
-  --color-coral-soft: #fcede9;
-  --color-success: #1e7046;
+  /* screen sizes: tablet = icon sidebar, wide = full sidebar */
+  --breakpoint-tablet: 900px;
+  --breakpoint-wide: 1240px;
 
-  --radius-10: 10px;
-  --radius-12: 12px;
-  --radius-16: 16px;
-  --radius-20: 20px;
-
-  --shadow-admin: 0 1px 2px rgb(58 45 32 / 0.05);
-
-  /* UI library tokens (from the final prototype) */
+  /* avocado */
+  --color-olive: #568203; /* brand, button fill (white text passes AA) */
+  --color-olive-hover: #354f05; /* hover / pressed, green text and links */
+  --color-olive-dark: #354f05; /* same as olive-hover, for text */
   --color-olive-soft: #8ead4b; /* decorative icons and fills only, never text */
-  --color-sage-faint: #f2f6e6;
+  --color-sage: #d2e0ae; /* borders of selected areas */
+  --color-sage-soft: #e5edcf; /* selected cards, badges */
+  --color-sage-faint: #f2f6e6; /* lightest wash */
+
+  /* neutrals */
+  --color-brown: #3a2d20; /* headings and body text */
   --color-brown-2: #5c4a39;
-  --color-beige: #c9b79c;
+  --color-muted: #7a6857; /* secondary text */
+  --color-beige: #c9b79c; /* hover borders */
+  --color-ivory: #faf8f0; /* page background */
+  --color-cream: #f3efe2; /* tab tracks, chips */
+  --color-line: #ece6d8;
   --color-line-strong: #dcd3c0;
   --color-placeholder: #a3957f;
+  --color-row-hover: #fdfcf7;
+  --color-sidebar: #2b2118; /* admin sidebar */
+
+  /* friendly accents, each with an "ink" colour for text on top */
   --color-amber: #ffe399; /* butter: unread, sponsored, pending */
+  --color-amber-soft: #fff4d1;
+  --color-amber-ink: #6b4a00;
   --color-peach: #ffd8c2; /* likes / paws */
   --color-peach-soft: #fff0e7;
   --color-peach-ink: #8a3d14;
   --color-sky: #b7e0ff; /* info */
   --color-sky-soft: #e3f2ff;
   --color-sky-ink: #1d4a70;
+  --color-sky-line: #cbe6fb;
   --color-lavender: #e8d7ff; /* category tags */
   --color-lavender-ink: #4e3a7a;
-  --color-star: #e0a82e;
+  --color-star: #e0a82e; /* rating stars */
+
+  /* status */
+  --color-success: #1e7046;
   --color-success-soft: #ddf2e5;
   --color-success-line: #b9e2c8;
+  --color-coral: #b84536; /* errors, delete, lost pets */
   --color-coral-hover: #9f3a2d;
+  --color-coral-soft: #fcede9;
   --color-coral-line: #f4cfc6;
 
-  /* Named so they don't replace Tailwind's shadow-sm/md/lg used elsewhere */
+  /* corners (rounded-full for pills) */
+  --radius-10: 10px;
+  --radius-12: 12px;
+  --radius-16: 16px;
+  --radius-20: 20px;
+
+  /* shadows. Own names, so Tailwind's shadow-sm/md/lg keep working */
+  --shadow-admin: 0 1px 2px rgb(58 45 32 / 0.05);
   --shadow-card:
     0 1px 2px rgb(58 45 32 / 0.05), 0 3px 10px rgb(58 45 32 / 0.04);
   --shadow-raised:
     0 2px 6px rgb(58 45 32 / 0.05), 0 12px 28px rgb(58 45 32 / 0.08);
   --shadow-overlay: 0 24px 64px rgb(58 45 32 / 0.18);
   --shadow-focus: 0 0 0 3px rgb(86 130 3 / 0.28);
+
+  /* motion */
+  --ease-soft: cubic-bezier(0.2, 0.7, 0.3, 1);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+@layer base {
+  body {
+    @apply bg-ivory font-sans text-brown antialiased;
+    font-synthesis: none;
+    text-rendering: optimizeLegibility;
   }
-}
-
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
 }

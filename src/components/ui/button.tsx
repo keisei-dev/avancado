@@ -1,70 +1,86 @@
 // UI library (P1): Button, IconButton
-// TODO: implement. See docs/UI-LIBRARY.md for conventions.
 /**
- * Variants: primary (olive fill), secondary (outline), text, danger (coral).
- * Sizes: sm, md. States: hover, focus, disabled, loading. Pill shape.
- * IconButton: round, icon only, needs an aria-label.
+ * Button variants: primary (olive fill), secondary (outline), text, danger (coral).
+ * Sizes: sm (36px), md (44px). States: hover, focus, disabled, loading. Pill shape.
+ * IconButton: square-ish, icon only, needs an aria-label.
  * Server-safe (no "use client").
  */
 
+import type { ButtonHTMLAttributes } from "react";
+import { Loader2 } from "lucide-react";
+import { cn } from "@/lib/cn";
 
-import { ButtonHTMLAttributes, ReactNode } from "react";
-import { cn } from "@/lib/utils";
+const VARIANTS = {
+  primary: "bg-olive text-white shadow-admin hover:bg-olive-hover",
+  secondary:
+    "border border-line-strong bg-white text-brown hover:border-beige hover:bg-ivory",
+  text: "text-olive-dark hover:text-olive",
+  danger: "bg-coral text-white hover:bg-coral-hover",
+} as const;
 
-interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
-  variant?: "primary" | "secondary" | "text" | "danger";
-  size?: "sm" | "md";
+const SIZES = {
+  sm: "min-h-9 px-4 text-[13px]",
+  md: "min-h-11 px-5 text-sm",
+} as const;
+
+export type ButtonProps = ButtonHTMLAttributes<HTMLButtonElement> & {
+  variant?: keyof typeof VARIANTS;
+  size?: keyof typeof SIZES;
   loading?: boolean;
-  children: ReactNode;
-}
+};
 
 export function Button({
   variant = "primary",
   size = "md",
   loading = false,
+  type = "button",
   className,
   children,
   ...props
 }: ButtonProps) {
   return (
     <button
-      className={cn(
-        "inline-flex items-center justify-center rounded-md font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none",
-        variant === "primary" && "bg-olive text-white hover:bg-olive-dark",
-        variant === "secondary" && "border border-olive text-olive hover:bg-olive-light",
-        variant === "text" && "text-olive hover:bg-olive-light",
-        variant === "danger" && "bg-coral text-white hover:bg-coral-dark",
-        size === "sm" && "px-3 py-1 text-sm",
-        size === "md" && "px-4 py-2 text-base",
-        className
-      )}
-      disabled={loading || props.disabled}
+      type={type}
       {...props}
-    >
-      {loading ? (
-        <svg
-          className="animate-spin h-5 w-5 text-white"
-          xmlns="http://www.w3.org/2000/svg"
-          fill="none"
-          viewBox="0 0 24 24"
-        >
-          <circle
-            className="opacity-25"
-            cx="12"
-            cy="12"
-            r="10"
-            stroke="currentColor"
-            strokeWidth="4"
-          ></circle>
-          <path
-            className="opacity-75"
-            fill="currentColor"
-            d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
-          ></path>
-        </svg>
-      ) : (
-        children
+      disabled={loading || props.disabled}
+      aria-busy={loading || undefined}
+      className={cn(
+        "inline-flex items-center justify-center gap-2 rounded-full font-semibold whitespace-nowrap transition-colors",
+        "focus-visible:shadow-focus focus-visible:outline-none",
+        "disabled:cursor-not-allowed disabled:opacity-45",
+        VARIANTS[variant],
+        variant !== "text" && SIZES[size],
+        className,
       )}
+    >
+      {loading && (
+        <Loader2 className="size-4 animate-spin" aria-hidden="true" />
+      )}
+      {children}
     </button>
+  );
+}
+
+export type IconButtonProps = ButtonHTMLAttributes<HTMLButtonElement> & {
+  "aria-label": string; // required: icon-only buttons need a name
+};
+
+export function IconButton({
+  type = "button",
+  className,
+  ...props
+}: IconButtonProps) {
+  return (
+    <button
+      type={type}
+      {...props}
+      className={cn(
+        "inline-grid size-[38px] place-items-center rounded-12 border border-line bg-white text-brown-2 transition-colors",
+        "hover:border-line-strong hover:bg-ivory",
+        "focus-visible:shadow-focus focus-visible:outline-none",
+        "disabled:cursor-not-allowed disabled:opacity-45",
+        className,
+      )}
+    />
   );
 }

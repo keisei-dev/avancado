@@ -6,4 +6,17 @@
  * owner to move it here and import it from both places.
  */
 
-export {};
+import { BrandMark } from "@/components/admin/brand-mark";
+
+const BrandLogo = () => {
+  return (
+    <div className="flex items-center gap-2">
+      <BrandMark />
+      <span className="text-lg font-bold text-zinc-900 dark:text-zinc-100">
+        Avancado
+      </span>
+    </div>
+  );
+};
+
+export { BrandLogo };
