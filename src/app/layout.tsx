@@ -1,42 +1,20 @@
-import type { Metadata } from "next";
-import { Geist, Geist_Mono, Inter, Plus_Jakarta_Sans } from "next/font/google";
-import "./globals.css";
+// src/app/(main)/layout.tsx
+import { Suspense } from "react";
+import { SideNav } from "@/components/layout/side-nav";
+import { TopBar } from "@/components/layout/top-bar";
+import { MobileTabBar } from "@/components/layout/mobile-tab-bar";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
-
-const inter = Inter({
-  variable: "--font-inter",
-  subsets: ["latin"],
-});
-
-const plusJakartaSans = Plus_Jakarta_Sans({
-  variable: "--font-plus-jakarta",
-  subsets: ["latin"],
-});
-
-export const metadata: Metadata = {
-  title: {
-    default: "Avancado",
-    template: "%s | Avancado",
-  },
-  description: "A community web app for pet owners in Vancouver.",
-};
-
-export default function RootLayout({ children }: LayoutProps<"/">) {
+export default function MainLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html
-      lang="en"
-      className={`${geistSans.variable} ${geistMono.variable} ${inter.variable} ${plusJakartaSans.variable} h-full antialiased`}
-    >
-      <body className="min-h-full flex flex-col">{children}</body>
-    </html>
+    <div className="grid min-h-screen bg-ivory tablet:grid-cols-[80px_1fr] wide:grid-cols-[252px_1fr]">
+      <SideNav />
+      <div className="min-w-0">
+        <Suspense fallback={<div className="h-16" />}>
+          <TopBar />
+        </Suspense>
+        <main>{children}</main>
+      </div>
+      <MobileTabBar />
+    </div>
   );
 }

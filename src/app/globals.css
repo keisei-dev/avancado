@@ -37,6 +37,36 @@
   --radius-20: 20px;
 
   --shadow-admin: 0 1px 2px rgb(58 45 32 / 0.05);
+
+  /* UI library tokens (from the final prototype) */
+  --color-olive-soft: #8ead4b; /* decorative icons and fills only, never text */
+  --color-sage-faint: #f2f6e6;
+  --color-brown-2: #5c4a39;
+  --color-beige: #c9b79c;
+  --color-line-strong: #dcd3c0;
+  --color-placeholder: #a3957f;
+  --color-amber: #ffe399; /* butter: unread, sponsored, pending */
+  --color-peach: #ffd8c2; /* likes / paws */
+  --color-peach-soft: #fff0e7;
+  --color-peach-ink: #8a3d14;
+  --color-sky: #b7e0ff; /* info */
+  --color-sky-soft: #e3f2ff;
+  --color-sky-ink: #1d4a70;
+  --color-lavender: #e8d7ff; /* category tags */
+  --color-lavender-ink: #4e3a7a;
+  --color-star: #e0a82e;
+  --color-success-soft: #ddf2e5;
+  --color-success-line: #b9e2c8;
+  --color-coral-hover: #9f3a2d;
+  --color-coral-line: #f4cfc6;
+
+  /* Named so they don't replace Tailwind's shadow-sm/md/lg used elsewhere */
+  --shadow-card:
+    0 1px 2px rgb(58 45 32 / 0.05), 0 3px 10px rgb(58 45 32 / 0.04);
+  --shadow-raised:
+    0 2px 6px rgb(58 45 32 / 0.05), 0 12px 28px rgb(58 45 32 / 0.08);
+  --shadow-overlay: 0 24px 64px rgb(58 45 32 / 0.18);
+  --shadow-focus: 0 0 0 3px rgb(86 130 3 / 0.28);
 }
 
 @media (prefers-color-scheme: dark) {
