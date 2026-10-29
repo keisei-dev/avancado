@@ -1,52 +1,125 @@
 "use client";
 
+// UI library (P2): TopBar
 /**
- * Messages, notifications (unread dot) and avatar menu when logged in;
- * Log in / Sign up for guests.
+ * Sticky bar above every member page.
+ * - Logged in: Messages and Notifications (with unread count) + AccountMenu
+ * - Guest: Log in / Sign up
+ * The logo shows on phones only (the SideNav already has it on bigger screens).
+ * Pure UI: the auth owner passes `user`, the unread counts and `logoutAction`.
  */
 
 import Link from "next/link";
-import { Bell, MessageCircle, UserCircle } from "lucide-react";
-import { BrandMark } from "@/components/admin/brand-mark";
+import { usePathname } from "next/navigation";
+import { Bell, MessageCircle } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
+import { cn } from "@/lib/cn";
+import { buttonClass } from "@/components/ui/button";
+import { BrandLogo } from "@/components/layout/brand-logo";
+import {
+  AccountMenu,
+  type AccountMenuUser,
+} from "@/components/layout/account-menu";
 
-export function TopBar() {
+export type TopBarProps = {
+  /** null = guest. */
+  user: AccountMenuUser | null;
+  unreadMessages?: number;
+  unreadNotifications?: number;
+  logoutAction?: () => void | Promise<void>;
+};
+
+export function TopBar({
+  user,
+  unreadMessages = 0,
+  unreadNotifications = 0,
+  logoutAction,
+}: TopBarProps) {
+  const pathname = usePathname();
+
   return (
-    <header className="border-b border-zinc-200 bg-white">
-      <div className="mx-auto flex min-h-16 items-center justify-between px-4 sm:px-6">
-        <Link className="flex items-center" href="/" aria-label="Avancado home">
-          <BrandMark size="sm" />
+    <header className="sticky top-0 z-50 border-b border-line bg-ivory/88 backdrop-blur-md backdrop-saturate-150">
+      <div className="flex h-16 items-center justify-between gap-4 px-4 tablet:px-7">
+        <Link
+          href="/"
+          aria-label="Avancado home"
+          className="rounded-12 focus-visible:shadow-focus focus-visible:outline-none tablet:invisible"
+        >
+          <BrandLogo />
         </Link>
+
         <div className="flex items-center gap-2">
-          <Link className="rounded-md p-2 text-zinc-700 hover:bg-zinc-100" href="/messages" aria-label="Messages" title="Messages">
-            <MessageCircle size={19} />
-          </Link>
-          <Link className="rounded-md p-2 text-zinc-700 hover:bg-zinc-100" href="/notifications" aria-label="Notifications" title="Notifications">
-            <Bell size={19} />
-          </Link>
-          <Link className="rounded-md p-2 text-zinc-700 hover:bg-zinc-100" href="/profile/me" aria-label="Profile" title="Profile">
-            <UserCircle size={19} />
-          </Link>
-          <div className="ml-2 flex items-center gap-2">
-            <Link className="inline-flex min-h-11 items-center justify-center gap-2
-    rounded-full px-5 text-sm font-semibold
-    border border-transparent
-    bg-transparent
-    hover:bg-[var(--cream)]
-    text-[var(--brown-dark)] hover:text-[var(--brown-dark-hover)]
-" href="/login">
-              Log in
-            </Link>
-            <Link className="inline-flex min-h-11 items-center justify-center gap-2
-    rounded-full px-5 text-sm font-semibold
-    border border-transparent
-    bg-[var(--olive-deep)] text-white
-    hover:bg-[var(--olive-deep-hover)]
-" href="/signup">
-              Sign up
-            </Link>
-          </div>
+          {user ? (
+            <>
+              <HeaderIconLink
+                href="/messages"
+                label="Messages"
+                icon={MessageCircle}
+                count={unreadMessages}
+                active={pathname.startsWith("/messages")}
+              />
+              <HeaderIconLink
+                href="/notifications"
+                label="Notifications"
+                icon={Bell}
+                count={unreadNotifications}
+                active={pathname.startsWith("/notifications")}
+              />
+              <AccountMenu user={user} logoutAction={logoutAction} />
+            </>
+          ) : (
+            <>
+              <Link
+                href="/login"
+                className="rounded-full px-3 py-2 text-sm font-semibold text-brown-2 transition-colors hover:bg-cream hover:text-brown focus-visible:shadow-focus focus-visible:outline-none"
+              >
+                Log in
+              </Link>
+              <Link
+                href="/signup"
+                className={buttonClass({ className: "min-h-10" })}
+              >
+                Sign up
+              </Link>
+            </>
+          )}
         </div>
       </div>
     </header>
+  );
+}
+
+function HeaderIconLink({
+  href,
+  label,
+  icon: Icon,
+  count,
+  active,
+}: {
+  href: string;
+  label: string;
+  icon: LucideIcon;
+  count: number;
+  active: boolean;
+}) {
+  return (
+    <Link
+      href={href}
+      title={label}
+      aria-label={count ? `${label}, ${count} unread` : label}
+      aria-current={active ? "page" : undefined}
+      className={cn(
+        "relative grid size-10 place-items-center rounded-12 border border-line bg-white text-brown-2 transition-colors",
+        "hover:border-line-strong hover:text-brown focus-visible:shadow-focus focus-visible:outline-none",
+        active && "border-sage bg-sage-soft text-olive-dark",
+      )}
+    >
+      <Icon size={19} aria-hidden="true" />
+      {count > 0 && (
+        <span className="absolute -top-[5px] -right-[5px] grid h-[18px] min-w-[18px] place-items-center rounded-full border-2 border-ivory bg-coral px-[5px] text-[10px] font-bold text-white">
+          {count > 99 ? "99+" : count}
+        </span>
+      )}
+    </Link>
   );
 }

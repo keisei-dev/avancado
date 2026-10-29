@@ -1,22 +1,43 @@
 // UI library (P2): BrandLogo
-// TODO: implement. See docs/UI-LIBRARY.md for conventions.
 /**
- * Avocado mark + "Avancado". Light and dark.
- * Admin already has components/admin/brand-mark.tsx; agree with the admin
- * owner to move it here and import it from both places.
+ * Avocado mark + "Avancado". Light (on ivory) and dark (on the admin sidebar).
+ * Server-safe.
  */
 
-import { BrandMark } from "@/components/admin/brand-mark";
+import Image from "next/image";
+import { cn } from "@/lib/cn";
 
-const BrandLogo = () => {
-  return (
-    <div className="flex items-center gap-2">
-      <BrandMark />
-      <span className="text-lg font-bold text-zinc-900 dark:text-zinc-100">
-        Avancado
-      </span>
-    </div>
-  );
+export type BrandLogoProps = {
+  tone?: "light" | "dark";
+  /** Extra classes for the word, e.g. "hidden wide:inline" to show the mark only. */
+  nameClassName?: string;
+  className?: string;
 };
 
-export { BrandLogo };
+export function BrandLogo({
+  tone = "light",
+  nameClassName,
+  className,
+}: BrandLogoProps) {
+  return (
+    <span className={cn("flex items-center gap-2.5", className)}>
+      <Image
+        src="/images/avancado-icon.png"
+        alt=""
+        width={266}
+        height={387}
+        priority
+        className="h-[34px] w-auto"
+      />
+      <span
+        className={cn(
+          "font-display text-[21px] font-extrabold tracking-[-0.03em]",
+          tone === "dark" ? "text-white" : "text-brown",
+          nameClassName,
+        )}
+      >
+        Avancado
+      </span>
+    </span>
+  );
+}

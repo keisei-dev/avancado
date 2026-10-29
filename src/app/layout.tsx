@@ -2,10 +2,8 @@ import type { Metadata } from "next";
 import { Geist_Mono, Inter, Plus_Jakarta_Sans } from "next/font/google";
 import "./globals.css";
 
-import { Suspense } from "react";
-import { SideNav } from "@/components/layout/side-nav";
+import { AppShell } from "@/components/layout/app-shell";
 import { TopBar } from "@/components/layout/top-bar";
-// import { MobileTabBar } from "@/components/layout/mobile-tab-bar";
 
 const geistMono = Geist_Mono({
   variable: "--font-geist-mono",
@@ -30,19 +28,11 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${geistMono.variable} ${inter.variable} ${plusJakartaSans.variable}`}
+      className={`${geistMono.variable} ${inter.variable} ${plusJakartaSans.variable} h-full`}
     >
-      <body>
-        <div className="grid min-h-screen bg-ivory tablet:grid-cols-[80px_1fr] wide:grid-cols-[252px_1fr]">
-          <SideNav />
-          <div className="min-w-0">
-            <Suspense fallback={<div className="h-16" />}>
-              <TopBar />
-            </Suspense>
-            <main>{children}</main>
-          </div>
-          {/* <MobileTabBar /> */}
-        </div>
+      <body className="flex min-h-full flex-col antialiased">
+        {/* TODO(auth owner): pass the signed-in member, unread counts and logoutAction. */}
+        <AppShell topBar={<TopBar user={null} />}>{children}</AppShell>
       </body>
     </html>
   );

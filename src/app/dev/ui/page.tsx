@@ -4,6 +4,8 @@
 import type { Metadata } from "next";
 import { Plus, Search, Trash2 } from "lucide-react";
 import { Button, IconButton } from "@/components/ui/button";
+import { Avatar } from "@/components/ui/avatar";
+import { TopBar } from "@/components/layout/top-bar";
 
 export const metadata: Metadata = {
   title: "UI library",
@@ -62,7 +64,15 @@ const COMPONENTS: { level: string; items: string[] }[] = [
   },
 ];
 
-const DONE = new Set(["Button"]);
+const DONE = new Set([
+  "Button",
+  "Avatar",
+  "BrandLogo",
+  "SideNav",
+  "TopBar",
+  "MobileTabBar",
+  "AccountMenu",
+]);
 
 export default function UiLibraryPage() {
   return (
@@ -120,6 +130,39 @@ export default function UiLibraryPage() {
               <Search className="size-[18px]" aria-hidden="true" />
             </IconButton>
           </div>
+        </div>
+      </section>
+
+      <section className="mt-10">
+        <h2 className="font-display text-xl font-bold">Top bar</h2>
+        <p className="mt-1 text-sm text-muted">
+          Guest and signed in. Open the avatar to see the account menu. The logo
+          only shows on phones.
+        </p>
+        <div className="mt-4 grid gap-4">
+          <div className="rounded-16 border border-line">
+            <TopBar user={null} />
+          </div>
+          <div className="relative z-10 rounded-16 border border-line pb-64">
+            <TopBar
+              user={{
+                name: "Maya Thompson",
+                email: "maya@avancado.ca",
+                verified: true,
+              }}
+              unreadMessages={3}
+              unreadNotifications={12}
+            />
+          </div>
+        </div>
+      </section>
+
+      <section className="mt-10">
+        <h2 className="font-display text-xl font-bold">Avatar</h2>
+        <div className="mt-4 flex items-center gap-4 rounded-16 border border-line bg-white p-6 shadow-card">
+          <Avatar name="Maya Thompson" size="sm" />
+          <Avatar name="Daniel Kim" />
+          <Avatar name="Ava Brooks" size="lg" verified />
         </div>
       </section>
 

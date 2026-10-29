@@ -1,64 +1,86 @@
 "use client";
 
 // UI library (P2): SideNav
-// TODO: implement. See docs/UI-LIBRARY.md for conventions.
 /**
- * Desktop left menu: Home, Community, Sitter board, Map, My pets.
- * Active item; collapses to icons with tooltips at ≤1240px; footer links
- * (Terms, Safety, Privacy). Hidden at ≤900px. Needs "use client" (usePathname).
+ * Desktop left menu: logo, the 5 main pages, and Terms / Safety / Privacy.
+ * - wide (≥1240px): 252px with labels
+ * - tablet (900–1239px): 80px, icons only (label in a tooltip)
+ * - phone (<900px): hidden; MobileTabBar takes over
+ * Needs "use client" for usePathname (active item).
  */
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import {
-  Home,
-  UsersRound,
-  Dog,
-  MapPin,
-  PawPrint,
-} from "lucide-react";
+import { cn } from "@/lib/cn";
 import { BrandLogo } from "@/components/layout/brand-logo";
-
-export type UserPage = "home" | "sitters" | "community" | "map" | "pets" | "profile" | "publicProfile" | "messages" | "terms" | "safety" | "privacy";
-
+import {
+  LEGAL_LINKS,
+  NAV_ITEMS,
+  isNavActive,
+} from "@/components/layout/nav-items";
 
 export function SideNav() {
-    const items: { id: UserPage; label: string; icon: typeof Home }[] = [
-    { id: "home", label: "Home", icon: Home },
-    { id: "community", label: "Community", icon: UsersRound },
-    { id: "sitters", label: "Sitter board", icon: Dog },
-    { id: "map", label: "Pet-friendly map", icon: MapPin },
-    { id: "pets", label: "My pets", icon: PawPrint },
-    ];
+  const pathname = usePathname();
 
-    const pathname = usePathname();
+  return (
+    <aside className="sticky top-0 z-40 hidden h-screen flex-col gap-[18px] border-r border-line bg-white/50 px-2.5 py-5 tablet:flex wide:px-3.5 wide:pt-[22px] wide:pb-[18px]">
+      <Link
+        href="/"
+        aria-label="Avancado home"
+        className="self-center rounded-12 pt-1 pb-3 focus-visible:shadow-focus focus-visible:outline-none wide:self-start wide:px-2.5"
+      >
+        <BrandLogo nameClassName="hidden wide:inline" />
+      </Link>
 
-    return (
-        <nav className="fixed top-0 left-0 h-screen w-64 bg-white shadow-md">
-            
-            <div className="flex items-center justify-center p-4">
-                <BrandLogo />
-            </div>
-            <ul className="flex flex-col mt-8">
-                {items.map((item) => (
-                    <li key={item.id} className="mb-4">
-                        <Link
-                            href={`/${item.id}`}
-                            className={`flex items-center px-4 py-2 text-gray-700 hover:bg-[var(--cream)] ${
-                                pathname === `/${item.id}` ? "bg-gray-200" : ""
-                            }`}
-                        >
-                            <item.icon className="w-5 h-5 mr-2" />
-                            {item.label}
-                        </Link>
-                    </li>
-                ))}
-            </ul>
-        </nav>
-    );
+      <nav aria-label="Main">
+        <ul className="grid gap-0.5">
+          {NAV_ITEMS.map((item) => {
+            const active = isNavActive(pathname, item.href);
+            const Icon = item.icon;
+            return (
+              <li key={item.href}>
+                <Link
+                  href={item.href}
+                  title={item.label}
+                  aria-current={active ? "page" : undefined}
+                  className={cn(
+                    "flex items-center justify-center gap-3.5 rounded-12 p-2.5 text-[15px] font-medium text-brown-2 transition-colors",
+                    "hover:bg-cream hover:text-brown focus-visible:shadow-focus focus-visible:outline-none",
+                    "wide:justify-start wide:px-3",
+                    active &&
+                      "bg-white font-bold text-brown shadow-admin hover:bg-white",
+                  )}
+                >
+                  <span className="grid size-7 shrink-0 place-items-center">
+                    <Icon
+                      size={21}
+                      strokeWidth={active ? 2.4 : 2}
+                      className={active ? "text-olive" : undefined}
+                      aria-hidden="true"
+                    />
+                  </span>
+                  <span className="sr-only wide:not-sr-only">{item.label}</span>
+                </Link>
+              </li>
+            );
+          })}
+        </ul>
+      </nav>
+
+      <nav
+        aria-label="Legal"
+        className="mt-auto hidden flex-wrap gap-x-3 gap-y-1 px-3 wide:flex"
+      >
+        {LEGAL_LINKS.map((link) => (
+          <Link
+            key={link.href}
+            href={link.href}
+            className="text-xs text-muted transition-colors hover:text-brown"
+          >
+            {link.label}
+          </Link>
+        ))}
+      </nav>
+    </aside>
+  );
 }
-
-export {};
-
-
-

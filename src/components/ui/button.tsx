@@ -23,6 +23,26 @@ const SIZES = {
   md: "min-h-11 px-5 text-sm",
 } as const;
 
+/** Button look for things that aren't a <button>, e.g. a Next.js <Link>. */
+export function buttonClass({
+  variant = "primary",
+  size = "md",
+  className,
+}: {
+  variant?: keyof typeof VARIANTS;
+  size?: keyof typeof SIZES;
+  className?: string;
+} = {}) {
+  return cn(
+    "inline-flex items-center justify-center gap-2 rounded-full font-semibold whitespace-nowrap transition-colors",
+    "focus-visible:shadow-focus focus-visible:outline-none",
+    "disabled:cursor-not-allowed disabled:opacity-45",
+    VARIANTS[variant],
+    variant !== "text" && SIZES[size],
+    className,
+  );
+}
+
 export type ButtonProps = ButtonHTMLAttributes<HTMLButtonElement> & {
   variant?: keyof typeof VARIANTS;
   size?: keyof typeof SIZES;
@@ -44,14 +64,7 @@ export function Button({
       {...props}
       disabled={loading || props.disabled}
       aria-busy={loading || undefined}
-      className={cn(
-        "inline-flex items-center justify-center gap-2 rounded-full font-semibold whitespace-nowrap transition-colors",
-        "focus-visible:shadow-focus focus-visible:outline-none",
-        "disabled:cursor-not-allowed disabled:opacity-45",
-        VARIANTS[variant],
-        variant !== "text" && SIZES[size],
-        className,
-      )}
+      className={buttonClass({ variant, size, className })}
     >
       {loading && (
         <Loader2 className="size-4 animate-spin" aria-hidden="true" />
