@@ -1,3 +1,4 @@
+import { connection } from "next/server";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { ADMIN_LOGIN_PATH } from "@/lib/auth/paths";
@@ -44,6 +45,10 @@ export async function requireAdmin(): Promise<AdminUser> {
   if (!hasSupabaseEnv() || !hasDatabaseEnv()) {
     redirect(ADMIN_LOGIN_PATH);
   }
+
+  // Supabase getUser() compares token expiry to Date.now(); wait for the
+  // request so Cache Components does not prerender that timestamp.
+  await connection();
 
   const supabase = await createClient();
   const {
