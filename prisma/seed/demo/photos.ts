@@ -21,4 +21,8 @@ export const photos = {
   avatar4: unsplash("photo-1506794778202-cad84cf45f1d", 300),
   avatar5: unsplash("photo-1544005313-94ddf0286df2", 300),
   avatar6: unsplash("photo-1507003211169-0a1dd7228f2d", 300),
+  spot4: unsplash("photo-1509042239860-f550ce710b93", 900),
+  spot5: unsplash("photo-1515003197210-e0cd71810b5f", 900),
+  spot6: unsplash("photo-1566073771259-6a8506099945", 900),
+  spot7: unsplash("photo-1551632811-561732d1e306", 900),
 };
