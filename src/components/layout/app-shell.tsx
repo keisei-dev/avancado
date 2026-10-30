@@ -13,7 +13,7 @@ import type { ReactNode } from "react";
 import { SideNav } from "@/components/layout/side-nav";
 import { MobileTabBar } from "@/components/layout/mobile-tab-bar";
 
-const NO_SHELL = ["/admin", "/login", "/signup", "/dev"];
+const NO_SHELL = ["/admin", "/login", "/signup", "/reset-password", "/dev"];
 
 export function AppShell({
   topBar,

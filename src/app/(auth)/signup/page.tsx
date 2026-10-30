@@ -1,10 +1,28 @@
-// Notion flow: Login: Authentication
-// TODO: implement
+import { Suspense } from "react";
+import { redirect } from "next/navigation";
+import { AuthFrame } from "@/components/auth/auth-frame";
+import { MemberAuthForm } from "@/components/auth/member-auth-form";
+import { getCurrentMember } from "@/lib/auth/member";
+
+export const metadata = { title: "Create account" };
+
+async function SignupContent() {
+  if (await getCurrentMember()) redirect("/");
+  return <MemberAuthForm signup />;
+}
 
 export default function SignupPage() {
   return (
-    <main className="flex flex-1 flex-col gap-2 p-8">
-      <h1 className="text-2xl font-bold">Sign Up</h1>
-    </main>
+    <AuthFrame signup>
+      <Suspense
+        fallback={
+          <p role="status" className="text-muted">
+            Loading sign up…
+          </p>
+        }
+      >
+        <SignupContent />
+      </Suspense>
+    </AuthFrame>
   );
 }
