@@ -1,19 +1,28 @@
 import Link from "next/link";
 import {
-  CalendarDays,
+  BellRing,
   CheckCircle2,
   Flag,
   MapPin,
-  ShieldCheck,
+  MessageCircle,
+  type LucideIcon,
 } from "lucide-react";
-import type { ReviewQueueItem, ReviewTarget } from "@/lib/admin/mock-data";
+import type { ReviewQueueItem } from "@/lib/admin/mock-data";
 
-const REVIEW_ICONS: Record<ReviewTarget, typeof Flag> = {
-  post: Flag,
-  request: CalendarDays,
-  place: MapPin,
-  verification: ShieldCheck,
-};
+function iconForReviewItem(item: ReviewQueueItem): LucideIcon {
+  const reason = item.reason.toLowerCase();
+
+  if (item.target === "verification") {
+    return BellRing;
+  }
+  if (item.target === "place") {
+    return MapPin;
+  }
+  if (reason.includes("inappropriate")) {
+    return MessageCircle;
+  }
+  return Flag;
+}
 
 type ReviewQueueProps = {
   items: ReviewQueueItem[];
@@ -44,13 +53,13 @@ export function ReviewQueue({ items, openCount }: ReviewQueueProps) {
           </div>
         ) : (
           items.map((item) => {
-            const Icon = REVIEW_ICONS[item.target];
+            const Icon = iconForReviewItem(item);
             return (
               <div
                 key={item.id}
                 className="flex items-center gap-3 rounded-12 bg-ivory p-3"
               >
-                <span className="grid h-9 w-9 shrink-0 place-items-center rounded-10 bg-white text-coral">
+                <span className="grid h-9 w-9 shrink-0 place-items-center text-coral">
                   <Icon aria-hidden="true" size={17} />
                 </span>
                 <div className="min-w-0 flex-1">

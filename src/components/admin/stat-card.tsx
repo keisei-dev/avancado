@@ -1,18 +1,18 @@
 import {
-  CalendarDays,
   Flag,
   MapPin,
+  MessageCircle,
   ShieldCheck,
-  UserPlus,
+  User,
   Users,
 } from "lucide-react";
 import type { DashboardMetricKey } from "@/lib/admin/mock-data";
 
 const METRIC_ICONS = {
   activeMembers: Users,
-  newMembers: UserPlus,
-  reportedPosts: Flag,
-  reportedSitterEvents: CalendarDays,
+  newMembers: User,
+  reportedPosts: MessageCircle,
+  reportedSitterEvents: Flag,
   petFriendlyPlaces: MapPin,
   waitingVerification: ShieldCheck,
 } as const;

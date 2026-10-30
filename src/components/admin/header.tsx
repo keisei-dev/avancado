@@ -39,9 +39,10 @@ export function AdminHeader({
         <span className="grid h-[34px] w-[34px] place-items-center rounded-full bg-sage text-xs font-bold text-olive-hover">
           {initials}
         </span>
-        <p className="hidden text-[13px] font-semibold text-brown sm:block">
-          {displayName}
-        </p>
+        <div className="hidden sm:block">
+          <p className="text-[13px] font-semibold text-brown">{displayName}</p>
+          <p className="text-[12px] text-muted">Administrator</p>
+        </div>
       </div>
     </header>
   );

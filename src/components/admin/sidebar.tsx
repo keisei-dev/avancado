@@ -46,10 +46,10 @@ export function AdminSidebar({
         <div className="mb-3.5 flex items-center gap-2.5 border-b border-white/10 px-2.5 pb-5">
           <BrandMark size="sm" />
           <div>
-            <p className="font-display text-[15px] font-bold tracking-tight">
+            <p className="font-display text-[22px] font-bold tracking-tight text-white">
               Avancado
             </p>
-            <p className="text-[11px] font-medium text-white/55">
+            <p className="mt-1 text-[11px] font-semibold tracking-[0.12em] text-sage uppercase">
               Admin Console
             </p>
           </div>
@@ -100,16 +100,16 @@ export function AdminSidebar({
               </p>
               <p className="text-xs text-white/55">Administrator</p>
             </div>
+            <form action={logoutAdmin}>
+              <button
+                type="submit"
+                className="grid h-8 w-8 shrink-0 place-items-center rounded-10 text-white/70 hover:bg-white/10 hover:text-white"
+                aria-label="Log out"
+              >
+                <LogOut aria-hidden="true" size={16} />
+              </button>
+            </form>
           </div>
-          <form action={logoutAdmin}>
-            <button
-              type="submit"
-              className="flex w-full items-center justify-center gap-2 rounded-12 bg-white/10 px-3 py-2.5 text-sm font-medium text-white hover:bg-white/15"
-            >
-              <LogOut aria-hidden="true" size={16} />
-              Log out
-            </button>
-          </form>
         </div>
       </aside>
     </>
