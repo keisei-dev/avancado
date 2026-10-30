@@ -32,6 +32,7 @@ export const LEGAL_LINKS = [
   { href: "/terms", label: "Terms" },
   { href: "/safety", label: "Safety" },
   { href: "/privacy", label: "Privacy" },
+  { href: "/admin", label: "Admin" },
 ];
 
 /** "/community/123" keeps Community active; "/" only matches Home itself. */

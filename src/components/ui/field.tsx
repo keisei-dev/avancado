@@ -1,10 +1,60 @@
 // UI library (P1): Field, Input, Textarea, Select
 // TODO: implement. See docs/UI-LIBRARY.md for conventions.
-/**
- * Field wraps one control with a label, optional required (*), hint and error.
- * Controls: text, email, password, number, date, time, textarea, select.
- * States: default, focus (shadow-focus), error (coral), disabled.
- * Server-safe (no "use client").
- */
 
-export {};
+
+import type { ReactNode } from "react";
+import { cn } from "@/lib/cn";
+
+type FieldProps = {
+  id: string;
+  label: string;
+  hint?: string;
+  error?: string;
+  required?: boolean;
+  className?: string;
+  children: ReactNode;
+};
+
+export function Field({
+  id,
+  label,
+  hint,
+  error,
+  required,
+  className,
+  children,
+}: FieldProps) {
+  const description = error || hint;
+  const descriptionId = `${id}-description`;
+
+  return (
+    <div className={cn("w-full", className)}>
+      <label
+        htmlFor={id}
+        className="mb-1.5 block text-sm font-medium text-brown"
+      >
+        {label}
+        {required && (
+          <span className="ml-1 text-coral" aria-hidden="true">
+            *
+          </span>
+        )}
+      </label>
+
+      {children}
+
+      {description && (
+        <p
+          id={descriptionId}
+          role={error ? "alert" : undefined}
+          className={cn(
+            "mt-1.5 text-xs",
+            error ? "text-coral" : "text-muted"
+          )}
+        >
+          {description}
+        </p>
+      )}
+    </div>
+  );
+}

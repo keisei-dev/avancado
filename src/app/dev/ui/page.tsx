@@ -5,7 +5,12 @@ import type { Metadata } from "next";
 import { Plus, Search, Trash2 } from "lucide-react";
 import { Button, IconButton } from "@/components/ui/button";
 import { Avatar } from "@/components/ui/avatar";
+import { SearchField } from "@/components/ui/search-field";
 import { TopBar } from "@/components/layout/top-bar";
+import {Field} from "@/components/ui/field";
+import {Input} from "@/components/ui/input";
+import {Textarea} from "@/components/ui/text-area";
+import { ModalDemo } from "./modal-demo";
 
 export const metadata: Metadata = {
   title: "UI library",
@@ -72,6 +77,9 @@ const DONE = new Set([
   "TopBar",
   "MobileTabBar",
   "AccountMenu",
+  "SearchField",
+  "Field / Input",
+  "Modal",
 ]);
 
 export default function UiLibraryPage() {
@@ -158,11 +166,67 @@ export default function UiLibraryPage() {
       </section>
 
       <section className="mt-10">
+        <h2 className="font-display text-xl font-bold">Search field</h2>
+        <p className="mt-1 text-sm text-muted">
+          Type to see the clear (×) button. Escape also clears.
+        </p>
+        <div className="mt-4 grid gap-4 rounded-16 border border-line bg-white p-6 shadow-card sm:grid-cols-2">
+          <SearchField label="Search places" placeholder="Search places..." />
+          <SearchField
+            label="Search posts"
+            placeholder="Search posts..."
+            defaultValue="Golden retriever"
+          />
+          <SearchField
+            label="Search members"
+            placeholder="Small (sm)"
+            size="sm"
+          />
+          <SearchField
+            label="Search disabled"
+            placeholder="Disabled"
+            disabled
+          />
+        </div>
+      </section>
+
+      <section className="mt-10">
+        <h2 className="font-display text-xl font-bold">Field / Input / Textarea</h2>
+        <p className="mt-1 text-sm text-muted">
+          Standard single-line input and multi-line textarea. Supports controlled and uncontrolled usage. States: default, focus, error, disabled.
+        </p>
+        <div className="mt-4 grid gap-4 rounded-16 border border-line bg-white p-6 shadow-card sm:grid-cols-2">
+          <Field id="name" label="Name" required>
+            <Input id="name" placeholder="Enter your name" />
+          </Field>
+          <Field id="email" label="Email" hint="We'll never share your email.">
+            <Input id="email" type="email" placeholder="Enter your email" />
+          </Field>
+          <Field id="message" label="Message" required>
+            <Textarea id="message" placeholder="Enter your message" rows={4} />
+          </Field>
+          <Field id="disabled" label="Disabled Field">
+            <Input id="disabled" placeholder="Disabled input" disabled />
+          </Field>
+          <Field id="error" label="Error Field" error="Please enter a valid value.">
+            <Input id="error" placeholder="Error input" error />
+          </Field>
+        </div>
+      </section>
+
+      <section className="mt-10">
         <h2 className="font-display text-xl font-bold">Avatar</h2>
         <div className="mt-4 flex items-center gap-4 rounded-16 border border-line bg-white p-6 shadow-card">
           <Avatar name="Maya Thompson" size="sm" />
           <Avatar name="Daniel Kim" />
           <Avatar name="Ava Brooks" size="lg" verified />
+        </div>
+      </section>
+
+      <section className="mt-10">
+        <h2 className="font-display text-xl font-bold">Modal</h2>
+        <div className="mt-4 rounded-16 border border-line bg-white p-6 shadow-card">
+          <ModalDemo />
         </div>
       </section>
 

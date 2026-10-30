@@ -5,4 +5,3 @@
  * Used for map categories, community and message filters.
  */
 
-export {};
