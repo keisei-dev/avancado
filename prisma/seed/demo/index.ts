@@ -5,6 +5,9 @@ import { seedPets } from "./pets";
 import { seedRequests } from "./requests";
 import { seedCommunity } from "./community";
 import { seedPlaces } from "./places";
+import { seedConversations } from "./conversations";
+import { seedReports } from "./reports";
+import { seedNotifications } from "./notifications";
 
 async function main() {
   // Order matters: a row can only point to rows that already exist.
@@ -14,6 +17,9 @@ async function main() {
   await seedRequests();
   await seedCommunity();
   await seedPlaces();
+  await seedConversations(); // needs requests and posts
+  await seedReports(); // needs requests, posts and places
+  await seedNotifications(); // needs conversations (for the link)
   console.log("Demo seed finished.");
 }
 
