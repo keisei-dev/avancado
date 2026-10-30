@@ -162,3 +162,7 @@ export async function seedPlaces() {
 
   console.log(`Seeded ${places.length} places.`);
 }
+
+export const demoPlaceIds = places.map((place) =>
+  seedUuid(`place:${place.key}`),
+);
