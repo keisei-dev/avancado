@@ -27,7 +27,12 @@ export default async function PublicProfilePage({
 
   return (
     <main className="flex flex-1 flex-col gap-2 p-8">
-      <Avatar name={user.name} src={user.image} verified={user.isVerified} size="lg" />
+      <Avatar
+        name={user.name}
+        src={user.image}
+        verified={user.isVerified}
+        size="lg"
+      />
       <h1 className="text-2xl font-bold">{user.name}</h1>
     </main>
   );

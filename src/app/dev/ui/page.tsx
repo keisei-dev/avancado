@@ -7,16 +7,14 @@ import { Button, IconButton } from "@/components/ui/button";
 import { Avatar } from "@/components/ui/avatar";
 import { SearchField } from "@/components/ui/search-field";
 import { TopBar } from "@/components/layout/top-bar";
-import {Field} from "@/components/ui/field";
-import {Input} from "@/components/ui/input";
-import {Textarea} from "@/components/ui/text-area";
+import { Field } from "@/components/ui/field";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/text-area";
 import { ModalDemo } from "./modal-demo";
-import {Badge} from "@/components/ui/badge";
-import {Tabs} from "@/components/ui/tabs";
+import { Badge } from "@/components/ui/badge";
+import { TabsDemo } from "./tabs-demo";
 
-
-import { ShieldCheck } from 'lucide-react'; // vaccinated icon
-
+import { ShieldCheck } from "lucide-react"; // vaccinated icon
 
 export const metadata: Metadata = {
   title: "UI library",
@@ -87,6 +85,7 @@ const DONE = new Set([
   "Field / Input",
   "Modal",
   "Badge / Tag",
+  "Tabs / SegmentedControl"
 ]);
 
 export default function UiLibraryPage() {
@@ -198,9 +197,13 @@ export default function UiLibraryPage() {
       </section>
 
       <section className="mt-10">
-        <h2 className="font-display text-xl font-bold">Field / Input / Textarea</h2>
+        <h2 className="font-display text-xl font-bold">
+          Field / Input / Textarea
+        </h2>
         <p className="mt-1 text-sm text-muted">
-          Standard single-line input and multi-line textarea. Supports controlled and uncontrolled usage. States: default, focus, error, disabled.
+          Standard single-line input and multi-line textarea. Supports
+          controlled and uncontrolled usage. States: default, focus, error,
+          disabled.
         </p>
         <div className="mt-4 grid gap-4 rounded-16 border border-line bg-white p-6 shadow-card sm:grid-cols-2">
           <Field id="name" label="Name" required>
@@ -215,7 +218,11 @@ export default function UiLibraryPage() {
           <Field id="disabled" label="Disabled Field">
             <Input id="disabled" placeholder="Disabled input" disabled />
           </Field>
-          <Field id="error" label="Error Field" error="Please enter a valid value.">
+          <Field
+            id="error"
+            label="Error Field"
+            error="Please enter a valid value."
+          >
             <Input id="error" placeholder="Error input" error />
           </Field>
         </div>
@@ -240,37 +247,45 @@ export default function UiLibraryPage() {
       <section className="mt-10">
         <h2 className="font-display text-xl font-bold">Badges</h2>
         <div className="mt-4 flex items-center gap-4 rounded-16 border border-line bg-white p-6 shadow-card">
-          <Badge tone="default" icon={<span><ShieldCheck /></span>}>
+          <Badge
+            tone="default"
+          >
             Default
           </Badge>
-          <Badge tone="green" icon={<span><ShieldCheck /></span>}>
+          <Badge
+            tone="green"
+            icon={
+              <span>
+                <ShieldCheck />
+              </span>
+            }
+          >
             Green
           </Badge>
-          <Badge tone="amber" icon={<span><ShieldCheck /></span>}>
+          <Badge
+            tone="amber"
+          >
             Amber
           </Badge>
-          <Badge tone="slate" icon={<span><ShieldCheck /></span>}>
+          <Badge
+            tone="slate"
+          >
             Slate
           </Badge>
-          <Badge tone="red" icon={<span><ShieldCheck /></span>}>
+          <Badge
+            tone="red"
+          >
             Red
           </Badge>
         </div>
       </section>
 
       <section className="mt-10">
-        <h2 className="font-display text-xl font-bold">Tabs --- in process</h2>
+        <h2 className="font-display text-xl font-bold">Tabs</h2>
         <div className="mt-4 rounded-16 border border-line bg-white p-6 shadow-card">
-          <Tabs
-            tabs={[
-              { label: "Tab 1", content: "Content for Tab 1" },
-              { label: "Tab 2", content: "Content for Tab 2" },
-              { label: "Tab 3", content: "Content for Tab 3" },
-            ]}
-          />
+          <TabsDemo />
         </div>
       </section>
-
 
       <section className="mt-10">
         <h2 className="font-display text-xl font-bold">Components</h2>

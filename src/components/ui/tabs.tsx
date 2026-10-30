@@ -8,32 +8,88 @@
 
 "use client";
 
-type TabsProps = {
-  /** The currently selected tab. */
-  value: string;
-  /** Called when a tab is clicked. */
-  onChange: (value: string) => void;
-  /** The tabs to show. */
-  tabs: { value: string; label: string }[];
-};
+import type { ReactNode } from "react";
 
-export function Tabs({ value, onChange, tabs }: TabsProps) {
+export function Tabs({ children }: { children: ReactNode }) {
   return (
-    <div role="tablist" className="flex gap-2">
-      {tabs.map((tab) => (
-        <button
-          key={tab.value}
-          role="tab"
-          aria-selected={value === tab.value}
-          className={`px-3 py-1 rounded ${
-            value === tab.value ? "bg-blue-500 text-white" : "bg-gray-200"
-          }`}
-          onClick={() => onChange(tab.value)}
-        >
-          {tab.label}
-        </button>
-      ))}
+    <div
+      role="tablist"
+      aria-label="Request filters"
+      className="
+        inline-flex max-w-full items-center gap-1
+        overflow-x-auto [scrollbar-width:none]
+        [&::-webkit-scrollbar]:hidden
+        rounded-full bg-cream p-1
+        mb-5
+      "
+    >
+      {children}
     </div>
   );
 }
 
+export function Tab({
+  label,
+  count,
+  selected = false,
+  onClick,
+  tone = "default",
+}: {
+  label: string;
+  count?: number;
+  selected?: boolean;
+  onClick?: () => void;
+  tone?: "default" | "lost";
+}) {
+  const isLost = tone === "lost";
+
+  return (
+    <button
+      type="button"
+      role="tab"
+      aria-selected={selected}
+      onClick={onClick}
+      className={`
+        inline-flex min-h-[38px] shrink-0 items-center justify-center
+        gap-[7px] rounded-full border-0 bg-transparent
+        px-4 whitespace-nowrap
+        text-sm font-semibold
+        ${
+          isLost
+            ? "text-coral hover:text-coral"
+            : "text-brown-2 hover:text-brown"
+        }
+
+        ${
+          selected
+            ? isLost
+              ? "bg-white text-coral shadow-xs"
+              : "bg-white text-brown shadow-xs"
+            : ""
+        }
+      `}
+    >
+      <span>{label}</span>
+
+      {count !== undefined && (
+        <span
+          className={`
+            inline-grid h-5 min-w-[22px] place-items-center
+            rounded-full px-[7px]
+            text-[11px] font-semibold
+
+            ${
+              isLost && selected
+                ? "bg-coral-soft text-coral"
+                : selected
+                  ? "bg-sage text-olive-dark"
+                  : "bg-white/70 text-muted"
+            }
+          `}
+        >
+          {count}
+        </span>
+      )}
+    </button>
+  );
+}

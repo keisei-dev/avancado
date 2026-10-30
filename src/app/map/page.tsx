@@ -1,11 +1,11 @@
 // Notion flow: Map: Explore map
 // TODO: implement
 
-'use client';
+"use client";
 
-import dynamic from 'next/dynamic';
+import dynamic from "next/dynamic";
 
-const PetMap = dynamic(() => import('@/components/map/MapContainer'), {
+const PetMap = dynamic(() => import("@/components/map/MapContainer"), {
   ssr: false,
   loading: () => (
     <div className="w-full h-[600px] bg-slate-100 animate-pulse rounded-2xl flex items-center justify-center text-slate-400">

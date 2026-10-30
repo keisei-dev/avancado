@@ -12,13 +12,7 @@
  * SuccessDialog: confirm step, then a centred success message.
  */
 
-import {
-  useEffect,
-  useId,
-  useRef,
-  useState,
-  type ReactNode,
-} from "react";
+import { useEffect, useId, useRef, useState, type ReactNode } from "react";
 import { createPortal } from "react-dom";
 import { Check, X } from "lucide-react";
 import { cn } from "@/lib/cn";
@@ -202,9 +196,7 @@ export function Modal({
             <div
               className={cn(
                 "mt-[26px] flex flex-col-reverse gap-2.5 sm:flex-row sm:justify-end [&>*]:w-full sm:[&>*]:w-auto",
-                centered
-                  ? "sm:justify-center"
-                  : "border-t border-line pt-5",
+                centered ? "sm:justify-center" : "border-t border-line pt-5",
               )}
             >
               {footer}
@@ -257,9 +249,7 @@ export function ConfirmDialog({
     } finally {
       setBusy(false);
     }
-
   };
-
 
   return (
     <Modal
@@ -280,7 +270,6 @@ export function ConfirmDialog({
     >
       {note && <p className="text-sm text-muted">{note}</p>}
     </Modal>
-    
   );
 }
 

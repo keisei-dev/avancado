@@ -1,7 +1,6 @@
 // UI library (P1): Field, Input, Textarea, Select
 // TODO: implement. See docs/UI-LIBRARY.md for conventions.
 
-
 import type { ReactNode } from "react";
 import { cn } from "@/lib/cn";
 
@@ -47,10 +46,7 @@ export function Field({
         <p
           id={descriptionId}
           role={error ? "alert" : undefined}
-          className={cn(
-            "mt-1.5 text-xs",
-            error ? "text-coral" : "text-muted"
-          )}
+          className={cn("mt-1.5 text-xs", error ? "text-coral" : "text-muted")}
         >
           {description}
         </p>

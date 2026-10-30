@@ -55,7 +55,6 @@ export function ModalDemo() {
         successTitle="Mochi is home!"
         successMessage="Thanks for letting the community know."
       />
-
     </div>
   );
 }
