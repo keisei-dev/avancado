@@ -11,6 +11,12 @@ import {Field} from "@/components/ui/field";
 import {Input} from "@/components/ui/input";
 import {Textarea} from "@/components/ui/text-area";
 import { ModalDemo } from "./modal-demo";
+import {Badge} from "@/components/ui/badge";
+import {Tabs} from "@/components/ui/tabs";
+
+
+import { ShieldCheck } from 'lucide-react'; // vaccinated icon
+
 
 export const metadata: Metadata = {
   title: "UI library",
@@ -80,6 +86,7 @@ const DONE = new Set([
   "SearchField",
   "Field / Input",
   "Modal",
+  "Badge / Tag",
 ]);
 
 export default function UiLibraryPage() {
@@ -229,6 +236,41 @@ export default function UiLibraryPage() {
           <ModalDemo />
         </div>
       </section>
+
+      <section className="mt-10">
+        <h2 className="font-display text-xl font-bold">Badges</h2>
+        <div className="mt-4 flex items-center gap-4 rounded-16 border border-line bg-white p-6 shadow-card">
+          <Badge tone="default" icon={<span><ShieldCheck /></span>}>
+            Default
+          </Badge>
+          <Badge tone="green" icon={<span><ShieldCheck /></span>}>
+            Green
+          </Badge>
+          <Badge tone="amber" icon={<span><ShieldCheck /></span>}>
+            Amber
+          </Badge>
+          <Badge tone="slate" icon={<span><ShieldCheck /></span>}>
+            Slate
+          </Badge>
+          <Badge tone="red" icon={<span><ShieldCheck /></span>}>
+            Red
+          </Badge>
+        </div>
+      </section>
+
+      <section className="mt-10">
+        <h2 className="font-display text-xl font-bold">Tabs --- in process</h2>
+        <div className="mt-4 rounded-16 border border-line bg-white p-6 shadow-card">
+          <Tabs
+            tabs={[
+              { label: "Tab 1", content: "Content for Tab 1" },
+              { label: "Tab 2", content: "Content for Tab 2" },
+              { label: "Tab 3", content: "Content for Tab 3" },
+            ]}
+          />
+        </div>
+      </section>
+
 
       <section className="mt-10">
         <h2 className="font-display text-xl font-bold">Components</h2>
