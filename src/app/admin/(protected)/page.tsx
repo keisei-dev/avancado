@@ -3,6 +3,7 @@
 
 import type { Metadata } from "next";
 import { Suspense } from "react";
+import { AdminGreeting } from "@/components/admin/greeting";
 import { PostingChart } from "@/components/admin/posting-chart";
 import { ReviewQueue } from "@/components/admin/review-queue";
 import { StatCard } from "@/components/admin/stat-card";
@@ -39,16 +40,7 @@ async function DashboardContent() {
 
   return (
     <div>
-      <p className="text-xs font-semibold uppercase tracking-[0.06em] text-olive-hover">
-        {new Date().toLocaleDateString("en-CA", {
-          weekday: "long",
-          month: "long",
-          day: "numeric",
-        })}
-      </p>
-      <h1 className="font-display mt-1 text-[30px] font-bold tracking-tight text-brown">
-        Good morning, {admin.displayName}
-      </h1>
+      <AdminGreeting displayName={admin.displayName} />
       <p className="mt-1 text-sm text-muted">
         Here is what is happening across Avancado today.
       </p>

@@ -1,7 +1,12 @@
 "use server";
 
 import { redirect } from "next/navigation";
-import { ADMIN_LOGIN_PATH, hasSupabaseEnv, isAdmin } from "@/lib/auth/admin";
+import {
+  ADMIN_LOGIN_PATH,
+  hasDatabaseEnv,
+  hasSupabaseEnv,
+  isAdmin,
+} from "@/lib/auth/admin";
 import { createClient } from "@/lib/supabase/server";
 
 export type LoginState = {
@@ -16,6 +21,13 @@ export async function loginAdmin(
     return {
       error:
         "Supabase is not configured. Copy .env.example to .env.local and add NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY.",
+    };
+  }
+
+  if (!hasDatabaseEnv()) {
+    return {
+      error:
+        "Database is not configured. Copy .env.example to .env.local and add DATABASE_URL.",
     };
   }
 
@@ -35,8 +47,11 @@ export async function loginAdmin(
     };
   }
 
-  const { data } = await supabase.auth.getClaims();
-  if (!isAdmin(data?.claims)) {
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user || !(await isAdmin(user.id))) {
     await supabase.auth.signOut();
     return {
       error: "The email or password does not match an admin account.",

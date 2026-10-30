@@ -1,31 +1,25 @@
+import { connection } from "next/server";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { ADMIN_LOGIN_PATH } from "@/lib/auth/paths";
 
 export { ADMIN_LOGIN_PATH, isAdminProtectedPath } from "@/lib/auth/paths";
 
-type JwtClaims = {
-  email?: string;
-  sub?: string;
-  app_metadata?: {
-    role?: string;
-    [key: string]: unknown;
-  };
+type AdminRecord = {
+  id: string;
+  email: string;
+  name: string;
 };
-
-/**
- * Role check lives here so it can later read Prisma's User table instead of
- * Supabase JWT claims, without changing the rest of the admin UI.
- */
-export function isAdmin(claims: JwtClaims | null | undefined): boolean {
-  return claims?.app_metadata?.role === "admin";
-}
 
 export function hasSupabaseEnv(): boolean {
   return Boolean(
     process.env.NEXT_PUBLIC_SUPABASE_URL &&
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
   );
+}
+
+export function hasDatabaseEnv(): boolean {
+  return Boolean(process.env.DATABASE_URL);
 }
 
 export type AdminUser = {
@@ -36,30 +30,69 @@ export type AdminUser = {
 };
 
 /**
+ * True when the Prisma User row for this Supabase Auth id has role ADMIN.
+ * User.id matches auth.users.id.
+ */
+export async function isAdmin(userId: string): Promise<boolean> {
+  return (await findAdminUser(userId)) !== null;
+}
+
+/**
  * Loads the current user from the Supabase server client and redirects to
- * /admin/login unless they are signed in with app_metadata.role === "admin".
+ * /admin/login unless they are signed in and their Prisma User.role is ADMIN.
  */
 export async function requireAdmin(): Promise<AdminUser> {
-  if (!hasSupabaseEnv()) {
+  if (!hasSupabaseEnv() || !hasDatabaseEnv()) {
     redirect(ADMIN_LOGIN_PATH);
   }
+
+  // Supabase getUser() compares token expiry to Date.now(); wait for the
+  // request so Cache Components does not prerender that timestamp.
+  await connection();
 
   const supabase = await createClient();
-  const { data } = await supabase.auth.getClaims();
-  const claims = data?.claims as JwtClaims | undefined;
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
 
-  if (!isAdmin(claims)) {
+  if (!user) {
     redirect(ADMIN_LOGIN_PATH);
   }
 
-  const email = claims?.email ?? "";
+  const admin = await findAdminUser(user.id);
+  if (!admin) {
+    redirect(ADMIN_LOGIN_PATH);
+  }
+
+  const email = admin.email || user.email || "";
+  const displayName = admin.name.trim() || displayNameFromEmail(email);
 
   return {
-    id: claims?.sub ?? "",
+    id: admin.id,
     email,
-    displayName: displayNameFromEmail(email),
-    initials: initialsFromName(displayNameFromEmail(email)),
+    displayName,
+    initials: initialsFromName(displayName),
   };
+}
+
+async function findAdminUser(userId: string): Promise<AdminRecord | null> {
+  if (!hasDatabaseEnv()) {
+    return null;
+  }
+
+  const { prisma } = await import("@/lib/prisma/client");
+  const { UserRole } = await import("@/generated/prisma/client");
+
+  const row = await prisma.user.findUnique({
+    where: { id: userId },
+    select: { id: true, email: true, name: true, role: true },
+  });
+
+  if (!row || row.role !== UserRole.ADMIN) {
+    return null;
+  }
+
+  return { id: row.id, email: row.email, name: row.name };
 }
 
 function displayNameFromEmail(email: string): string {

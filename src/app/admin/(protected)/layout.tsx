@@ -2,6 +2,7 @@
 // TODO: implement
 
 import { Suspense } from "react";
+import { connection } from "next/server";
 import { AdminShellFrame } from "@/components/admin/shell";
 import { getAdminNavCounts } from "@/lib/admin/mock-data";
 import { requireAdmin } from "@/lib/auth/admin";
@@ -19,8 +20,11 @@ export default function ProtectedAdminLayout({
 }
 
 async function AdminShell({ children }: { children: React.ReactNode }) {
-  const admin = await requireAdmin();
-  const counts = await getAdminNavCounts();
+  await connection();
+  const [admin, counts] = await Promise.all([
+    requireAdmin(),
+    getAdminNavCounts(),
+  ]);
 
   return (
     <AdminShellFrame
