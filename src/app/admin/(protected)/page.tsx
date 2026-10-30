@@ -41,9 +41,6 @@ async function DashboardContent() {
   return (
     <div>
       <AdminGreeting displayName={admin.displayName} />
-      <p className="mt-1 text-sm text-muted">
-        Here is what is happening across Avancado today.
-      </p>
       <div className="mt-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
         {stats.metrics.map((metric) => (
           <StatCard

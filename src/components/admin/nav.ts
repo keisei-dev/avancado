@@ -1,10 +1,10 @@
 import type { LucideIcon } from "lucide-react";
 import {
-  CalendarDays,
+  Dog,
   LayoutDashboard,
   MapPin,
-  MessagesSquare,
   UserRound,
+  Users,
 } from "lucide-react";
 import type { AdminNavCounts } from "@/lib/admin/mock-data";
 
@@ -20,13 +20,13 @@ export const ADMIN_NAV: AdminNavItem[] = [
   {
     href: "/admin/community",
     label: "Community Moderation",
-    icon: MessagesSquare,
+    icon: Users,
     countKey: "community",
   },
   {
     href: "/admin/sitter-requests",
     label: "Sitter Requests",
-    icon: CalendarDays,
+    icon: Dog,
     countKey: "requests",
   },
   {

@@ -26,7 +26,7 @@ export function PostingChart({ buckets }: PostingChartProps) {
             className="relative flex h-full flex-1 flex-col items-center justify-end"
           >
             <div
-              className="w-full max-w-11 rounded-t-[8px] rounded-b-[3px] bg-olive"
+              className="w-full max-w-11 rounded-t-[8px] rounded-b-[3px] bg-sage transition-colors duration-200 hover:bg-olive"
               style={{ height: `${bucket.percent}%` }}
             />
             <span className="absolute -bottom-6 whitespace-nowrap text-[11px] text-muted">
