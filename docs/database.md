@@ -20,6 +20,7 @@ If something here is wrong or unclear, ask the database owner.
 | Generated client    | `src/generated/prisma` (**git-ignored**, created by `npm install`) |
 | Client you import   | `src/lib/prisma/client.ts`                                         |
 | Data model overview | Scope document, section 11 (ERD and table list)                    |
+| Seed scripts        | `prisma/seed/` (`npm run db:seed`, `npm run db:seed:demo`)         |
 
 Supabase Auth owns passwords and logins. Our `User` table only stores profile
 data, and `User.id` is the same value as the Supabase Auth user id.
@@ -37,6 +38,8 @@ issues, or PRs). The same variables must be set in Vercel's project settings.
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Supabase public key (`sb_publishable_...`)                          |
 | `DATABASE_URL`                  | Transaction pooler, port **6543**. The app uses it at runtime.      |
 | `DIRECT_URL`                    | Session pooler, port **5432**. Prisma migrations use it (CLI only). |
+| `SEED_MAYA_AUTH_ID`             | Only for running the demo seed: Supabase Auth user id of Maya       |
+| `SEED_ADMIN_AUTH_ID`            | Only for running the demo seed: Supabase Auth user id of the admin  |
 
 The database password must **not** contain `/ ? @ # :` or other special
 characters. They break the connection string. Use letters and numbers only.
@@ -180,13 +183,72 @@ After the PR is merged, teammates run `git pull origin dev` and `npm install`.
 
 ---
 
-## 8. Troubleshooting
+## 8. Seed data
 
-| Problem                                                      | Likely cause and fix                                                                                  |
-| ------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------- |
-| `Cannot find module '@/generated/prisma/client'`             | The client was not generated. Run `npm install` (or `npx prisma generate`).                           |
-| `DATABASE_URL is not set`                                    | `.env.local` is missing or incomplete. Ask the database owner for the values.                         |
-| `P1001: Can't reach database server` and a strange host name | The password contains special characters. Use a letters-and-numbers password.                         |
-| `migrate dev` fails with a `DIRECT_URL` / placeholder host   | `DIRECT_URL` is missing from `.env.local`.                                                            |
-| A query returns an empty list but the table has rows         | You are using `supabase-js` on a table (blocked by RLS). Use Prisma on the server.                    |
-| `P3006` / a migration fails on the "shadow database"         | The migration SQL refers to something that does not exist yet in a fresh database. Fix the SQL order. |
+| Command                               | What it does                                                                  |
+| ------------------------------------- | ----------------------------------------------------------------------------- |
+| `npm run db:seed`                     | Essential data only (the 7 place categories). Safe for any environment.       |
+| `npm run db:seed:demo`                | Sample data for development (includes `db:seed`).                             |
+| `npm run db:seed:demo:clear -- --yes` | Removes all demo data. Without `--yes` it only explains what it would delete. |
+
+The demo data is **already in the shared database**. Teammates do not need to
+run these commands. Only the database owner runs them. Ask before you do.
+
+All seed commands are safe to run again: rows have stable ids (made by
+`seedUuid()`), so a second run updates the same rows instead of creating
+duplicates. Dates in the demo data are relative to the day you run the seed
+("today +/- N days").
+
+### What is in the demo data
+
+12 users, 10 approved ID verifications, 7 pets (health logs for Sunny and Luna),
+8 sitter requests with 17 applications and 4 reviews, 5 community posts with 20
+likes, 8 map places, 4 chats with 9 messages, 3 reports and 3 notifications.
+Photos are placeholder Unsplash links from the UI prototype.
+
+### Demo accounts
+
+All demo emails end with `@seed.avancado.test`.
+
+| User                      | Email                       | Can log in?                              |
+| ------------------------- | --------------------------- | ---------------------------------------- |
+| Maya                      | `maya@seed.avancado.test`   | Yes (Supabase Auth). Member with 2 pets. |
+| Admin                     | `admin@seed.avancado.test`  | Yes (Supabase Auth). Role `ADMIN`.       |
+| Others (Daniel, Ava, ...) | `<name>@seed.avancado.test` | No. They only exist in the database.     |
+
+Passwords are **not** in the repository. Ask the database owner.
+
+### What is not seeded
+
+Some data from the UI prototype does not fit our schema yet, so it is left out:
+reviews of map places, user bio and location, `Pet.isVaccinated`, the
+"Sponsored" flag on places, and the pet name and location of community posts.
+The Services place category has no demo place. If you need one of these,
+tell the database owner and we will decide on a schema change.
+
+### Adding more demo data
+
+1. Add or edit a file in `prisma/seed/demo/` and call it from `index.ts`.
+   Keep the order: a row can only point to rows that already exist.
+2. Use `seedUuid("kind:name")` for ids and `dateOnly()` / `dateTime()` for dates.
+3. New tables that belong to a user must be removed in `clear.ts` as well.
+4. Write to Prisma Client only. For `Place` use raw SQL (see section 4.1).
+
+### Before launch
+
+1. Run `npm run db:seed:demo:clear -- --yes`.
+2. Delete the two demo users in Supabase > Authentication > Users.
+3. Keep `npm run db:seed` data (place categories).
+
+## 9. Troubleshooting
+
+| Problem                                                      | Likely cause and fix                                                                                          |
+| ------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------- |
+| `Cannot find module '@/generated/prisma/client'`             | The client was not generated. Run `npm install` (or `npx prisma generate`).                                   |
+| `DATABASE_URL is not set`                                    | `.env.local` is missing or incomplete. Ask the database owner for the values.                                 |
+| `P1001: Can't reach database server` and a strange host name | The password contains special characters. Use a letters-and-numbers password.                                 |
+| `migrate dev` fails with a `DIRECT_URL` / placeholder host   | `DIRECT_URL` is missing from `.env.local`.                                                                    |
+| A query returns an empty list but the table has rows         | You are using `supabase-js` on a table (blocked by RLS). Use Prisma on the server.                            |
+| `P3006` / a migration fails on the "shadow database"         | The migration SQL refers to something that does not exist yet in a fresh database. Fix the SQL order.         |
+| `SEED_MAYA_AUTH_ID is missing or is not a UUID`              | Add the "User UID" of the demo user from Supabase > Authentication > Users to `.env.local`.                   |
+| `function st_setsrid(...) does not exist` while seeding      | PostGIS functions live in the `extensions` schema. Use `extensions.ST_SetSRID(extensions.ST_MakePoint(...))`. |
