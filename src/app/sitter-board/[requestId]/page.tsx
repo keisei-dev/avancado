@@ -1,3 +1,4 @@
+import { connection } from 'next/server';
 import Image from 'next/image';
 import Link from 'next/link';
 import { getSitterRequestDetail } from './actions';
@@ -9,6 +10,8 @@ interface PageProps {
 }
 
 export default async function SitterDetailPage({ params }: PageProps) {
+  await connection();
+
   const resolvedParams = await params;
   const requestId = resolvedParams.requestId;
   
@@ -43,16 +46,19 @@ export default async function SitterDetailPage({ params }: PageProps) {
     ? (req.durationMinutes / 60).toFixed(1).replace('.0', '')
     : null;
 
-  const calculateAge = (birthDate: Date | null) => {
+  // eslint-disable-next-line react-hooks/purity
+  const nowTime = Date.now();
+
+  const calculateAge = (birthDate: Date | null, currentTime: number) => {
     if (!birthDate) return 'N/A';
-    const ageDifMs = Date.now() - new Date(birthDate).getTime();
+    const ageDifMs = currentTime - new Date(birthDate).getTime();
     const ageDate = new Date(ageDifMs);
     const years = Math.abs(ageDate.getUTCFullYear() - 1970);
     return years > 0 ? `${years} years` : 'Less than a year';
   };
 
-  const timeAgo = (dateString: Date | string) => {
-    const seconds = Math.floor((new Date().getTime() - new Date(dateString).getTime()) / 1000);
+  const timeAgo = (dateString: Date | string, currentTime: number) => {
+    const seconds = Math.floor((currentTime - new Date(dateString).getTime()) / 1000);
     let interval = seconds / 31536000;
     if (interval > 1) return `${Math.floor(interval)} years ago`;
     interval = seconds / 2592000;
@@ -102,7 +108,7 @@ export default async function SitterDetailPage({ params }: PageProps) {
                     ♡ COMMUNITY HELP REQUEST
                   </span>
                   <span className="text-xs text-gray-400">
-                    Posted {timeAgo(req.createdAt)}
+                    Posted {timeAgo(req.createdAt, nowTime)}
                   </span>
                 </div>
 
@@ -194,7 +200,7 @@ export default async function SitterDetailPage({ params }: PageProps) {
                 <div className="flex justify-between py-1 border-b border-gray-50">
                   <span className="text-gray-500">Age</span>
                   <span className="font-medium text-gray-900">
-                    {calculateAge(pet?.birthDate ?? null)}
+                    {calculateAge(pet?.birthDate ?? null, nowTime)}
                   </span>
                 </div>
                 <div className="flex justify-between py-1 border-b border-gray-50">
