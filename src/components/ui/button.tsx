@@ -88,8 +88,8 @@ export function IconButton({
       type={type}
       {...props}
       className={cn(
-        "inline-grid size-[38px] place-items-center rounded-12 border border-line bg-white text-brown-2 transition-colors",
-        "hover:border-line-strong hover:bg-ivory",
+        "inline-grid size-[38px] place-items-center rounded-12  bg-white text-brown-2 transition-colors",
+        "hover:text-brown hover:bg-ivory",
         "focus-visible:shadow-focus focus-visible:outline-none",
         "disabled:cursor-not-allowed disabled:opacity-45",
         className,

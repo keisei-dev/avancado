@@ -12,7 +12,12 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/text-area";
 import { ModalDemo } from "./modal-demo";
 import { Badge } from "@/components/ui/badge";
+import { EmptyState } from "@/components/ui/empty-state";
+import { MessagesSquare } from "lucide-react";
 import { TabsDemo } from "./tabs-demo";
+import { MenuDemo } from "./menu-demo";
+import { NotificationsMenu } from "@/components/layout/notifications-menu";
+import { ToastDemo } from "./toast-demo";
 
 import { ShieldCheck } from "lucide-react"; // vaccinated icon
 
@@ -74,6 +79,7 @@ const COMPONENTS: { level: string; items: string[] }[] = [
 ];
 
 const DONE = new Set([
+  "EmptyState",
   "Button",
   "Avatar",
   "BrandLogo",
@@ -85,7 +91,9 @@ const DONE = new Set([
   "Field / Input",
   "Modal",
   "Badge / Tag",
-  "Tabs / SegmentedControl"
+  "Tabs / SegmentedControl",
+  "Menu",
+  "EmptyState",
 ]);
 
 export default function UiLibraryPage() {
@@ -238,6 +246,26 @@ export default function UiLibraryPage() {
       </section>
 
       <section className="mt-10">
+        <h2 className="font-display text-xl font-bold">Empty state</h2>
+        <div className="mt-4 grid gap-4 sm:grid-cols-2">
+          <EmptyState
+            title="No pets yet"
+            text="Add your first pet to start tracking meals, walks, vaccines, and more."
+            action={
+              <Button>
+                <Plus size={17} aria-hidden="true" /> Add a pet
+              </Button>
+            }
+          />
+          <EmptyState
+            icon={<MessagesSquare size={24} />}
+            title="No conversation selected"
+            text="Choose a conversation to start chatting."
+          />
+        </div>
+      </section>
+
+      <section className="mt-10">
         <h2 className="font-display text-xl font-bold">Modal</h2>
         <div className="mt-4 rounded-16 border border-line bg-white p-6 shadow-card">
           <ModalDemo />
@@ -247,11 +275,7 @@ export default function UiLibraryPage() {
       <section className="mt-10">
         <h2 className="font-display text-xl font-bold">Badges</h2>
         <div className="mt-4 flex items-center gap-4 rounded-16 border border-line bg-white p-6 shadow-card">
-          <Badge
-            tone="default"
-          >
-            Default
-          </Badge>
+          <Badge tone="default">Default</Badge>
           <Badge
             tone="green"
             icon={
@@ -262,21 +286,9 @@ export default function UiLibraryPage() {
           >
             Green
           </Badge>
-          <Badge
-            tone="amber"
-          >
-            Amber
-          </Badge>
-          <Badge
-            tone="slate"
-          >
-            Slate
-          </Badge>
-          <Badge
-            tone="red"
-          >
-            Red
-          </Badge>
+          <Badge tone="amber">Amber</Badge>
+          <Badge tone="slate">Slate</Badge>
+          <Badge tone="red">Red</Badge>
         </div>
       </section>
 
@@ -286,6 +298,32 @@ export default function UiLibraryPage() {
           <TabsDemo />
         </div>
       </section>
+
+      <section className="mt-10">
+        <h2 className="font-display text-xl font-bold">Menu</h2>
+        <div className="mt-4 rounded-16 border border-line bg-white p-6 shadow-card">
+          <MenuDemo />
+        </div>
+      </section>
+
+            <section className="mt-10">
+        <h2 className="font-display text-xl font-bold">
+          Toast
+        </h2>
+        <div className="mt-4 rounded-16 border border-line bg-white p-6 shadow-card">
+          <ToastDemo />
+        </div>
+      </section>
+
+      <section className="mt-10">
+        <h2 className="font-display text-xl font-bold">
+          Notifications --- IN PROGRESS
+        </h2>
+        <div className="mt-4 rounded-16 border border-line bg-white p-6 shadow-card">
+          <NotificationsMenu />
+        </div>
+      </section>
+
 
       <section className="mt-10">
         <h2 className="font-display text-xl font-bold">Components</h2>

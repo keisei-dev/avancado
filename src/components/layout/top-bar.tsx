@@ -3,15 +3,16 @@
 // UI library (P2): TopBar
 /**
  * Sticky bar above every member page.
- * - Logged in: Messages and Notifications (with unread count) + AccountMenu
+ * - Logged in: Messages (with unread count), NotificationsMenu, AccountMenu
  * - Guest: Log in / Sign up
  * The logo shows on phones only (the SideNav already has it on bigger screens).
- * Pure UI: the auth owner passes `user`, the unread counts and `logoutAction`.
+ * Pure UI: the auth owner passes `user`, `unreadMessages`, `notifications`
+ * and the server actions.
  */
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Bell, MessageCircle } from "lucide-react";
+import { MessageCircle } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { cn } from "@/lib/cn";
 import { buttonClass } from "@/components/ui/button";
@@ -20,19 +21,25 @@ import {
   AccountMenu,
   type AccountMenuUser,
 } from "@/components/layout/account-menu";
+import {
+  NotificationsMenu,
+  type NotificationItem,
+} from "@/components/layout/notifications-menu";
 
 export type TopBarProps = {
   /** null = guest. */
   user: AccountMenuUser | null;
   unreadMessages?: number;
-  unreadNotifications?: number;
+  notifications?: NotificationItem[];
+  markAllReadAction?: () => void | Promise<void>;
   logoutAction?: () => void | Promise<void>;
 };
 
 export function TopBar({
   user,
   unreadMessages = 0,
-  unreadNotifications = 0,
+  notifications = [],
+  markAllReadAction,
   logoutAction,
 }: TopBarProps) {
   const pathname = usePathname();
@@ -58,12 +65,9 @@ export function TopBar({
                 count={unreadMessages}
                 active={pathname.startsWith("/messages")}
               />
-              <HeaderIconLink
-                href="/notifications"
-                label="Notifications"
-                icon={Bell}
-                count={unreadNotifications}
-                active={pathname.startsWith("/notifications")}
+              <NotificationsMenu
+                notifications={notifications}
+                onMarkAllRead={markAllReadAction}
               />
               <AccountMenu user={user} logoutAction={logoutAction} />
             </>
