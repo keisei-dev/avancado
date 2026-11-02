@@ -2,6 +2,16 @@
 
 import dynamic from 'next/dynamic';
 
+interface Place {
+  id: string;
+  name: string;
+  latitude: number | null;
+  longitude: number | null;
+  address?: string | null;
+  imageUrl?: string | null;
+  [key: string]: unknown;
+}
+
 const MapCore = dynamic(() => import('./MapCore'), {
   ssr: false,
   loading: () => (
@@ -11,6 +21,6 @@ const MapCore = dynamic(() => import('./MapCore'), {
   ),
 });
 
-export default function PetMap({ places = [] }: { places?: any[] }) {
+export default function PetMap({ places = [] }: { places?: Place[] }) {
   return <MapCore places={places} />;
 }
