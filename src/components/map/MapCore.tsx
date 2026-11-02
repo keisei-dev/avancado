@@ -5,6 +5,16 @@ import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 
+interface Place {
+  id: string;
+  name: string;
+  latitude: number | null;
+  longitude: number | null;
+  address?: string | null;
+  imageUrl?: string | null;
+  [key: string]: unknown;
+}
+
 const defaultIcon = new L.Icon({
   iconUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png",
   iconRetinaUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png",
@@ -42,7 +52,7 @@ function MapController({ center, zoom, shouldFly }: { center: [number, number]; 
   return null;
 }
 
-export default function MapCore({ places = [] }: { places: any[] }) {
+export default function MapCore({ places = [] }: { places: Place[] }) {
   const defaultCoords: [number, number] = [49.2827, -123.1207];
 
   const [currentCoords, setCurrentCoords] = useState<[number, number]>(defaultCoords);
@@ -53,6 +63,7 @@ export default function MapCore({ places = [] }: { places: any[] }) {
   const [isMounted, setIsMounted] = useState(false);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setIsMounted(true);
     return () => {
       setIsMounted(false);
@@ -130,7 +141,7 @@ export default function MapCore({ places = [] }: { places: any[] }) {
           </Popup>
         </Marker>
 
-        {places.map((place: any) => {
+        {places.map((place: Place) => {
           if (!place.latitude || !place.longitude) return null;
           return (
             <Marker 

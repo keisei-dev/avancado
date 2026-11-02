@@ -1,4 +1,5 @@
 import { Suspense } from 'react';
+import Image from 'next/image';
 import { prisma } from "@/lib/prisma/client";
 import PetMap from '@/components/map/MapContainer';
 
@@ -36,7 +37,7 @@ async function MapContent() {
             <div key={place.id} className="p-3 border border-slate-100 rounded-xl hover:shadow-md transition cursor-pointer bg-slate-50 flex gap-3 items-center">
               {place.imageUrl ? (
                 <div className="relative w-16 h-16 rounded-lg overflow-hidden shrink-0 bg-slate-200">
-                  <img src={place.imageUrl} alt={place.name} className="w-full h-full object-cover" />
+                  <Image src={place.imageUrl} alt={place.name} fill className="object-cover" />
                 </div>
               ) : (
                 <div className="w-16 h-16 rounded-lg bg-slate-200 shrink-0 flex items-center justify-center text-xs text-slate-400">
