@@ -16,8 +16,33 @@ import { EmptyState } from "@/components/ui/empty-state";
 import { MessagesSquare } from "lucide-react";
 import { TabsDemo } from "./tabs-demo";
 import { MenuDemo } from "./menu-demo";
-import { NotificationsMenu } from "@/components/layout/notifications-menu";
+import {
+  NotificationsMenu,
+  type NotificationItem,
+} from "@/components/layout/notifications-menu";
+
+const SAMPLE_NOTIFICATIONS: NotificationItem[] = [
+  {
+    id: "1",
+    title: "New sitter offer",
+    message: "Marcus Chen offered to help with Sunny.",
+    read: false,
+  },
+  {
+    id: "2",
+    title: "New message",
+    message: "Ava Brooks sent you a message about Luna.",
+    read: false,
+  },
+  {
+    id: "3",
+    title: "Report received",
+    message: "Your report about a post was received.",
+    read: true,
+  },
+];
 import { ToastDemo } from "./toast-demo";
+import { BackLink } from "@/components/layout/back-link";
 
 import { ShieldCheck } from "lucide-react"; // vaccinated icon
 
@@ -79,6 +104,7 @@ const COMPONENTS: { level: string; items: string[] }[] = [
 ];
 
 const DONE = new Set([
+  "NotificationsMenu",
   "EmptyState",
   "Button",
   "Avatar",
@@ -94,6 +120,9 @@ const DONE = new Set([
   "Tabs / SegmentedControl",
   "Menu",
   "EmptyState",
+  "NotificationsMenu",
+  "Toast",
+  "BackLink",
 ]);
 
 export default function UiLibraryPage() {
@@ -173,7 +202,7 @@ export default function UiLibraryPage() {
                 verified: true,
               }}
               unreadMessages={3}
-              unreadNotifications={12}
+              notifications={SAMPLE_NOTIFICATIONS}
             />
           </div>
         </div>
@@ -306,24 +335,30 @@ export default function UiLibraryPage() {
         </div>
       </section>
 
-            <section className="mt-10">
-        <h2 className="font-display text-xl font-bold">
-          Toast
-        </h2>
+      <section className="mt-10">
+        <h2 className="font-display text-xl font-bold">Toast</h2>
         <div className="mt-4 rounded-16 border border-line bg-white p-6 shadow-card">
           <ToastDemo />
         </div>
       </section>
 
       <section className="mt-10">
-        <h2 className="font-display text-xl font-bold">
-          Notifications --- IN PROGRESS
-        </h2>
-        <div className="mt-4 rounded-16 border border-line bg-white p-6 shadow-card">
+        <h2 className="font-display text-xl font-bold">Notifications</h2>
+        <p className="mt-1 text-sm text-muted">
+          Click a bell. Left: with notifications. Right: empty.
+        </p>
+        <div className="mt-4 flex justify-end gap-3 rounded-16 border border-line bg-white p-6 pb-80 shadow-card">
+          <NotificationsMenu notifications={SAMPLE_NOTIFICATIONS} />
           <NotificationsMenu />
         </div>
       </section>
-
+      
+      <section className="mt-10">
+        <h2 className="font-display text-xl font-bold">Back link</h2>
+        <div className="mt-4 rounded-16 border border-line bg-white p-6 shadow-card">
+          <BackLink href="/dev/ui">Back to UI library</BackLink>
+        </div>
+      </section>
 
       <section className="mt-10">
         <h2 className="font-display text-xl font-bold">Components</h2>

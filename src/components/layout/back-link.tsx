@@ -4,7 +4,7 @@
  * "← Back to …" link at the top of detail pages.
  */
 
-import { ChevronLeft } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 
 export function BackLink({
   href,
@@ -18,7 +18,7 @@ export function BackLink({
       href={href}
       className="inline-flex items-center gap-1 text-sm font-medium text-gray-700 hover:text-gray-900"
     >
-      <ChevronLeft className="h-4 w-4" />
+      <ArrowLeft className="h-4 w-4" />
       {children}
     </a>
   );
