@@ -43,6 +43,9 @@ const SAMPLE_NOTIFICATIONS: NotificationItem[] = [
 ];
 import { ToastDemo } from "./toast-demo";
 import { BackLink } from "@/components/layout/back-link";
+import { ToggleDemo } from "./toggle-demo";
+import {StarRatingDemo} from "./star-rating-demo";
+import { PhotoUploadDemo } from "./photo-upload-demo";
 
 import { ShieldCheck } from "lucide-react"; // vaccinated icon
 
@@ -104,6 +107,10 @@ const COMPONENTS: { level: string; items: string[] }[] = [
 ];
 
 const DONE = new Set([
+  "StarRating",
+  "PhotoUpload",
+
+  "Switch / ChoicePills",
   "NotificationsMenu",
   "EmptyState",
   "Button",
@@ -352,11 +359,32 @@ export default function UiLibraryPage() {
           <NotificationsMenu />
         </div>
       </section>
-      
+
       <section className="mt-10">
         <h2 className="font-display text-xl font-bold">Back link</h2>
         <div className="mt-4 rounded-16 border border-line bg-white p-6 shadow-card">
           <BackLink href="/dev/ui">Back to UI library</BackLink>
+        </div>
+      </section>
+
+      <section className="mt-10">
+        <h2 className="font-display text-xl font-bold">Switch / ChoicePills</h2>
+        <div className="mt-4 rounded-16 border border-line bg-white p-6 shadow-card">
+          <ToggleDemo />
+        </div>
+      </section>
+
+      <section className="mt-10">
+        <h2 className="font-display text-xl font-bold">Star rating</h2>
+        <div className="mt-4 rounded-16 border border-line bg-white p-6 shadow-card">
+          <StarRatingDemo />
+        </div>
+      </section>
+
+      <section className="mt-10">
+        <h2 className="font-display text-xl font-bold">Photo Upload</h2>
+        <div className="mt-4 rounded-16 border border-line bg-white p-6 shadow-card">
+          <PhotoUploadDemo />
         </div>
       </section>
 
