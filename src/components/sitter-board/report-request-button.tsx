@@ -1,14 +1,32 @@
 "use client";
 
+import { useState, useTransition, type ReactNode } from "react";
 import Link from "next/link";
-import { useState, useTransition } from "react";
+import { Flag } from "lucide-react";
 import { reportSitterRequest } from "@/app/sitter-board/report-actions";
 import { ReportModal } from "@/components/report/report-modal";
 import { Toast, useToast } from "@/components/ui/toast";
 import { SITTER_REPORT_REASONS } from "@/lib/report/sitter-reasons";
 
 const TRIGGER_CLASS =
-  "text-xs font-semibold text-red-600 transition-colors hover:text-red-800";
+  "inline-flex min-h-8 items-center gap-1.5 rounded-10 px-1.5 text-[12px] font-semibold text-coral transition-colors hover:text-coral-hover focus-visible:shadow-focus focus-visible:outline-none";
+
+function ReportTriggerLabel() {
+  return (
+    <>
+      <Flag size={14} strokeWidth={2} aria-hidden="true" />
+      Report this request
+    </>
+  );
+}
+
+function ReportFooter({ children }: { children: ReactNode }) {
+  return (
+    <div className="flex w-full min-w-0 flex-1 justify-end border-t border-line pt-4">
+      {children}
+    </div>
+  );
+}
 
 export function ReportRequestButton({
   requestId,
@@ -31,9 +49,11 @@ export function ReportRequestButton({
 
   if (!signedIn) {
     return (
-      <Link href="/login" className={TRIGGER_CLASS}>
-        Report this request
-      </Link>
+      <ReportFooter>
+        <Link href="/login" className={TRIGGER_CLASS}>
+          <ReportTriggerLabel />
+        </Link>
+      </ReportFooter>
     );
   }
 
@@ -61,14 +81,16 @@ export function ReportRequestButton({
   };
 
   return (
-    <>
-      <button
-        type="button"
-        onClick={() => setOpen(true)}
-        className={TRIGGER_CLASS}
-      >
-        Report this request
-      </button>
+    <div className="flex w-full min-w-0 flex-1 flex-col">
+      <ReportFooter>
+        <button
+          type="button"
+          onClick={() => setOpen(true)}
+          className={TRIGGER_CLASS}
+        >
+          <ReportTriggerLabel />
+        </button>
+      </ReportFooter>
       <ReportModal
         open={open}
         onClose={close}
@@ -83,6 +105,6 @@ export function ReportRequestButton({
         onSubmit={submit}
       />
       {message ? <Toast key={message} message={message} /> : null}
-    </>
+    </div>
   );
 }
