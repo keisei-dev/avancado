@@ -14,7 +14,11 @@ export function buildLinkPath(
       return `/sitter-board/my-requests/${requireId(target.requestId, type)}`;
 
     case "APPLICATION_ACCEPTED":
+    case "REQUEST_COMPLETED":
+      return `/sitter-board/${requireId(target.requestId, type)}`;
+
     case "APPLICATION_REJECTED":
+      return "/sitter-board/applied";
     case "REQUEST_COMPLETED":
       return `/sitter-board/${requireId(target.requestId, type)}`;
 
