@@ -1,5 +1,5 @@
 // Notion flow: Admin: Sitter Request
-// TODO: implement
+// TODO: list OPEN Report rows with requestId set (Sprint 3 sitter moderation).
 
 import type { Metadata } from "next";
 import { ComingSoon } from "@/components/admin/coming-soon";
