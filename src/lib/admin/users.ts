@@ -290,6 +290,16 @@ export function formatJoinedDate(date: Date): string {
   });
 }
 
+export function memberDisplayName(user: {
+  name: string;
+  email: string;
+}): string {
+  const name = user.name.trim();
+  if (name) return name;
+  const local = user.email.split("@")[0]?.trim() ?? "";
+  return local || "Member";
+}
+
 export function formatSubmittedLabel(submittedAt: Date, now: Date): string {
   const sameDay =
     submittedAt.getFullYear() === now.getFullYear() &&

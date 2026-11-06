@@ -1,6 +1,16 @@
 import type { ButtonHTMLAttributes } from "react";
 import Link from "next/link";
-import { ChevronLeft, ChevronRight, FileText } from "lucide-react";
+import {
+  Check,
+  ChevronLeft,
+  ChevronRight,
+  Clock,
+  Eye,
+  EyeOff,
+  FileText,
+  ShieldCheck,
+  UserRound,
+} from "lucide-react";
 import { AccountStatus } from "@/generated/prisma/client";
 import {
   approveVerification,
@@ -20,6 +30,7 @@ import {
   documentTypeLabel,
   formatJoinedDate,
   formatSubmittedLabel,
+  memberDisplayName,
   usersListHref,
   type AdminManagedUser,
   type AdminUserFilter,
@@ -43,15 +54,32 @@ type UsersBoardProps = {
   filter: AdminUserFilter;
 };
 
-function verificationBadgeClass(label: AdminUserVerificationLabel) {
-  switch (label) {
-    case "Verified":
-      return "bg-sage-soft text-olive-hover";
-    case "Pending":
-      return "bg-amber-soft text-amber-ink";
-    default:
-      return "bg-cream text-muted";
+const PILL_BADGE =
+  "inline-flex min-h-6 items-center gap-1 whitespace-nowrap rounded-full px-2.5 py-1 text-xs font-semibold leading-none";
+
+function VerificationBadge({ label }: { label: AdminUserVerificationLabel }) {
+  if (label === "Verified") {
+    return (
+      <span className={cn(PILL_BADGE, "bg-sage-soft text-olive-hover")}>
+        <ShieldCheck size={13} strokeWidth={2.4} aria-hidden="true" />
+        Verified
+      </span>
+    );
   }
+  if (label === "Pending") {
+    return (
+      <span className={cn(PILL_BADGE, "bg-amber-soft text-amber-ink")}>
+        <Clock size={13} strokeWidth={2.4} aria-hidden="true" />
+        Pending
+      </span>
+    );
+  }
+  return (
+    <span className={cn(PILL_BADGE, "bg-cream text-muted")}>
+      <UserRound size={13} strokeWidth={2.4} aria-hidden="true" />
+      Not verified
+    </span>
+  );
 }
 
 function StatusBadge({ status }: { status: AccountStatus }) {
@@ -59,10 +87,15 @@ function StatusBadge({ status }: { status: AccountStatus }) {
   return (
     <span
       className={cn(
-        "inline-flex rounded-full px-2.5 py-1 text-xs font-semibold",
+        PILL_BADGE,
         hidden ? "bg-cream text-muted" : "bg-success-soft text-success",
       )}
     >
+      {hidden ? (
+        <EyeOff size={13} strokeWidth={2.4} aria-hidden="true" />
+      ) : (
+        <Check size={13} strokeWidth={2.6} aria-hidden="true" />
+      )}
       {hidden ? "Hidden" : "Active"}
     </span>
   );
@@ -77,7 +110,7 @@ function ActionButton({
     <button
       type="submit"
       className={cn(
-        "inline-flex h-8 items-center rounded-10 border px-2.5 text-[12px] font-medium disabled:cursor-not-allowed disabled:opacity-45",
+        "inline-flex h-8 items-center gap-1.5 rounded-10 border px-2.5 text-[12px] font-medium disabled:cursor-not-allowed disabled:opacity-45",
         className,
       )}
       {...props}
@@ -100,15 +133,14 @@ function PendingUserRow({
   if (!pending) return null;
   const label = documentTypeLabel(pending.documentType);
   const isSelf = user.id === currentAdminId;
+  const name = memberDisplayName(user);
 
   return (
-    <div className="flex flex-col gap-4 rounded-12 bg-ivory p-3 lg:flex-row lg:items-center">
+    <div className="flex flex-col gap-4 rounded-16 bg-ivory p-3.5 lg:flex-row lg:items-center">
       <div className="flex min-w-0 flex-1 items-center gap-3">
-        <Avatar name={user.name} src={user.image} size="md" />
+        <Avatar name={name} size="md" verified={user.isVerified} />
         <div className="min-w-0">
-          <p className="truncate text-sm font-semibold text-brown">
-            {user.name}
-          </p>
+          <p className="truncate text-sm font-semibold text-brown">{name}</p>
           <p className="truncate text-[13px] text-muted">
             {user.email} · {formatSubmittedLabel(pending.submittedAt, now)}
           </p>
@@ -125,7 +157,7 @@ function PendingUserRow({
       </div>
       <div className="flex flex-wrap items-center gap-1.5 lg:justify-end">
         <ReviewDocumentButton
-          name={user.name}
+          name={name}
           email={user.email}
           documentLabel={label}
           documentPath={pending.documentPath}
@@ -203,8 +235,12 @@ export function UsersBoard({
         </section>
       ) : null}
 
-      <div className="mt-5 flex flex-col gap-3 xl:flex-row xl:items-center">
-        <form action="/admin/users" method="get" className="min-w-0 flex-1">
+      <div className="mt-6 flex flex-wrap items-center gap-x-2 gap-y-2.5">
+        <form
+          action="/admin/users"
+          method="get"
+          className="min-w-[200px] max-w-[280px] flex-[1_1_240px]"
+        >
           {filter !== "all" ? (
             <input type="hidden" name="filter" value={filter} />
           ) : null}
@@ -219,7 +255,7 @@ export function UsersBoard({
             size="sm"
           />
         </form>
-        <div className="flex flex-wrap gap-2">
+        <div className="flex min-w-0 flex-[2_1_420px] flex-wrap gap-1.5">
           {FILTERS.map((item) => {
             const selected = filter === item.id;
             return (
@@ -232,7 +268,7 @@ export function UsersBoard({
                 })}
                 aria-current={selected ? "page" : undefined}
                 className={cn(
-                  "inline-flex h-9 items-center gap-2 rounded-full px-3 text-[13px] font-semibold",
+                  "inline-flex h-8 shrink-0 items-center gap-1.5 rounded-full px-2.5 text-[12px] font-semibold",
                   selected
                     ? "bg-olive-hover text-white"
                     : "border border-line bg-white text-brown hover:bg-ivory",
@@ -241,8 +277,8 @@ export function UsersBoard({
                 {item.label}
                 <span
                   className={cn(
-                    "inline-grid h-5 min-w-5 place-items-center rounded-full px-1.5 text-[11px] font-semibold",
-                    selected ? "bg-white/18 text-white" : "bg-cream text-muted",
+                    "inline-grid h-[18px] min-w-[18px] place-items-center rounded-full px-1 text-[11px] font-semibold",
+                    selected ? "bg-white/20 text-white" : "bg-cream text-muted",
                   )}
                 >
                   {list.counts[item.id]}
@@ -263,51 +299,61 @@ export function UsersBoard({
           </div>
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full min-w-[860px] text-left">
+            <table className="w-full min-w-[960px] text-left">
               <thead>
-                <tr className="border-b border-line text-[11px] font-semibold tracking-[0.08em] text-muted uppercase">
-                  <th className="px-4 py-3 font-semibold">User</th>
-                  <th className="px-4 py-3 font-semibold">Email</th>
-                  <th className="px-4 py-3 font-semibold">Verification</th>
-                  <th className="px-4 py-3 font-semibold">Status</th>
-                  <th className="px-4 py-3 font-semibold">Joined</th>
-                  <th className="px-4 py-3 font-semibold">Actions</th>
+                <tr className="border-b border-line bg-ivory text-[11px] font-semibold tracking-[0.08em] text-muted uppercase">
+                  <th className="min-w-[220px] px-4 py-3 font-semibold">
+                    User
+                  </th>
+                  <th className="min-w-[220px] px-4 py-3 font-semibold">
+                    Email
+                  </th>
+                  <th className="min-w-[140px] px-4 py-3 font-semibold">
+                    Verification
+                  </th>
+                  <th className="min-w-[110px] px-4 py-3 font-semibold">
+                    Status
+                  </th>
+                  <th className="min-w-[110px] px-4 py-3 font-semibold">
+                    Joined
+                  </th>
+                  <th className="min-w-[180px] px-4 py-3 font-semibold">
+                    Actions
+                  </th>
                 </tr>
               </thead>
               <tbody>
                 {list.users.map((user) => {
                   const isSelf = user.id === currentAdminId;
                   const hidden = user.accountStatus === AccountStatus.HIDDEN;
+                  const name = memberDisplayName(user);
                   return (
                     <tr
                       key={user.id}
-                      className="border-b border-line last:border-0"
+                      className="border-b border-line last:border-0 hover:bg-row-hover"
                     >
                       <td className="px-4 py-3.5">
                         <div className="flex items-center gap-3">
-                          <Avatar name={user.name} src={user.image} size="sm" />
-                          <span className="text-sm font-semibold text-brown">
-                            {user.name}
+                          <Avatar
+                            name={name}
+                            size="md"
+                            verified={user.isVerified}
+                          />
+                          <span className="truncate text-sm font-semibold text-brown">
+                            {name}
                           </span>
                         </div>
                       </td>
-                      <td className="px-4 py-3.5 text-sm text-brown">
+                      <td className="truncate px-4 py-3.5 text-sm text-brown">
                         {user.email}
                       </td>
                       <td className="px-4 py-3.5">
-                        <span
-                          className={cn(
-                            "inline-flex rounded-full px-2.5 py-1 text-xs font-semibold",
-                            verificationBadgeClass(user.verificationLabel),
-                          )}
-                        >
-                          {user.verificationLabel}
-                        </span>
+                        <VerificationBadge label={user.verificationLabel} />
                       </td>
                       <td className="px-4 py-3.5">
                         <StatusBadge status={user.accountStatus} />
                       </td>
-                      <td className="px-4 py-3.5 text-sm text-brown">
+                      <td className="px-4 py-3.5 text-sm whitespace-nowrap text-brown">
                         {formatJoinedDate(user.createdAt)}
                       </td>
                       <td className="px-4 py-3.5">
@@ -319,7 +365,11 @@ export function UsersBoard({
                                 name="userId"
                                 value={user.id}
                               />
-                              <ActionButton className="border-line bg-white text-brown-2">
+                              <ActionButton
+                                className="border-line bg-white text-brown-2"
+                                aria-label={`Unhide ${name}`}
+                              >
+                                <Eye size={14} aria-hidden="true" />
                                 Unhide
                               </ActionButton>
                             </form>
@@ -333,14 +383,16 @@ export function UsersBoard({
                               <ActionButton
                                 disabled={isSelf}
                                 className="border-line bg-white text-brown-2"
+                                aria-label={`Hide ${name}`}
                               >
+                                <EyeOff size={14} aria-hidden="true" />
                                 Hide
                               </ActionButton>
                             </form>
                           )}
                           <DeleteUserButton
                             userId={user.id}
-                            userName={user.name}
+                            userName={name}
                             disabled={isSelf}
                           />
                         </div>
@@ -353,7 +405,7 @@ export function UsersBoard({
           </div>
         )}
 
-        <div className="flex flex-col gap-3 border-t border-line px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex flex-col gap-3 border-t border-line bg-ivory/70 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
           <p className="text-[13px] text-muted">
             {list.total === 0
               ? "Showing 0 of 0 members"

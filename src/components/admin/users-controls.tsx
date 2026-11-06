@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { FileText } from "lucide-react";
+import { FileText, Trash2 } from "lucide-react";
 import { deleteUser } from "@/app/admin/(protected)/users/actions";
 import { Button } from "@/components/ui/button";
 import { Modal } from "@/components/ui/modal";
@@ -27,7 +27,7 @@ export function UsersPerPageSelect({
             router.push(hrefs[next]);
           }
         }}
-        className="h-9 rounded-12 border border-line bg-white px-2 text-[13px] font-medium text-brown"
+        className="h-8 rounded-10 border border-line bg-white px-2 text-[13px] font-medium text-brown"
       >
         <option value={5}>5</option>
         <option value={10}>10</option>
@@ -54,8 +54,9 @@ export function DeleteUserButton({
         type="button"
         disabled={disabled}
         onClick={() => setOpen(true)}
-        className="inline-flex h-8 items-center rounded-10 border border-line bg-white px-2.5 text-[12px] font-medium text-coral disabled:cursor-not-allowed disabled:opacity-45"
+        className="inline-flex h-8 items-center gap-1.5 rounded-10 border border-line bg-white px-2.5 text-[12px] font-medium text-coral disabled:cursor-not-allowed disabled:opacity-45"
       >
+        <Trash2 size={14} aria-hidden="true" />
         Delete
       </button>
       <Modal
