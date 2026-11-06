@@ -32,6 +32,7 @@ export type TopBarProps = {
   unreadMessages?: number;
   notifications?: NotificationItem[];
   markAllReadAction?: () => void | Promise<void>;
+  markReadAction?: (notificationId: string) => void | Promise<void>;
   logoutAction?: () => void | Promise<void>;
 };
 
@@ -40,6 +41,7 @@ export function TopBar({
   unreadMessages = 0,
   notifications = [],
   markAllReadAction,
+  markReadAction,
   logoutAction,
 }: TopBarProps) {
   const pathname = usePathname();
@@ -68,6 +70,7 @@ export function TopBar({
               <NotificationsMenu
                 notifications={notifications}
                 onMarkAllRead={markAllReadAction}
+                onMarkRead={markReadAction}
               />
               <AccountMenu user={user} logoutAction={logoutAction} />
             </>
