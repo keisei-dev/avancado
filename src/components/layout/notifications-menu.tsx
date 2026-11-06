@@ -4,36 +4,52 @@
 /**
  * Bell button in the top bar. Click it to open the list.
  * Unread items have a yellow (amber-soft) background.
+ * Click an item: it becomes read and opens its linkPath.
  * "Mark all read" makes them all read. Empty list: "You're all caught up."
  */
 
+import Link from "next/link";
 import { useState } from "react";
 import { Bell } from "lucide-react";
 
 export type NotificationItem = {
   id: string;
   title: string;
-  message: string;
-  read: boolean;
+  body: string | null;
+  isRead: boolean;
+  linkPath: string | null;
 };
 
 export type NotificationsMenuProps = {
   notifications?: NotificationItem[];
-  onMarkAllRead?: () => void;
+  onMarkAllRead?: () => void | Promise<void>;
+  onMarkRead?: (notificationId: string) => void | Promise<void>;
 };
 
 export function NotificationsMenu({
   notifications = [],
   onMarkAllRead,
+  onMarkRead,
 }: NotificationsMenuProps) {
   const [open, setOpen] = useState(false);
-  const [items, setItems] = useState(notifications);
+  const [readIds, setReadIds] = useState<string[]>([]);
 
-  const unread = items.filter((item) => !item.read).length;
+  const items = notifications.map((item) => ({
+    ...item,
+    isRead: item.isRead || readIds.includes(item.id),
+  }));
+  const unread = items.filter((item) => !item.isRead).length;
 
   function markAllRead() {
-    setItems(items.map((item) => ({ ...item, read: true })));
-    onMarkAllRead?.();
+    setReadIds(notifications.map((item) => item.id));
+    void onMarkAllRead?.();
+  }
+
+  function handleSelect(item: NotificationItem) {
+    setOpen(false);
+    if (item.isRead) return;
+    setReadIds((previous) => [...previous, item.id]);
+    void onMarkRead?.(item.id);
   }
 
   return (
@@ -79,21 +95,46 @@ export function NotificationsMenu({
                 <li
                   key={item.id}
                   className={
-                    item.read
+                    item.isRead
                       ? "p-3 rounded-2xl hover:bg-ivory"
                       : " bg-amber-soft/40 p-3 rounded-12 hover:bg-amber-soft/20"
                   }
                 >
-                  <p className="text-sm font-semibold text-brown">
-                    {item.title}
-                  </p>
-                  <p className="text-sm text-muted">{item.message}</p>
+                  {item.linkPath ? (
+                    <Link
+                      href={item.linkPath}
+                      onClick={() => handleSelect(item)}
+                      className="block"
+                    >
+                      <ItemText title={item.title} body={item.body} />
+                    </Link>
+                  ) : (
+                    <ItemText title={item.title} body={item.body} />
+                  )}
                 </li>
               ))}
             </ul>
           )}
+
+          {/* Optional: link to the full list page */}
+          <Link
+            href="/notifications"
+            onClick={() => setOpen(false)}
+            className="block border-t border-line p-3 text-center text-xs font-semibold text-olive-dark hover:text-olive"
+          >
+            View all
+          </Link>
         </div>
       )}
     </div>
+  );
+}
+
+function ItemText({ title, body }: { title: string; body: string | null }) {
+  return (
+    <>
+      <p className="text-sm font-semibold text-brown">{title}</p>
+      {body && <p className="text-sm text-muted">{body}</p>}
+    </>
   );
 }
