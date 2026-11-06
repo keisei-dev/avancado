@@ -20,3 +20,14 @@ export type CreateNotificationInput = {
   type: NotificationType;
 } & NotificationTarget &
   NotificationContext;
+
+// The shape the UI receives.
+export type NotificationView = {
+  id: string;
+  type: NotificationType;
+  title: string;
+  body: string | null;
+  linkPath: string | null;
+  isRead: boolean;
+  createdAt: string; // ISO string, e.g. "2026-11-06T10:00:00.000Z"
+};
