@@ -1,10 +1,14 @@
-// Notion flow: Community: Create post
-// TODO: implement
+import { redirect } from "next/navigation";
+import { getCurrentMember } from "@/lib/auth/member";
+import { PostComposer } from "@/components/community/post-composer";
 
-export default function NewPostPage() {
+export const instant = false;
+export default async function NewPostPage() {
+  const member = await getCurrentMember();
+  if (!member) redirect("/login");
   return (
-    <main className="flex flex-1 flex-col gap-2 p-8">
-      <h1 className="text-2xl font-bold">Create Post</h1>
+    <main className="mx-auto w-full max-w-2xl p-4 sm:p-8">
+      <PostComposer member={member} />
     </main>
   );
 }

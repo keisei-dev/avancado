@@ -367,6 +367,7 @@ model CommunityPost {
   type      PostType   @default(GENERAL)
   imageUrl  String // One image per post.
   caption   String
+  location  String?
   likeCount Int        @default(0) // Copy of the PostLike count for fast display.
   status    PostStatus @default(ACTIVE)
   createdAt DateTime   @default(now()) @db.Timestamptz
