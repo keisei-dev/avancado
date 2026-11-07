@@ -90,7 +90,7 @@ export function NotificationsMenu({
               You&apos;re all caught up.
             </p>
           ) : (
-            <ul className="p-1.5">
+            <ul className="max-h-[60vh] overflow-y-auto p-1.5">
               {items.map((item) => (
                 <li
                   key={item.id}
@@ -115,15 +115,6 @@ export function NotificationsMenu({
               ))}
             </ul>
           )}
-
-          {/* Optional: link to the full list page */}
-          <Link
-            href="/notifications"
-            onClick={() => setOpen(false)}
-            className="block border-t border-line p-3 text-center text-xs font-semibold text-olive-dark hover:text-olive"
-          >
-            View all
-          </Link>
         </div>
       )}
     </div>
