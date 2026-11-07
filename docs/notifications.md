@@ -8,7 +8,7 @@ For general setup see [SETUP.md](./SETUP.md). For the database see
 
 - Notifications are rows in the `Notification` table (one row per recipient).
 - The bell in the top bar shows the newest 20 notifications of the logged-in
-  user. The full list is at `/notifications`.
+  user. There is no separate list page.
 - Clicking a notification marks it as read and opens its `linkPath`.
 - Notifications use plain HTTP. There is no live update: a new notification
   shows up after the next page load or navigation.
@@ -68,15 +68,15 @@ Fill in the owner and the status as features are built.
 
 | Type                    | Create it when...                   | Owner | Connected? |
 | ----------------------- | ----------------------------------- | ----- | ---------- |
-| `APPLICATION_RECEIVED`  | A sitter applies to a request       |       |            |
-| `APPLICATION_ACCEPTED`  | The owner confirms a sitter         |       |            |
-| `APPLICATION_REJECTED`  | The owner confirms another sitter   |       |            |
-| `REQUEST_COMPLETED`     | The owner marks the request as done |       |            |
-| `VERIFICATION_APPROVED` | An admin approves an ID             |       |            |
-| `VERIFICATION_REJECTED` | An admin rejects an ID              |       |            |
-| `NEW_MESSAGE`           | A chat message is sent              |       |            |
-| `MATCH_CANCELLED`       | The owner cancels a match           |       |            |
-| `APPLICATION_WITHDRAWN` | A sitter withdraws an application   |       |            |
+| `APPLICATION_RECEIVED`  | A sitter applies to a request       | Jamie |            |
+| `APPLICATION_ACCEPTED`  | The owner confirms a sitter         | Jamie |            |
+| `APPLICATION_REJECTED`  | The owner confirms another sitter   | Jamie |            |
+| `REQUEST_COMPLETED`     | The owner marks the request as done | Jamie |            |
+| `VERIFICATION_APPROVED` | An admin approves an ID             | Joy   |            |
+| `VERIFICATION_REJECTED` | An admin rejects an ID              | Joy   |            |
+| `NEW_MESSAGE`           | A chat message is sent              | Mako  |            |
+| `MATCH_CANCELLED`       | The owner cancels a match           | Jamie |            |
+| `APPLICATION_WITHDRAWN` | A sitter withdraws an application   | Jamie |            |
 
 ## 4. Other functions (you usually do not need these)
 
