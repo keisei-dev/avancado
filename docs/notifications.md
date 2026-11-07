@@ -40,15 +40,17 @@ type in these files (change them there, not in your feature):
 
 ### What to pass for each type
 
-| Type                    | Recipient                   | Required id      | Names for the text              |
-| ----------------------- | --------------------------- | ---------------- | ------------------------------- |
-| `APPLICATION_RECEIVED`  | Request owner               | `requestId`      | `actorName` (sitter), `petName` |
-| `APPLICATION_ACCEPTED`  | The chosen sitter           | `requestId`      | `actorName` (owner), `petName`  |
-| `APPLICATION_REJECTED`  | A sitter who was not chosen | none             | `actorName` (owner), `petName`  |
-| `REQUEST_COMPLETED`     | The sitter                  | `requestId`      | `actorName` (owner), `petName`  |
-| `VERIFICATION_APPROVED` | The verified user           | none             | none                            |
-| `VERIFICATION_REJECTED` | The user who applied        | none             | none                            |
-| `NEW_MESSAGE`           | The other chat participant  | `conversationId` | `actorName` (sender)            |
+| Type                    | Recipient                            | Required id      | Names for the text              |
+| ----------------------- | ------------------------------------ | ---------------- | ------------------------------- |
+| `APPLICATION_RECEIVED`  | Request owner                        | `requestId`      | `actorName` (sitter), `petName` |
+| `APPLICATION_ACCEPTED`  | The chosen sitter                    | `requestId`      | `actorName` (owner), `petName`  |
+| `APPLICATION_REJECTED`  | A sitter who was not chosen          | none             | `actorName` (owner), `petName`  |
+| `REQUEST_COMPLETED`     | The sitter                           | `requestId`      | `actorName` (owner), `petName`  |
+| `VERIFICATION_APPROVED` | The verified user                    | none             | none                            |
+| `VERIFICATION_REJECTED` | The user who applied                 | none             | none                            |
+| `NEW_MESSAGE`           | The other chat participant           | `conversationId` | `actorName` (sender)            |
+| `MATCH_CANCELLED`       | The sitter whose match was cancelled | none             | `actorName` (owner), `petName`  |
+| `APPLICATION_WITHDRAWN` | Request owner                        | `requestId`      | `actorName` (sitter), `petName` |
 
 If a required id is missing, `createNotification()` throws an error. If a
 name is missing, the notification is still created, just without body text.
@@ -73,6 +75,8 @@ Fill in the owner and the status as features are built.
 | `VERIFICATION_APPROVED` | An admin approves an ID             |       |            |
 | `VERIFICATION_REJECTED` | An admin rejects an ID              |       |            |
 | `NEW_MESSAGE`           | A chat message is sent              |       |            |
+| `MATCH_CANCELLED`       | The owner cancels a match           |       |            |
+| `APPLICATION_WITHDRAWN` | A sitter withdraws an application   |       |            |
 
 ## 4. Other functions (you usually do not need these)
 

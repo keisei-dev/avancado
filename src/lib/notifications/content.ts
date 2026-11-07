@@ -13,6 +13,8 @@ const TITLES: Record<NotificationType, string> = {
   VERIFICATION_APPROVED: "You are now verified",
   VERIFICATION_REJECTED: "Verification was not approved",
   NEW_MESSAGE: "New message",
+  MATCH_CANCELLED: "Match cancelled",
+  APPLICATION_WITHDRAWN: "Application withdrawn",
 };
 
 // The body text can use names. It returns null when a name is missing,
@@ -38,6 +40,10 @@ export function buildContent(
     VERIFICATION_REJECTED:
       "An admin could not approve your ID. You can submit it again.",
     NEW_MESSAGE: actor ? `${actor} sent you a message.` : null,
+    MATCH_CANCELLED:
+      actor && pet ? `${actor} cancelled the match for ${pet}.` : null,
+    APPLICATION_WITHDRAWN:
+      actor && pet ? `${actor} withdrew their application for ${pet}.` : null,
   };
 
   return { title: TITLES[type], body: bodies[type] };
