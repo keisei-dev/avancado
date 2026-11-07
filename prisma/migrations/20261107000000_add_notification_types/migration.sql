@@ -1,0 +1,3 @@
+-- AlterEnum
+ALTER TYPE "NotificationType" ADD VALUE 'MATCH_CANCELLED';
+ALTER TYPE "NotificationType" ADD VALUE 'APPLICATION_WITHDRAWN';

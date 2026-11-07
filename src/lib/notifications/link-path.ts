@@ -11,6 +11,7 @@ export function buildLinkPath(
 ): string {
   switch (type) {
     case "APPLICATION_RECEIVED":
+    case "APPLICATION_WITHDRAWN":
       return `/sitter-board/my-requests/${requireId(target.requestId, type)}`;
 
     case "APPLICATION_ACCEPTED":
@@ -18,7 +19,9 @@ export function buildLinkPath(
       return `/sitter-board/${requireId(target.requestId, type)}`;
 
     case "APPLICATION_REJECTED":
+    case "MATCH_CANCELLED":
       return "/sitter-board/applied";
+
     case "REQUEST_COMPLETED":
       return `/sitter-board/${requireId(target.requestId, type)}`;
 
