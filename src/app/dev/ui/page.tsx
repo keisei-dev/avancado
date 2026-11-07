@@ -12,7 +12,40 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/text-area";
 import { ModalDemo } from "./modal-demo";
 import { Badge } from "@/components/ui/badge";
+import { EmptyState } from "@/components/ui/empty-state";
+import { MessagesSquare } from "lucide-react";
 import { TabsDemo } from "./tabs-demo";
+import { MenuDemo } from "./menu-demo";
+import {
+  NotificationsMenu,
+  type NotificationItem,
+} from "@/components/layout/notifications-menu";
+
+const SAMPLE_NOTIFICATIONS: NotificationItem[] = [
+  {
+    id: "1",
+    title: "New sitter offer",
+    message: "Marcus Chen offered to help with Sunny.",
+    read: false,
+  },
+  {
+    id: "2",
+    title: "New message",
+    message: "Ava Brooks sent you a message about Luna.",
+    read: false,
+  },
+  {
+    id: "3",
+    title: "Report received",
+    message: "Your report about a post was received.",
+    read: true,
+  },
+];
+import { ToastDemo } from "./toast-demo";
+import { BackLink } from "@/components/layout/back-link";
+import { ToggleDemo } from "./toggle-demo";
+import {StarRatingDemo} from "./star-rating-demo";
+import { PhotoUploadDemo } from "./photo-upload-demo";
 
 import { ShieldCheck } from "lucide-react"; // vaccinated icon
 
@@ -74,6 +107,12 @@ const COMPONENTS: { level: string; items: string[] }[] = [
 ];
 
 const DONE = new Set([
+  "StarRating",
+  "PhotoUpload",
+
+  "Switch / ChoicePills",
+  "NotificationsMenu",
+  "EmptyState",
   "Button",
   "Avatar",
   "BrandLogo",
@@ -85,7 +124,12 @@ const DONE = new Set([
   "Field / Input",
   "Modal",
   "Badge / Tag",
-  "Tabs / SegmentedControl"
+  "Tabs / SegmentedControl",
+  "Menu",
+  "EmptyState",
+  "NotificationsMenu",
+  "Toast",
+  "BackLink",
 ]);
 
 export default function UiLibraryPage() {
@@ -165,7 +209,7 @@ export default function UiLibraryPage() {
                 verified: true,
               }}
               unreadMessages={3}
-              unreadNotifications={12}
+              notifications={SAMPLE_NOTIFICATIONS}
             />
           </div>
         </div>
@@ -238,6 +282,26 @@ export default function UiLibraryPage() {
       </section>
 
       <section className="mt-10">
+        <h2 className="font-display text-xl font-bold">Empty state</h2>
+        <div className="mt-4 grid gap-4 sm:grid-cols-2">
+          <EmptyState
+            title="No pets yet"
+            text="Add your first pet to start tracking meals, walks, vaccines, and more."
+            action={
+              <Button>
+                <Plus size={17} aria-hidden="true" /> Add a pet
+              </Button>
+            }
+          />
+          <EmptyState
+            icon={<MessagesSquare size={24} />}
+            title="No conversation selected"
+            text="Choose a conversation to start chatting."
+          />
+        </div>
+      </section>
+
+      <section className="mt-10">
         <h2 className="font-display text-xl font-bold">Modal</h2>
         <div className="mt-4 rounded-16 border border-line bg-white p-6 shadow-card">
           <ModalDemo />
@@ -247,11 +311,7 @@ export default function UiLibraryPage() {
       <section className="mt-10">
         <h2 className="font-display text-xl font-bold">Badges</h2>
         <div className="mt-4 flex items-center gap-4 rounded-16 border border-line bg-white p-6 shadow-card">
-          <Badge
-            tone="default"
-          >
-            Default
-          </Badge>
+          <Badge tone="default">Default</Badge>
           <Badge
             tone="green"
             icon={
@@ -262,21 +322,9 @@ export default function UiLibraryPage() {
           >
             Green
           </Badge>
-          <Badge
-            tone="amber"
-          >
-            Amber
-          </Badge>
-          <Badge
-            tone="slate"
-          >
-            Slate
-          </Badge>
-          <Badge
-            tone="red"
-          >
-            Red
-          </Badge>
+          <Badge tone="amber">Amber</Badge>
+          <Badge tone="slate">Slate</Badge>
+          <Badge tone="red">Red</Badge>
         </div>
       </section>
 
@@ -284,6 +332,59 @@ export default function UiLibraryPage() {
         <h2 className="font-display text-xl font-bold">Tabs</h2>
         <div className="mt-4 rounded-16 border border-line bg-white p-6 shadow-card">
           <TabsDemo />
+        </div>
+      </section>
+
+      <section className="mt-10">
+        <h2 className="font-display text-xl font-bold">Menu</h2>
+        <div className="mt-4 rounded-16 border border-line bg-white p-6 shadow-card">
+          <MenuDemo />
+        </div>
+      </section>
+
+      <section className="mt-10">
+        <h2 className="font-display text-xl font-bold">Toast</h2>
+        <div className="mt-4 rounded-16 border border-line bg-white p-6 shadow-card">
+          <ToastDemo />
+        </div>
+      </section>
+
+      <section className="mt-10">
+        <h2 className="font-display text-xl font-bold">Notifications</h2>
+        <p className="mt-1 text-sm text-muted">
+          Click a bell. Left: with notifications. Right: empty.
+        </p>
+        <div className="mt-4 flex justify-end gap-3 rounded-16 border border-line bg-white p-6 pb-80 shadow-card">
+          <NotificationsMenu notifications={SAMPLE_NOTIFICATIONS} />
+          <NotificationsMenu />
+        </div>
+      </section>
+
+      <section className="mt-10">
+        <h2 className="font-display text-xl font-bold">Back link</h2>
+        <div className="mt-4 rounded-16 border border-line bg-white p-6 shadow-card">
+          <BackLink href="/dev/ui">Back to UI library</BackLink>
+        </div>
+      </section>
+
+      <section className="mt-10">
+        <h2 className="font-display text-xl font-bold">Switch / ChoicePills</h2>
+        <div className="mt-4 rounded-16 border border-line bg-white p-6 shadow-card">
+          <ToggleDemo />
+        </div>
+      </section>
+
+      <section className="mt-10">
+        <h2 className="font-display text-xl font-bold">Star rating</h2>
+        <div className="mt-4 rounded-16 border border-line bg-white p-6 shadow-card">
+          <StarRatingDemo />
+        </div>
+      </section>
+
+      <section className="mt-10">
+        <h2 className="font-display text-xl font-bold">Photo Upload</h2>
+        <div className="mt-4 rounded-16 border border-line bg-white p-6 shadow-card">
+          <PhotoUploadDemo />
         </div>
       </section>
 

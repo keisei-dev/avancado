@@ -8,8 +8,13 @@ import { TopBar } from "@/components/layout/top-bar";
 import { getCurrentMember } from "@/lib/auth/member";
 import { logoutMember } from "@/app/(auth)/actions";
 
+import { getMyNotifications } from "@/lib/notifications/queries";
+import { markAllReadAction, markReadAction } from "@/app/notifications/actions";
+
 async function MemberTopBar() {
   const member = await getCurrentMember();
+  const notifications = member ? await getMyNotifications(member.id) : [];
+
   return (
     <TopBar
       user={
@@ -22,6 +27,9 @@ async function MemberTopBar() {
             }
           : null
       }
+      notifications={notifications}
+      markAllReadAction={markAllReadAction}
+      markReadAction={markReadAction}
       logoutAction={logoutMember}
     />
   );
