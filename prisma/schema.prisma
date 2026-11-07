@@ -124,6 +124,11 @@ model User {
   role            UserRole      @default(USER)
   accountStatus   AccountStatus @default(ACTIVE)
   isVerified      Boolean       @default(false)
+  areaName            String? // Neighbourhood only, e.g. Kitsilano.
+  bio                 String? 
+  careSpecies         Species[] @default([]) // Animals the member can care for.
+  certificateName     String?
+  certificateIssuedBy String?
   termsAcceptedAt DateTime      @db.Timestamptz
   createdAt       DateTime      @default(now()) @db.Timestamptz
   updatedAt       DateTime      @updatedAt @db.Timestamptz
