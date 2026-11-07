@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 import { BellOff } from "lucide-react";
 import { buttonClass } from "@/components/ui/button";
 import { EmptyState } from "@/components/ui/empty-state";
+import { Button } from "@/components/ui/button";
 import { NotificationList } from "@/components/notifications/notification-list";
 import { getCurrentMember } from "@/lib/auth/member";
 import { getMyNotifications } from "@/lib/notifications/queries";
@@ -53,12 +54,9 @@ async function NotificationsContent() {
     <>
       {hasUnread && (
         <form action={markAllReadAction} className="self-end">
-          <button
-            type="submit"
-            className={buttonClass({ className: "min-h-10" })}
-          >
+          <Button type="submit" variant="secondary" size="sm">
             Mark all read
-          </button>
+          </Button>
         </form>
       )}
       <NotificationList
