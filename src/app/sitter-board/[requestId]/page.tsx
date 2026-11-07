@@ -1,6 +1,8 @@
 import { connection } from 'next/server';
 import Image from 'next/image';
 import Link from 'next/link';
+import { ReportRequestButton } from '@/components/sitter-board/report-request-button';
+import { getCurrentMember } from '@/lib/auth/member';
 import { getSitterRequestDetail } from './actions';
 
 export const instant = false;
@@ -15,7 +17,10 @@ export default async function SitterDetailPage({ params }: PageProps) {
   const resolvedParams = await params;
   const requestId = resolvedParams.requestId;
   
-  const result = await getSitterRequestDetail(requestId);
+  const [result, member] = await Promise.all([
+    getSitterRequestDetail(requestId),
+    getCurrentMember(),
+  ]);
 
   if (!result.success || !result.data) {
     return (
@@ -156,12 +161,11 @@ export default async function SitterDetailPage({ params }: PageProps) {
           </div>
 
           <div className="p-8 pt-0 flex justify-end">
-            <button
-              type="button"
-              className="text-xs font-semibold text-red-600 hover:text-red-800 transition-colors"
-            >
-              Report this request
-            </button>
+            <ReportRequestButton
+              requestId={req.id}
+              signedIn={Boolean(member)}
+              isOwn={member?.id === req.authorId}
+            />
           </div>
         </div>
 
