@@ -30,12 +30,14 @@ export function Tabs({ children }: { children: ReactNode }) {
 
 export function Tab({
   label,
+  icon,
   count,
   selected = false,
   onClick,
   tone = "default",
 }: {
   label: string;
+  icon?: ReactNode;
   count?: number;
   selected?: boolean;
   onClick?: () => void;
@@ -69,6 +71,7 @@ export function Tab({
         }
       `}
     >
+      {icon && <span className="shrink-0">{icon}</span>}
       <span>{label}</span>
 
       {count !== undefined && (

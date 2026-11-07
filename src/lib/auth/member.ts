@@ -17,6 +17,7 @@ export async function findMember(id: string) {
       image: true,
       isVerified: true,
       accountStatus: true,
+      createdAt: true,
     },
   });
 }

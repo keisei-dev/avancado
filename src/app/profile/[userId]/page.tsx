@@ -1,13 +1,12 @@
-// Notion flow: Profile: View public profile
-// TODO: implement
-
 import { notFound } from "next/navigation";
-import { prisma } from "@/lib/prisma/client";
 import { Avatar } from "@/components/ui/avatar";
+import { prisma } from "@/lib/prisma/client";
 
 export default async function PublicProfilePage({
   params,
-}: PageProps<"/profile/[userId]">) {
+}: {
+  params: Promise<{ userId: string }>;
+}) {
   const { userId } = await params;
   const user = await prisma.user.findFirst({
     where: {
@@ -26,7 +25,7 @@ export default async function PublicProfilePage({
   }
 
   return (
-    <main className="flex flex-1 flex-col gap-2 p-8">
+    <main className="flex flex-col items-center gap-4 p-8">
       <Avatar
         name={user.name}
         src={user.image}
