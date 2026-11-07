@@ -23,28 +23,31 @@ import {
 
 const SAMPLE_NOTIFICATIONS: NotificationItem[] = [
   {
-    id: "1",
-    title: "New sitter offer",
-    message: "Marcus Chen offered to help with Sunny.",
-    read: false,
+    id: "n1",
+    title: "New applicant",
+    body: "Marcus Chen offered to help with Sunny.",
+    isRead: false,
+    linkPath: null,
   },
   {
-    id: "2",
+    id: "n2",
     title: "New message",
-    message: "Ava Brooks sent you a message about Luna.",
-    read: false,
+    body: "Ava Brooks sent you a message about Luna.",
+    isRead: false,
+    linkPath: null,
   },
   {
-    id: "3",
+    id: "n3",
     title: "Report received",
-    message: "Your report about a post was received.",
-    read: true,
+    body: "Your report about a post was received.",
+    isRead: true,
+    linkPath: null,
   },
 ];
 import { ToastDemo } from "./toast-demo";
 import { BackLink } from "@/components/layout/back-link";
 import { ToggleDemo } from "./toggle-demo";
-import {StarRatingDemo} from "./star-rating-demo";
+import { StarRatingDemo } from "./star-rating-demo";
 import { PhotoUploadDemo } from "./photo-upload-demo";
 
 import { ShieldCheck } from "lucide-react"; // vaccinated icon
