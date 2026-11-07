@@ -96,6 +96,8 @@ Rules:
 | Soft delete               | Prefer `HIDDEN` / `CANCELLED` statuses over deleting rows.                                                                     |
 | `AdminActionLog`          | Every admin moderation or verification decision must write one row.                                                            |
 | IDs                       | Rows get a UUID from the database (`gen_random_uuid()`). Only `User.id` has no default: pass the Supabase Auth user id.        |
+| `User.careSpecies`        | `Species[]`. An **empty array means "not set"**. Search with `has: "CAT"`.                                                     |
+| Sitting experience        | **Not stored.** Count `SitterApply` rows that are `ACCEPTED` on `DONE` requests, and average the reviews received as a sitter. |
 
 Example: creating a `Place` with raw SQL (an example, test it when you build it):
 
