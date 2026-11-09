@@ -8,6 +8,7 @@ import { seedPlaces } from "./places";
 import { seedConversations } from "./conversations";
 import { seedReports } from "./reports";
 import { seedNotifications } from "./notifications";
+import { seedPastSittings } from "./pastSittings";
 
 async function main() {
   // Order matters: a row can only point to rows that already exist.
@@ -15,6 +16,7 @@ async function main() {
   await seedUsers();
   await seedPets();
   await seedRequests();
+  await seedPastSittings(); // needs users and pets
   await seedCommunity();
   await seedPlaces();
   await seedConversations(); // needs requests and posts
