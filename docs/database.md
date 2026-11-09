@@ -235,6 +235,8 @@ tell the database owner and we will decide on a schema change.
 2. Use `seedUuid("kind:name")` for ids and `dateOnly()` / `dateTime()` for dates.
 3. New tables that belong to a user must be removed in `clear.ts` as well.
 4. Write to Prisma Client only. For `Place` use raw SQL (see section 4.1).
+5. If you set a date in the past, set both `createdAt` and `updatedAt`
+   yourself, and keep `createdAt` the same as or earlier than `updatedAt`.
 
 ### Before launch
 
