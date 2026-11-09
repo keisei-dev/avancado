@@ -7,7 +7,7 @@ import ProfileStats from "@/components/profile/profile-stats";
 import SittingStats from "@/components/profile/sitting-stats";
 import { buttonClass } from "@/components/ui/button";
 import LinkNext from "next/link";
-import {EmptyState} from "@/components/ui/empty-state";
+import { EmptyState } from "@/components/ui/empty-state";
 import SittingReview from "@/components/profile/sitting-review-card";
 
 type ProfileTabsProps = {
@@ -18,15 +18,21 @@ type ProfileTabsProps = {
   rating?: number | null;
   reviewCount?: number;
   completedSits?: number;
+  careSpecies?: string[];
+  certificateName?: string | null;
+  certificateIssuedBy?: string | null;
+  reviews?: {
+    id: string;
+    reviewer: { name: string; image: string | null };
+    rating: number;
+    comment: string;
+    createdAt: Date | string;
+  }[];
+  experience?: string | null;
 };
 
-// Sample data until the team adds these User columns:
-// sittingExperience, caresFor, certificateName, certificateIssuer
-const SAMPLE_SITTING = {
-  experience: null,
-  caresFor: ["Dogs", "Cats"],
-  certificate: null,
-};
+// The database saves "DOG" / "CAT". Show them as "Dogs" / "Cats".
+const SPECIES_LABELS: Record<string, string> = { DOG: "Dogs", CAT: "Cats" };
 
 export function ProfileTabs({
   posts,
@@ -36,6 +42,11 @@ export function ProfileTabs({
   rating = null,
   reviewCount = 0,
   completedSits = 0,
+  careSpecies = [],
+  certificateName = null,
+  certificateIssuedBy = null,
+  reviews = [],
+  experience = null,
 }: ProfileTabsProps) {
   const [activeTab, setActiveTab] = useState("community");
 
@@ -93,8 +104,9 @@ export function ProfileTabs({
           </>
         ) : (
           <>
-                        <div className="flex items-center justify-between gap-4">
+            <div className="flex items-center justify-between gap-4">
               <h1 className="mb-2 text-lg font-semibold">Sitting Experience</h1>
+
               <LinkNext
                 href="/profile/me/edit"
                 className={buttonClass({ variant: "text" })}
@@ -102,25 +114,42 @@ export function ProfileTabs({
                 Edit
               </LinkNext>
             </div>
+
             <SittingStats
-              experience={SAMPLE_SITTING.experience}
               rating={rating}
               reviewCount={reviewCount}
               completedSits={completedSits}
-              caresFor={SAMPLE_SITTING.caresFor}
-              certificate={SAMPLE_SITTING.certificate}
+              careSpecies={careSpecies.map((sp) => SPECIES_LABELS[sp] ?? sp)}
+              certificateName={certificateName}
+              certificateIssuedBy={certificateIssuedBy}
+              experience={experience}
             />
 
             {/* User reviews card */}
             <div className="mt-6">
               <h2 className="mb-2 text-lg font-semibold">User Reviews</h2>
+
               {/* Sample review until we load real reviews from the database */}
-              <SittingReview
-                reviewerName="Jane Doe"
-                rating={5}
-                comment="An amazing sitter! Took great care of my dog and sent me daily updates. I would highly recommend them."
-                createdAt="2026-10-12"
-              />
+              {reviews.length > 0 ? (
+                <div className="flex flex-col gap-3">
+                  {reviews.map((review) => (
+                    <SittingReview
+                      key={review.id}
+                      reviewerName={review.reviewer.name}
+                      reviewerImage={review.reviewer.image}
+                      rating={review.rating}
+                      comment={review.comment}
+                      createdAt={review.createdAt}
+                    />
+                  ))}
+                </div>
+              ) : (
+                <EmptyState
+                  title="No reviews yet"
+                  text="Reviews from pet owners will show here after a sit."
+                  className="py-6"
+                />
+              )}
             </div>
           </>
         )}

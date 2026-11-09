@@ -1,33 +1,30 @@
-// Pet sitting tab: experience text, rating, sits completed, cares for, certificate
+// Pet sitting tab: rating, sits completed, cares for, certificate
+// (Sitting experience isn't a column. It's shown by sits completed + rating.)
 import { Award, CalendarCheck, PawPrint, Sprout, Star } from "lucide-react";
-import { StarRating } from "@/components/ui/star-rating";
 import { EmptyState } from "@/components/ui/empty-state";
-
-type Certificate = {
-  name: string;
-  issuer?: string | null;
-};
+import { StarRating } from "@/components/ui/star-rating";
 
 type SittingStatsProps = {
-  experience?: string | null;
   rating: number | null;
   reviewCount: number;
   completedSits: number;
-  caresFor?: string[];
-  certificate?: Certificate | null;
+  careSpecies?: string[];
+  certificateName?: string | null;
+  certificateIssuedBy?: string | null;
+  experience?: string | null;
 };
 
 export default function SittingStats({
-  experience = null,
   rating,
   reviewCount,
   completedSits,
-  caresFor = [],
-  certificate = null,
+  careSpecies = [],
+  certificateName = null,
+  certificateIssuedBy = null,
+  experience = null,
 }: SittingStatsProps) {
   return (
     <div className="flex flex-col gap-3">
-      {/* Experience text */}
       {experience ? (
         <div className="rounded-lg border border-gray-200 bg-gray-50 p-4 text-sm text-gray-700">
           {experience}
@@ -35,8 +32,8 @@ export default function SittingStats({
       ) : (
         <EmptyState
           title="No sitting experience yet"
-          text="Share the pets you've cared for so owners can get to know you."
-          icon={<PawPrint size={24} />}
+          text="Share the pets you have cared for so owners can get to know you."
+          icon={<PawPrint size={24} aria-hidden="true" />}
           className="py-6"
         />
       )}
@@ -64,8 +61,12 @@ export default function SittingStats({
             <strong className="text-lg font-semibold">
               {rating === null ? "—" : rating.toFixed(1)}
             </strong>
-            {rating !== null && <StarRating value={Math.round(rating)} size={14} />}
-            <span className="text-sm font-medium text-brown">Sitter rating</span>
+            {rating !== null && (
+              <StarRating value={Math.round(rating)} size={14} />
+            )}
+            <span className="text-sm font-medium text-brown">
+              Sitter rating
+            </span>
             <small className="text-xs text-gray-600">
               {reviewCount === 0
                 ? "no reviews yet"
@@ -79,7 +80,9 @@ export default function SittingStats({
               <CalendarCheck size={18} aria-hidden="true" />
             </span>
             <strong className="text-lg font-semibold">{completedSits}</strong>
-            <span className="text-sm font-medium text-brown">Sits completed</span>
+            <span className="text-sm font-medium text-brown">
+              Sits completed
+            </span>
             <small className="text-xs text-gray-600">through Avancado</small>
           </div>
 
@@ -89,7 +92,7 @@ export default function SittingStats({
               <PawPrint size={18} aria-hidden="true" />
             </span>
             <strong className="text-lg font-semibold">
-              {caresFor.length > 0 ? caresFor.join(" & ") : "—"}
+              {careSpecies.length > 0 ? careSpecies.join(" & ") : "—"}
             </strong>
             <span className="text-sm font-medium text-brown">Cares for</span>
             <small className="text-xs text-gray-600">pet types</small>
@@ -98,15 +101,19 @@ export default function SittingStats({
       )}
 
       {/* Certificate (optional) */}
-      {certificate && (
+      {certificateName && (
         <div className="flex items-center gap-3 rounded-lg bg-white p-4 shadow-md">
           <span className="grid h-10 w-10 place-items-center rounded-full bg-lavender text-lavender-ink">
             <Award size={20} aria-hidden="true" />
           </span>
           <div className="flex flex-col">
-            <strong className="font-semibold text-brown">{certificate.name}</strong>
-            {certificate.issuer && (
-              <small className="text-xs text-gray-600">{certificate.issuer}</small>
+            <strong className="font-semibold text-brown">
+              {certificateName}
+            </strong>
+            {certificateIssuedBy && (
+              <small className="text-xs text-gray-600">
+                {certificateIssuedBy}
+              </small>
             )}
           </div>
         </div>

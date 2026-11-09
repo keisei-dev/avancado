@@ -12,6 +12,17 @@ export default async function ProfilePage() {
     redirect("/login");
   }
 
+  // Profile fields the team added to User
+  const profile = await prisma.user.findUnique({
+    where: { id: member.id },
+    select: {
+      bio: true,
+      careSpecies: true,
+      certificateName: true,
+      certificateIssuedBy: true,
+    },
+  });
+
   const sitterRating = await prisma.review.aggregate({
     where: {
       revieweeId: member.id,
@@ -46,6 +57,10 @@ export default async function ProfilePage() {
           rating={sitterRating._avg.rating}
           reviewCount={sitterRating._count._all}
           completedSits={completedSits}
+          bio={profile?.bio}
+          careSpecies={profile?.careSpecies}
+          certificateName={profile?.certificateName}
+          certificateIssuedBy={profile?.certificateIssuedBy}
         />
       </div>
     </main>
