@@ -204,9 +204,9 @@ duplicates. Dates in the demo data are relative to the day you run the seed
 ### What is in the demo data
 
 12 users, 10 approved ID verifications, 7 pets (health logs for Sunny and Luna),
-8 sitter requests with 17 applications and 4 reviews, 5 community posts with 20
-likes, 8 map places, 4 chats with 9 messages, 3 reports and 3 notifications.
-Photos are placeholder Unsplash links from the UI prototype.
+22 sitter requests (8 current + 14 completed sittings in the past) with 31
+applications and 18 reviews, 5 community posts with 20 likes, 8 map places,
+4 chats with 9 messages, 3 reports and 3 notifications.
 
 ### Demo accounts
 
