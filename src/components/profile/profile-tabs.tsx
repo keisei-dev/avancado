@@ -9,6 +9,8 @@ import { buttonClass } from "@/components/ui/button";
 import LinkNext from "next/link";
 import { EmptyState } from "@/components/ui/empty-state";
 import SittingReview from "@/components/profile/sitting-review-card";
+import { PostCard } from "@/components/community/post-card";
+import type { CommunityPostView } from "@/components/community/post-card";
 
 type ProfileTabsProps = {
   posts: number;
@@ -29,6 +31,9 @@ type ProfileTabsProps = {
     createdAt: Date | string;
   }[];
   experience?: string | null;
+
+  communityPosts?: CommunityPostView[];
+  member?: { id: string; name: string; image: string | null } | null;
 };
 
 // The database saves "DOG" / "CAT". Show them as "Dogs" / "Cats".
@@ -47,6 +52,8 @@ export function ProfileTabs({
   certificateIssuedBy = null,
   reviews = [],
   experience = null,
+  communityPosts = [],
+  member = null,
 }: ProfileTabsProps) {
   const [activeTab, setActiveTab] = useState("community");
 
@@ -66,9 +73,10 @@ export function ProfileTabs({
           onClick={() => setActiveTab("experience")}
         />
       </Tabs>
-      <div className="bg-white px-[24px] py-[26px] border border-line rounded-[12px]">
+      <div className="mt-4">
         {activeTab === "community" ? (
           <>
+            <div className="bg-white px-[24px] py-[26px] border border-line rounded-[12px]">
             <div className="flex items-center justify-between gap-4">
               <h1 className="mb-2 text-lg font-semibold">About Me</h1>
               <LinkNext
@@ -78,21 +86,31 @@ export function ProfileTabs({
                 Edit
               </LinkNext>
             </div>
+
+
             <ProfileStats
               posts={posts}
               postLikes={postLikes}
               createdAt={createdAt}
               bio={bio}
             />
+            </div>
+            
 
             {/* community posts */}
-            <div className="mt-6">
+
+            <div className="bg-white px-[24px] py-[26px] border border-line rounded-[12px]">
               <h2 className="mb-2 text-lg font-semibold">Community Posts</h2>
-              {posts > 0 ? (
-                <p className="text-sm text-gray-600">
-                  You have shared {posts} moment{posts > 1 ? "s" : ""} with the
-                  community.
-                </p>
+              <p className="text-sm text-muted-foreground">
+                Everything you have shared with the community.
+              </p>
+              <div className="mt-4 flex items-center justify-end">
+              {communityPosts.length > 0 ? (
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                  {communityPosts.map((post) => (
+                    <PostCard key={post.id} post={post} member={member} />
+                  ))}
+                </div>
               ) : (
                 <EmptyState
                   title="No community posts yet"
@@ -100,6 +118,7 @@ export function ProfileTabs({
                   className="py-6"
                 />
               )}
+            </div>
             </div>
           </>
         ) : (

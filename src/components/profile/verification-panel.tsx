@@ -9,7 +9,7 @@ export default function VerificationPanel() {
       <p className="text-gray-600 text-center">
         Verify your identity to gain access to additional features and build trust within the community.
       </p>
-      <Link href="/profile/me/verify">
+      <Link href="/profile/me/verification">
         <Button>Verify Now</Button>
       </Link>
     </div>

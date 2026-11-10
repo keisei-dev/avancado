@@ -29,6 +29,9 @@ export default function EditProfileModal() {
     return (
         <Modal open onClose={() => router.back()} title="Edit profile">
             <div>
+
+                {/* Profile */}
+                
                 <p className="text-xs font-bold uppercase tracking-widest text-olive">
                     Edit profile
                 </p>
@@ -64,6 +67,8 @@ export default function EditProfileModal() {
                 </Field>
 
             </div>
+
+            {/* Pet sitting */}
             <div className="mt-6 space-y-4">
                 <h2 className="text-sm font-semibold text-brown">
                     Pet sitting
