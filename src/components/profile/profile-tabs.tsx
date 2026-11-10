@@ -77,25 +77,23 @@ export function ProfileTabs({
         {activeTab === "community" ? (
           <>
             <div className="bg-white px-[24px] py-[26px] border border-line rounded-[12px]">
-            <div className="flex items-center justify-between gap-4">
-              <h1 className="mb-2 text-lg font-semibold">About Me</h1>
-              <LinkNext
-                href="/profile/me/edit?section=about"
-                className={buttonClass({ variant: "text" })}
-              >
-                Edit
-              </LinkNext>
-            </div>
+              <div className="flex items-center justify-between gap-4">
+                <h1 className="mb-2 text-lg font-semibold">About Me</h1>
+                <LinkNext
+                  href="/profile/me/edit?section=about"
+                  className={buttonClass({ variant: "text" })}
+                >
+                  Edit
+                </LinkNext>
+              </div>
 
-
-            <ProfileStats
-              posts={posts}
-              postLikes={postLikes}
-              createdAt={createdAt}
-              bio={bio}
-            />
+              <ProfileStats
+                posts={posts}
+                postLikes={postLikes}
+                createdAt={createdAt}
+                bio={bio}
+              />
             </div>
-            
 
             {/* community posts */}
 
@@ -105,47 +103,50 @@ export function ProfileTabs({
                 Everything you have shared with the community.
               </p>
               <div className="mt-4 flex items-center justify-end">
-              {communityPosts.length > 0 ? (
-                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                  {communityPosts.map((post) => (
-                    <PostCard key={post.id} post={post} member={member} />
-                  ))}
-                </div>
-              ) : (
-                <EmptyState
-                  title="No community posts yet"
-                  text="Share your moments with the community."
-                  className="py-6"
-                />
-              )}
-            </div>
+                {communityPosts.length > 0 ? (
+                  <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                    {communityPosts.map((post) => (
+                      <PostCard key={post.id} post={post} member={member} />
+                    ))}
+                  </div>
+                ) : (
+                  <EmptyState
+                    title="No community posts yet"
+                    text="Share your moments with the community."
+                    className="py-6"
+                  />
+                )}
+              </div>
             </div>
           </>
         ) : (
           <>
-            <div className="flex items-center justify-between gap-4">
-              <h1 className="mb-2 text-lg font-semibold">Sitting Experience</h1>
+            <div className="rounded-[12px] border border-line bg-white px-[24px] py-[26px]">
+              <div className="flex items-center justify-between gap-4">
+                <h1 className="mb-2 text-lg font-semibold">
+                  Sitting Experience
+                </h1>
 
-              <LinkNext
-                href="/profile/me/edit?section=sitting"
-                className={buttonClass({ variant: "text" })}
-              >
-                Edit
-              </LinkNext>
+                <LinkNext
+                  href="/profile/me/edit?section=sitting"
+                  className={buttonClass({ variant: "text" })}
+                >
+                  Edit
+                </LinkNext>
+              </div>
+
+              <SittingStats
+                rating={rating}
+                reviewCount={reviewCount}
+                completedSits={completedSits}
+                careSpecies={careSpecies.map((sp) => SPECIES_LABELS[sp] ?? sp)}
+                certificateName={certificateName}
+                certificateIssuedBy={certificateIssuedBy}
+                experience={experience}
+              />
             </div>
 
-            <SittingStats
-              rating={rating}
-              reviewCount={reviewCount}
-              completedSits={completedSits}
-              careSpecies={careSpecies.map((sp) => SPECIES_LABELS[sp] ?? sp)}
-              certificateName={certificateName}
-              certificateIssuedBy={certificateIssuedBy}
-              experience={experience}
-            />
-
-            {/* User reviews card */}
-            <div className="mt-6">
+            <div className="mt-4 rounded-[12px] border border-line bg-white px-[24px] py-[26px]">
               <h2 className="mb-2 text-lg font-semibold">User Reviews</h2>
 
               {/* Sample review until we load real reviews from the database */}

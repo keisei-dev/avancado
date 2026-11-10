@@ -1,5 +1,6 @@
 import { Heart, Images, UserRound, UsersRound } from "lucide-react";
 import { EmptyState } from "@/components/ui/empty-state";
+import { StatTile } from "@/components/profile/stat-tile";
 
 type ProfileStatsProps = {
   posts?: number;
@@ -39,21 +40,21 @@ export default function ProfileStats({
 
   const tiles = [
     {
-      iconClass: "text-olive",
+      tone: "sage" as const,
       icon: <Images size={18} aria-hidden="true" />,
       value: posts,
       label: "Community posts",
       note: posts ? "moments shared" : "nothing shared yet",
     },
     {
-      iconClass: "text-peach",
+      tone: "peach" as const,
       icon: <Heart size={18} aria-hidden="true" />,
       value: postLikes,
       label: "Post reactions",
       note: posts ? `≈ ${Math.round(postLikes / posts)} per post` : "—",
     },
     {
-      iconClass: "text-lavender",
+      tone: "lavender" as const,
       icon: <UsersRound size={18} aria-hidden="true" />,
       value: memberSince,
       label: "Member since",
@@ -80,15 +81,14 @@ export default function ProfileStats({
       )}
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
         {tiles.map((tile) => (
-          <div
+          <StatTile
             key={tile.label}
-            className="flex flex-col items-center gap-1 rounded-lg bg-white p-4 text-center shadow-md"
-          >
-            <span className={tile.iconClass}>{tile.icon}</span>
-            <strong className="text-lg font-semibold">{tile.value}</strong>
-            <span className="text-sm font-medium text-brown">{tile.label}</span>
-            <small className="text-xs text-gray-600">{tile.note}</small>
-          </div>
+            tone={tile.tone}
+            icon={tile.icon}
+            value={tile.value}
+            label={tile.label}
+            note={tile.note}
+          />
         ))}
       </div>
     </div>

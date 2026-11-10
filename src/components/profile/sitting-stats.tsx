@@ -2,7 +2,7 @@
 // (Sitting experience isn't a column. It's shown by sits completed + rating.)
 import { Award, CalendarCheck, PawPrint, Sprout, Star } from "lucide-react";
 import { EmptyState } from "@/components/ui/empty-state";
-import { StarRating } from "@/components/ui/star-rating";
+import { StatTile } from "@/components/profile/stat-tile";
 
 type SittingStatsProps = {
   rating: number | null;
@@ -54,49 +54,41 @@ export default function SittingStats({
       ) : (
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
           {/* Rating */}
-          <div className="flex flex-col items-center gap-1 rounded-lg bg-white p-4 text-center shadow-md">
-            <span className="text-star">
-              <Star size={18} aria-hidden="true" />
-            </span>
-            <strong className="text-lg font-semibold">
-              {rating === null ? "—" : rating.toFixed(1)}
-            </strong>
-            {rating !== null && (
-              <StarRating value={Math.round(rating)} size={14} />
-            )}
-            <span className="text-sm font-medium text-brown">
-              Sitter rating
-            </span>
-            <small className="text-xs text-gray-600">
-              {reviewCount === 0
+          <StatTile
+            tone="sage"
+            icon={<Star size={18} aria-hidden="true" />}
+            value={rating === null ? "—" : rating.toFixed(1)}
+            label="Sitter rating"
+            note={
+              reviewCount === 0
                 ? "no reviews yet"
-                : `${reviewCount} review${reviewCount === 1 ? "" : "s"}`}
-            </small>
-          </div>
-
+                : `${reviewCount} review${reviewCount === 1 ? "" : "s"}`
+            }
+          />
           {/* Sits completed */}
-          <div className="flex flex-col items-center gap-1 rounded-lg bg-white p-4 text-center shadow-md">
-            <span className="text-olive">
-              <CalendarCheck size={18} aria-hidden="true" />
-            </span>
-            <strong className="text-lg font-semibold">{completedSits}</strong>
-            <span className="text-sm font-medium text-brown">
-              Sits completed
-            </span>
-            <small className="text-xs text-gray-600">through Avancado</small>
-          </div>
-
+          <StatTile
+            tone="peach"
+            icon={<CalendarCheck size={18} aria-hidden="true" />}
+            value={completedSits}
+            label="Sits completed"
+            note={
+              completedSits === 0
+                ? "no sits yet"
+                : `${completedSits} sit${completedSits === 1 ? "" : "s"}`
+            }
+          />
           {/* Cares for */}
-          <div className="flex flex-col items-center gap-1 rounded-lg bg-white p-4 text-center shadow-md">
-            <span className="text-peach-ink">
-              <PawPrint size={18} aria-hidden="true" />
-            </span>
-            <strong className="text-lg font-semibold">
-              {careSpecies.length > 0 ? careSpecies.join(" & ") : "—"}
-            </strong>
-            <span className="text-sm font-medium text-brown">Cares for</span>
-            <small className="text-xs text-gray-600">pet types</small>
-          </div>
+          <StatTile
+            tone="lavender"
+            icon={<PawPrint size={18} aria-hidden="true" />}
+            value={careSpecies.length > 0 ? careSpecies.join(" & ") : "—"}
+            label="Cares for"
+            note={
+              careSpecies.length > 0
+                ? `can care for ${careSpecies.join(" & ")}`
+                : "no pets selected"
+            }
+          />
         </div>
       )}
 
