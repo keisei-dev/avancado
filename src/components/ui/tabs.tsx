@@ -10,18 +10,25 @@
 
 import type { ReactNode } from "react";
 
-export function Tabs({ children }: { children: ReactNode }) {
+export function Tabs({
+  children,
+  className = "",
+}: {
+  children: ReactNode;
+  className?: string;
+}) {
   return (
     <div
       role="tablist"
       aria-label="Request filters"
-      className="
+      className={` 
         inline-flex max-w-full items-center gap-1
         overflow-x-auto [scrollbar-width:none]
         [&::-webkit-scrollbar]:hidden
         rounded-full bg-cream p-1
         mb-5
-      "
+        ${className}
+      `}
     >
       {children}
     </div>

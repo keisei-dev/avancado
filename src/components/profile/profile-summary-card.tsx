@@ -37,12 +37,22 @@ export default function ProfileSummaryCard({
   pets?: ProfilePet[];
 }) {
   return (
-    <div className="flex flex-col items-center gap-4 rounded-lg bg-white p-4 shadow-md">
+    <div className="relative flex flex-col items-center gap-4 overflow-hidden rounded-16 border border-line bg-white px-6 pt-8 pb-6">
+      {/* Soft green band behind the photo (decoration only) */}
+      <div
+        aria-hidden="true"
+        className="absolute inset-x-0 top-0 h-20 bg-sage"
+      />
       <div className="relative">
-        <Avatar name={user.name} src={user.image} size="xl" />
+        <Avatar
+          name={user.name}
+          src={user.image}
+          size="xl"
+          className="rounded-full border-4 border-white"
+        />
         <Link
           href="/profile/me/edit"
-          className="absolute -right-1 -bottom-1 grid h-8 w-8 place-items-center rounded-full bg-olive text-white shadow-md transition-colors hover:bg-olive-hover"
+          className="absolute -right-1 -bottom-1 grid h-8 w-8 place-items-center rounded-full  bg-olive text-white transition-colors hover:bg-olive-hover"
         >
           <Camera size={16} aria-hidden="true" />
           <span className="sr-only">Change profile picture</span>
@@ -50,12 +60,8 @@ export default function ProfileSummaryCard({
       </div>
 
       <div className="flex w-full flex-col items-center gap-1">
-        <h2 className="text-xl font-semibold" aria-label={`Name: ${user.name}`}>
-          {user.name}
-        </h2>
-        <p className="text-gray-600" aria-label={`Email: ${user.email}`}>
-          {user.email}
-        </p>
+        <h1 className="font-display text-xl font-bold">{user.name}</h1>
+        <p className="text-sm text-muted">{user.email}</p>
         {user.isVerified ? (
           <Badge tone="green">
             <span className="flex items-center gap-1">

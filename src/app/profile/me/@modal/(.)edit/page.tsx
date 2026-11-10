@@ -11,6 +11,9 @@ import { PhotoUpload } from "@/components/ui/photo-upload";
 import { Field } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/text-area";
+import { Button } from "@/components/ui/button";
+import { Toast, useToast } from "@/components/ui/toast";
+
 
 type Section = "all" | "about" | "sitting" | null;
 
@@ -43,6 +46,8 @@ export default function EditProfileModal({
         shown === "about" ? "About me"
             : shown === "sitting" ? "Pet sitting"
                 : "Edit profile";
+
+    const { message, showToast } = useToast();
 
     return (
         <Modal open onClose={() => router.back()} title={title}>
@@ -92,7 +97,7 @@ export default function EditProfileModal({
 
                     {/* Pet sitting */}
                     <div className="mt-6 space-y-4 border-t border-line pt-6">
-                        <h1 className="mb-2 text-lg font-semibold">Pet sitting 
+                        <h1 className="mb-2 text-lg font-semibold">Pet sitting
                             <span className="text-sm font-normal text-muted"> (Optional)</span></h1>
 
                         <Field
@@ -144,6 +149,17 @@ export default function EditProfileModal({
                     </div>
                 </div>
             )}
+
+            <div className="mt-6 flex justify-end gap-2">
+                <Button variant="secondary" onClick={() => router.back()}>
+                    Cancel
+                </Button>
+                <Button onClick={() => showToast("Profile updated successfully!")}>
+                    Save changes
+                </Button>
+                {message && <Toast message={message} />}            </div>
+
+
         </Modal>
     );
 }

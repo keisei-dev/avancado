@@ -79,8 +79,10 @@ export default async function ProfilePage() {
   });
 
   return (
-    <main className="grid grid-cols-1 gap-4 p-8 md:grid-cols-12">
-      <div className="md:col-span-4">
+    // Same as the demo: max 1200px wide, 28px each side (16px on phones).
+    // Two columns from the tablet size (900px): profile card 320px + the rest.
+    <main className="mx-auto grid w-full grid-cols-1 gap-8 p-7 sm:grid-cols-[320px_1fr] sm:p-8">
+      <div>
         <ProfileSummaryCard
           user={member}
           pets={pets.map((pet) => ({
@@ -90,10 +92,8 @@ export default async function ProfilePage() {
           }))}
         />
       </div>
-      <div className="md:col-span-8">
+      <div className="flex min-w-0 flex-col gap-4">
         <VerificationPanel />
-
-        <div className="my-4 h-px bg-gray-200 dark:bg-gray-700" />
         <ProfileTabs
           posts={communityPosts.length}
           postLikes={communityPosts.reduce(

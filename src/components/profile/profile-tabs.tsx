@@ -59,7 +59,7 @@ export function ProfileTabs({
 
   return (
     <>
-      <Tabs>
+      <Tabs className="self-start !mb-2">
         <Tab
           label="Community"
           icon={<UsersRound size={16} aria-hidden="true" />}
@@ -73,36 +73,43 @@ export function ProfileTabs({
           onClick={() => setActiveTab("experience")}
         />
       </Tabs>
-      <div className="mt-4">
+      <div className="flex flex-col gap-4">
         {activeTab === "community" ? (
           <>
-            <div className="bg-white px-[24px] py-[26px] border border-line rounded-[12px]">
-              <div className="flex items-center justify-between gap-4">
-                <h1 className="mb-2 text-lg font-semibold">About Me</h1>
+            <div className="rounded-16 border border-line bg-white p-6">
+              <div className="flex items-start justify-between gap-4">
+                <div className="min-w-0">
+                  <h2 className="text-lg font-semibold">About me</h2>
+                  <p className="mt-1 text-sm text-muted">
+                    A short introduction for neighbours.
+                  </p>
+                </div>
                 <LinkNext
                   href="/profile/me/edit?section=about"
-                  className={buttonClass({ variant: "text" })}
+                  className={`${buttonClass({ variant: "text" })} shrink-0`}
                 >
                   Edit
                 </LinkNext>
               </div>
 
-              <ProfileStats
-                posts={posts}
-                postLikes={postLikes}
-                createdAt={createdAt}
-                bio={bio}
-              />
+              <div className="mt-5">
+                <ProfileStats
+                  posts={posts}
+                  postLikes={postLikes}
+                  createdAt={createdAt}
+                  bio={bio}
+                />
+              </div>
             </div>
 
             {/* community posts */}
 
-            <div className="bg-white px-[24px] py-[26px] border border-line rounded-[12px]">
-              <h2 className="mb-2 text-lg font-semibold">Community Posts</h2>
-              <p className="text-sm text-muted-foreground">
+            <div className="rounded-16 border border-line bg-white p-6">
+              <h2 className="text-lg font-semibold">Community posts</h2>
+              <p className="text-sm text-muted">
                 Everything you have shared with the community.
               </p>
-              <div className="mt-4 flex items-center justify-end">
+              <div className="mt-4">
                 {communityPosts.length > 0 ? (
                   <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                     {communityPosts.map((post) => (
@@ -121,33 +128,39 @@ export function ProfileTabs({
           </>
         ) : (
           <>
-            <div className="rounded-[12px] border border-line bg-white px-[24px] py-[26px]">
-              <div className="flex items-center justify-between gap-4">
-                <h1 className="mb-2 text-lg font-semibold">
-                  Sitting Experience
-                </h1>
-
+            <div className="rounded-16 border border-line bg-white p-6">
+              <div className="flex items-start justify-between gap-4">
+                <div className="min-w-0">
+                  <h2 className="text-lg font-semibold">Sitting experience</h2>
+                  <p className="mt-1 text-sm text-muted">
+                    Share your experience caring for pets.
+                  </p>
+                </div>
                 <LinkNext
                   href="/profile/me/edit?section=sitting"
-                  className={buttonClass({ variant: "text" })}
+                  className={`${buttonClass({ variant: "text" })} shrink-0`}
                 >
                   Edit
                 </LinkNext>
               </div>
 
-              <SittingStats
-                rating={rating}
-                reviewCount={reviewCount}
-                completedSits={completedSits}
-                careSpecies={careSpecies.map((sp) => SPECIES_LABELS[sp] ?? sp)}
-                certificateName={certificateName}
-                certificateIssuedBy={certificateIssuedBy}
-                experience={experience}
-              />
+              <div className="mt-5">
+                <SittingStats
+                  rating={rating}
+                  reviewCount={reviewCount}
+                  completedSits={completedSits}
+                  careSpecies={careSpecies.map(
+                    (sp) => SPECIES_LABELS[sp] ?? sp,
+                  )}
+                  certificateName={certificateName}
+                  certificateIssuedBy={certificateIssuedBy}
+                  experience={experience}
+                />
+              </div>
             </div>
 
-            <div className="mt-4 rounded-[12px] border border-line bg-white px-[24px] py-[26px]">
-              <h2 className="mb-2 text-lg font-semibold">User Reviews</h2>
+            <div className="rounded-16 border border-line bg-white p-6">
+              <h2 className="mb-2 text-lg font-semibold">Reviews</h2>
 
               {/* Sample review until we load real reviews from the database */}
               {reviews.length > 0 ? (
