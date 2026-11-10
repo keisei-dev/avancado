@@ -101,7 +101,7 @@ export default function SittingStats({
       )}
 
       {/* Certificate (optional) */}
-      {certificateName && (
+      {certificateName ? (
         <div className="flex items-center gap-3 rounded-lg bg-white p-4 shadow-md">
           <span className="grid h-10 w-10 place-items-center rounded-full bg-lavender text-lavender-ink">
             <Award size={20} aria-hidden="true" />
@@ -117,6 +117,13 @@ export default function SittingStats({
             )}
           </div>
         </div>
+      ) : (
+        <EmptyState
+          title="No certificate yet"
+          text="Add a certificate to show your sitting qualifications."
+          icon={<Award size={24} aria-hidden="true" />}
+          className="py-6"
+        />
       )}
     </div>
   );

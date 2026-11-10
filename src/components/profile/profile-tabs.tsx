@@ -80,7 +80,7 @@ export function ProfileTabs({
             <div className="flex items-center justify-between gap-4">
               <h1 className="mb-2 text-lg font-semibold">About Me</h1>
               <LinkNext
-                href="/profile/me/edit"
+                href="/profile/me/edit?section=about"
                 className={buttonClass({ variant: "text" })}
               >
                 Edit
@@ -127,7 +127,7 @@ export function ProfileTabs({
               <h1 className="mb-2 text-lg font-semibold">Sitting Experience</h1>
 
               <LinkNext
-                href="/profile/me/edit"
+                href="/profile/me/edit?section=sitting"
                 className={buttonClass({ variant: "text" })}
               >
                 Edit
