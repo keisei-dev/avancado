@@ -30,7 +30,7 @@ type ProfileTabsProps = {
     comment: string;
     createdAt: Date | string;
   }[];
-  experience?: string | null;
+  sittingExperience?: string | null;
 
   communityPosts?: CommunityPostView[];
   member?: { id: string; name: string; image: string | null } | null;
@@ -51,7 +51,7 @@ export function ProfileTabs({
   certificateName = null,
   certificateIssuedBy = null,
   reviews = [],
-  experience = null,
+  sittingExperience = null,
   communityPosts = [],
   member = null,
 }: ProfileTabsProps) {
@@ -154,7 +154,7 @@ export function ProfileTabs({
                   )}
                   certificateName={certificateName}
                   certificateIssuedBy={certificateIssuedBy}
-                  experience={experience}
+                  sittingExperience={sittingExperience}
                 />
               </div>
             </div>

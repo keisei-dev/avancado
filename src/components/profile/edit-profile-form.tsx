@@ -20,6 +20,7 @@ type Profile = {
   careSpecies: string[];
   certificateName: string | null;
   certificateIssuedBy: string | null;
+  sittingExperience: string | null;
 } | null;
 
 export default function EditProfileForm({
@@ -36,9 +37,6 @@ export default function EditProfileForm({
   const [careSpecies, setCareSpecies] = useState<string[]>(
     profile?.careSpecies ?? [],
   );
-  // Save, then (only when it worked) show the toast and close the modal.
-  // This runs once, right when Save finishes. It's not in a useEffect, because
-  // Next.js can show a hidden page again later, and effects would run again then.
   async function saveAndClose(previous: SaveState, form: FormData) {
     const result = await updateProfile(previous, form);
     if (result.saved) {
@@ -153,6 +151,7 @@ export default function EditProfileForm({
             <Textarea
               id="experience"
               name="experience"
+              defaultValue={profile?.sittingExperience ?? ""}
               placeholder="Enter your experience"
               rows={4}
             />

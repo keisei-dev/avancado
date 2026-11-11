@@ -21,6 +21,28 @@ export default async function ProfilePage() {
       careSpecies: true,
       certificateName: true,
       certificateIssuedBy: true,
+      sittingExperience: true,
+    },
+  });
+
+  const reviews = await prisma.review.findMany({
+    where: {
+      revieweeId: member.id,
+      status: "ACTIVE",
+      request: { authorId: { not: member.id } }, // only reviews as a sitter
+    },
+    orderBy: { createdAt: "desc" },
+    select: {
+      id: true,
+      rating: true,
+      comment: true,
+      createdAt: true,
+      reviewer: {
+        select: {
+          name: true,
+          image: true,
+        },
+      },
     },
   });
 
@@ -69,6 +91,27 @@ export default async function ProfilePage() {
     _count: { _all: true },
   });
 
+  const sitterReviews = await prisma.review.findMany({
+    where: {
+      revieweeId: member.id,
+      status: "ACTIVE",
+      request: { authorId: { not: member.id } },
+    },
+    orderBy: { createdAt: "desc" },
+    select: {
+      id: true,
+      rating: true,
+      comment: true,
+      createdAt: true,
+      reviewer: {
+        select: {
+          name: true,
+          image: true,
+        },
+      },
+    },
+  });
+
   // Sits this member finished: their application was accepted and the request is done
   const completedSits = await prisma.sitterApply.count({
     where: {
@@ -108,6 +151,8 @@ export default async function ProfilePage() {
           careSpecies={profile?.careSpecies}
           certificateName={profile?.certificateName}
           certificateIssuedBy={profile?.certificateIssuedBy}
+          sittingExperience={profile?.sittingExperience}
+          reviews={sitterReviews}
           communityPosts={communityPosts}
           member={{ id: member.id, name: member.name, image: member.image }}
         />

@@ -25,6 +25,7 @@ export default async function EditProfileModal({
       careSpecies: true,
       certificateName: true,
       certificateIssuedBy: true,
+      sittingExperience: true, // Added sittingExperience field
     },
   });
 

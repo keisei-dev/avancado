@@ -23,6 +23,7 @@ export default async function EditProfilePage({
       careSpecies: true,
       certificateName: true,
       certificateIssuedBy: true,
+      sittingExperience: true, // Added sittingExperience field
     },
   });
 

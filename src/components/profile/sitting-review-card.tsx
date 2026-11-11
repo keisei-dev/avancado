@@ -19,25 +19,26 @@ export default function SittingReview({
 }: SittingReviewCardProps) {
   const date = createdAt
     ? new Date(createdAt).toLocaleDateString("en-US", {
-        year: "numeric",
-        month: "short",
-        day: "numeric",
-      })
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+    })
     : null;
 
   return (
-    <div className="flex flex-col gap-3 rounded-lg border border-gray-200 bg-white p-4">
+    <div className="flex flex-col gap-3 rounded-16 border border-line bg-white p-4">
       <div className="flex items-center gap-3">
         <Avatar name={reviewerName} src={reviewerImage} size="md" />
         <div className="flex flex-col">
           <strong className="font-semibold text-brown">{reviewerName}</strong>
-          {date && <small className="text-xs text-gray-600">{date}</small>}
+          <div className="flex items-center gap-2">
+            <StarRating value={rating} size={12} />
+            {date && <small className="text-xs text-muted">{date}</small>}
+          </div>
         </div>
-        <div className="ml-auto">
-          <StarRating value={rating} size={16} />
-        </div>
+
       </div>
-      <p className="text-sm text-gray-700">{comment}</p>
+      <p className="text-sm text-brown-2">"{comment}"</p>
     </div>
   );
 }
