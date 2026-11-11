@@ -12,6 +12,7 @@ type FieldProps = {
   required?: boolean;
   className?: string;
   children: ReactNode;
+  name?: string; // Added name prop to FieldProps
 };
 
 export function Field({
@@ -22,6 +23,7 @@ export function Field({
   required,
   className,
   children,
+  name, // Destructure name prop
 }: FieldProps) {
   const description = error || hint;
   const descriptionId = `${id}-description`;

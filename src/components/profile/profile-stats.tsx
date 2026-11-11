@@ -68,7 +68,7 @@ export default function ProfileStats({
   return (
     <div className="flex flex-col gap-3">
       {bio ? (
-        <div className="rounded-lg border border-gray-200 bg-gray-50 p-4 text-sm text-gray-700">
+        <div className="text-md text-brown-2">
           {bio}
         </div>
       ) : (
