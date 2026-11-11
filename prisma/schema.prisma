@@ -126,6 +126,7 @@ model User {
   isVerified      Boolean       @default(false)
   areaName            String? // Neighbourhood only, e.g. Kitsilano.
   bio                 String? 
+  sittingExperience   String?
   careSpecies         Species[] @default([]) // Animals the member can care for.
   certificateName     String?
   certificateIssuedBy String?
