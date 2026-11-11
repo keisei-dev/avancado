@@ -69,14 +69,9 @@ export function PostComposer({
     { error: "" },
   );
   useEffect(() => {
-    if (!file) {
-      setPreview("");
-      return;
-    }
-    const url = URL.createObjectURL(file);
-    setPreview(url);
-    return () => URL.revokeObjectURL(url);
-  }, [file]);
+    if (!preview) return;
+    return () => URL.revokeObjectURL(preview);
+  }, [preview]);
   useEffect(() => {
     onBusyChange?.(pending);
   }, [pending, onBusyChange]);
@@ -141,7 +136,9 @@ export function PostComposer({
                   setError("Choose a JPG or PNG under 5 MB.");
                   return;
                 }
+                const url = URL.createObjectURL(selected);
                 setFile(selected);
+                setPreview(url);
                 setError("");
               }}
             />
@@ -150,7 +147,10 @@ export function PostComposer({
             <button
               type="button"
               aria-label="Remove photo"
-              onClick={() => setFile(null)}
+              onClick={() => {
+                setFile(null);
+                setPreview("");
+              }}
               className="absolute top-3 right-3 rounded-full bg-white p-2 shadow-card"
             >
               <X size={18} />
