@@ -22,6 +22,7 @@ export default async function ProfilePage() {
       certificateName: true,
       certificateIssuedBy: true,
       sittingExperience: true,
+      areaName: true,
     },
   });
 
@@ -127,7 +128,7 @@ export default async function ProfilePage() {
     <main className="mx-auto grid w-full grid-cols-1 gap-8 p-7 sm:grid-cols-[320px_1fr] sm:p-8">
       <div>
         <ProfileSummaryCard
-          user={member}
+          user={{ ...member, areaName: profile?.areaName ?? null }}
           pets={pets.map((pet) => ({
             ...pet,
             birthDate: pet.birthDate?.toISOString() ?? null,

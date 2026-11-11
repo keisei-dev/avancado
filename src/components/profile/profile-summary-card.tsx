@@ -1,7 +1,14 @@
 // Big photo, name, email, member since, badge, Edit profile and Account settings buttons
 import { Avatar } from "@/components/ui/avatar";
 import Link from "next/link";
-import { Camera, PenLine, Settings, Shield, ShieldCheck } from "lucide-react";
+import {
+  Camera,
+  PenLine,
+  Settings,
+  Shield,
+  ShieldCheck,
+  MapPin,
+} from "lucide-react";
 import { buttonClass } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { EmptyState } from "@/components/ui/empty-state";
@@ -27,6 +34,7 @@ type ProfileUser = {
   isVerified: boolean;
   accountStatus: string;
   createdAt: Date;
+  areaName: string | null;
 };
 
 export default function ProfileSummaryCard({
@@ -37,7 +45,7 @@ export default function ProfileSummaryCard({
   pets?: ProfilePet[];
 }) {
   return (
-    <div className="relative flex flex-col items-center gap-4 overflow-hidden rounded-16 border border-line bg-white px-6 pt-8 pb-6">
+    <div className="relative flex flex-col items-center gap-3 overflow-hidden rounded-16 border border-line bg-white px-6 pt-8 pb-6">
       {/* Soft green band behind the photo (decoration only) */}
       <div
         aria-hidden="true"
@@ -59,9 +67,13 @@ export default function ProfileSummaryCard({
         </Link>
       </div>
 
-      <div className="flex w-full flex-col items-center gap-1">
+      <div className="flex w-full flex-col items-center gap-2">
         <h1 className="font-display text-xl font-bold">{user.name}</h1>
         <p className="text-sm text-muted">{user.email}</p>
+        <p className="text-sm text-muted">
+          <MapPin size={16} className="inline-block" aria-hidden="true" />
+          {user.areaName}
+        </p>
         {user.isVerified ? (
           <Badge tone="green">
             <span className="flex items-center gap-1">
@@ -78,7 +90,7 @@ export default function ProfileSummaryCard({
           </Badge>
         )}
 
-        <section className="mt-4 w-full" aria-labelledby="profile-pets-heading">
+        <section className="mt-3 w-full" aria-labelledby="profile-pets-heading">
           <h2 id="profile-pets-heading" className="mb-2 text-lg font-semibold">
             My Pets
           </h2>
@@ -134,7 +146,7 @@ export default function ProfileSummaryCard({
           )}
         </section>
 
-        <div className="mt-4 flex w-full flex-col gap-2">
+        <div className="mt-3 flex w-full flex-col gap-2">
           <Link href="/profile/me/edit" className={buttonClass()}>
             <PenLine size={16} aria-hidden="true" />
             Edit profile
