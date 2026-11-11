@@ -50,13 +50,16 @@ characters. They break the connection string. Use letters and numbers only.
 
 ```bash
 git checkout dev
-git pull origin dev
+git pull --no-rebase origin dev
 npm install        # also runs `prisma generate` (postinstall)
 ```
 
 `npm install` creates the Prisma client in `src/generated/prisma`. That folder is
 not in Git, so run `npm install` again after every `git pull` that changes
 `prisma/schema.prisma`.
+
+You do **not** need to run any migration yourself. The database owner applies
+migrations to the shared database before the PR is merged.
 
 ---
 
@@ -81,9 +84,7 @@ Rules:
 - Use the logged-in user's id from `supabase.auth.getClaims()` (see SETUP.md).
   Never trust a user id sent from the browser.
 
----
-
-## 4.1 Things that are different from a normal table
+### 4.1 Things that are different from a normal table
 
 | Topic                     | What to know                                                                                                                   |
 | ------------------------- | ------------------------------------------------------------------------------------------------------------------------------ |
@@ -92,22 +93,68 @@ Rules:
 | `SittingReport.summary`   | `String[]`. An **empty array means "not generated yet"** (Prisma lists cannot be NULL).                                        |
 | `CommunityPost.likeCount` | A copy of the number of `PostLike` rows. Change it **in the same `prisma.$transaction`** as every `PostLike` insert or delete. |
 | `Place.location`          | PostGIS point. Prisma cannot write it, so `prisma.place.create()` does not work. Use raw SQL (example below).                  |
-| `updatedAt` columns       | Set by Prisma, not by the database. Raw SQL inserts must set `"updatedAt"` themselves (use `now()`).                           |
+| `updatedAt` columns       | Set by Prisma Client, not by the database. Raw SQL inserts and updates must set `"updatedAt"` themselves (use `now()`).        |
 | Soft delete               | Prefer `HIDDEN` / `CANCELLED` statuses over deleting rows.                                                                     |
 | `AdminActionLog`          | Every admin moderation or verification decision must write one row.                                                            |
 | IDs                       | Rows get a UUID from the database (`gen_random_uuid()`). Only `User.id` has no default: pass the Supabase Auth user id.        |
-| `User.careSpecies`        | `Species[]`. An **empty array means "not set"**. Search with `has: "CAT"`.                                                     |
-| Sitting experience        | **Not stored.** Count `SitterApply` rows that are `ACCEPTED` on `DONE` requests, and average the reviews received as a sitter. |
 
-Example: creating a `Place` with raw SQL (an example, test it when you build it):
+### 4.2 Profile fields (`User`)
+
+These columns are used by My Profile (Community and Experience tabs) and Edit
+Profile. All of them are optional.
+
+| Column                | UI label                 | What to know                                                                         |
+| --------------------- | ------------------------ | ------------------------------------------------------------------------------------ |
+| `areaName`            | Location                 | Neighbourhood only, for example `Kitsilano`. Never a street address.                 |
+| `bio`                 | Bio                      | Free text. Validate **max 300 characters** in the app.                               |
+| `sittingExperience`   | Experience (description) | Free text in the user's own words. Validate **max 500 characters** in the app.       |
+| `careSpecies`         | Cares for (Dogs / Cats)  | `Species[]`. An **empty array means "not set"**. Search with `{ has: "CAT" }`.       |
+| `certificateName`     | Certificate              | Optional, for example `Pet First Aid`.                                               |
+| `certificateIssuedBy` | Certificate issuer       | Optional, for example `St. John Ambulance`. Show only when `certificateName` is set. |
+
+Character limits are checked in the app, not in the database, so a UI change
+does not need a migration.
+
+**Calculated, not stored** (do not add columns for these):
+
+| UI label       | How to calculate                                                                                 |
+| -------------- | ------------------------------------------------------------------------------------------------ |
+| Completed sits | Count `SitterApply` rows of this user with status `ACCEPTED` whose request has status `DONE`.    |
+| Sitter rating  | Average `Review.rating` where `revieweeId` is this user and status is `ACTIVE`. Show "New" if 0. |
+| Review count   | Count of those same reviews.                                                                     |
+
+Example (a starting point, test it when you build it):
+
+```ts
+const [completedSits, reviewStats] = await Promise.all([
+  prisma.sitterApply.count({
+    where: {
+      applicantId: userId,
+      status: "ACCEPTED",
+      request: { status: "DONE" },
+    },
+  }),
+  prisma.review.aggregate({
+    where: { revieweeId: userId, status: "ACTIVE" },
+    _avg: { rating: true },
+    _count: true,
+  }),
+]);
+```
+
+### 4.3 Creating a `Place` with raw SQL
+
+An example, test it when you build it:
 
 ```ts
 await prisma.$executeRaw`
   INSERT INTO "Place" ("categoryId", "name", "address", "latitude", "longitude", "location", "updatedAt")
   VALUES (${categoryId}::uuid, ${name}, ${address}, ${lat}, ${lng},
-          ST_SetSRID(ST_MakePoint(${lng}, ${lat}), 4326)::geography, now())
+          extensions.ST_SetSRID(extensions.ST_MakePoint(${lng}, ${lat}), 4326)::geography, now())
 `;
 ```
+
+`ST_MakePoint` takes **longitude first**, then latitude.
 
 ---
 
@@ -152,27 +199,48 @@ ALTER TABLE "NewTable" ENABLE ROW LEVEL SECURITY;
 ## 7. Changing the schema (migrations)
 
 There is only **one shared database**, so a migration changes it for everyone.
-**Tell the database owner before you change the schema.**
+**Ask the database owner before you change the schema.** The database owner
+writes and applies migrations.
 
-1. Create a branch from `dev` (for example `feature/add-species-index`).
-2. Edit `prisma/schema.prisma`.
-3. Run `npx prisma format` and `npx prisma validate`.
-4. Create the migration **without applying it**:
+### Why we do not use `prisma migrate dev` right now
+
+`migrate dev` first replays every migration in an empty "shadow database". The
+shadow database does not have Supabase's own schemas (such as `storage`), so a
+migration that touches `storage.buckets` fails there with `P3006`. Because one
+of our migrations does this, we write migrations by hand and apply them with
+`migrate deploy`, which skips the shadow database.
+
+### Steps (database owner)
+
+1. Create a branch from `dev`.
+2. Edit `prisma/schema.prisma`, then run `npx prisma format` and
+   `npx prisma validate`.
+3. Create a folder `prisma/migrations/<YYYYMMDDHHMMSS>_short_description/`.
+   The timestamp must be **later** than every existing folder, because migrations
+   run in name order.
+4. Write `migration.sql` in that folder by hand. Add `ENABLE ROW LEVEL SECURITY`
+   for every new table.
+5. Apply it to the shared database:
 
    ```bash
-   npx prisma migrate dev --create-only --name short_description
+   npx prisma migrate deploy
+   npx prisma migrate status    # must say "Database schema is up to date"
+   npx prisma generate          # deploy does not update the client
    ```
 
-5. Open the new `prisma/migrations/<date>_short_description/migration.sql` and
-   check it. Add anything Prisma cannot express (constraints, extra indexes) and
-   `ENABLE ROW LEVEL SECURITY` for every new table.
-6. Apply it: `npx prisma migrate dev`.
-7. Run `npx prisma migrate diff --from-config-datasource --to-schema prisma/schema.prisma --script`.
-   It must say `This is an empty migration`.
-8. Commit `prisma/schema.prisma` **and** `prisma/migrations/`, then open a PR into
-   `dev`.
+6. Check that the schema and the database match:
 
-After the PR is merged, teammates run `git pull origin dev` and `npm install`.
+   ```bash
+   npx prisma migrate diff --from-config-datasource --to-schema prisma/schema.prisma --script
+   ```
+
+   It must say `This is an empty migration`.
+
+7. Commit `prisma/schema.prisma` **and** the new migration folder, then open a
+   PR into `dev`.
+
+After the PR is merged, teammates run `git pull --no-rebase origin dev` and
+`npm install`.
 
 **Never:**
 
@@ -180,6 +248,8 @@ After the PR is merged, teammates run `git pull origin dev` and `npm install`.
 - run `npx prisma db push` (it changes tables without a migration file),
 - edit or delete a migration that was already applied (add a new migration
   instead),
+- put Supabase Storage or Auth setup (`storage.*`, `auth.*`) in a Prisma
+  migration. Create buckets and storage policies in the Supabase dashboard,
 - type a migration name if `migrate dev` asks for one when you did not change the
   schema. Press `Ctrl + C` and run the `migrate diff` command above to see why.
 
@@ -203,10 +273,18 @@ duplicates. Dates in the demo data are relative to the day you run the seed
 
 ### What is in the demo data
 
-12 users, 10 approved ID verifications, 7 pets (health logs for Sunny and Luna),
-22 sitter requests (8 current + 14 completed sittings in the past) with 31
-applications and 18 reviews, 5 community posts with 20 likes, 8 map places,
-4 chats with 9 messages, 3 reports and 3 notifications.
+- 12 users with profile fields (area, bio, sitting experience, cares for; 2 users
+  also have a certificate) and 10 approved ID verifications
+- 7 pets (health logs for Sunny and Luna)
+- 22 sitter requests (8 current + 14 completed sittings in the past) with 31
+  applications and 18 reviews
+- 5 community posts with 20 likes
+- 8 map places
+- 4 chats with 9 messages, 3 reports and 3 notifications
+
+The profile texts are the same as in the UI prototype. "Completed sits" and the
+sitter rating are calculated from the seeded requests and reviews, so they do
+**not** match the numbers in the prototype (for example "18 sits" for Maya).
 
 ### Demo accounts
 
@@ -223,10 +301,10 @@ Passwords are **not** in the repository. Ask the database owner.
 ### What is not seeded
 
 Some data from the UI prototype does not fit our schema yet, so it is left out:
-reviews of map places, user bio and location, `Pet.isVaccinated`, the
-"Sponsored" flag on places, and the pet name and location of community posts.
-The Services place category has no demo place. If you need one of these,
-tell the database owner and we will decide on a schema change.
+reviews of map places, the "Sponsored" flag on places, and the pet name of
+community posts. `CommunityPost.location` exists, but the demo posts leave it
+empty. The Services place category has no demo place. If you need one of these,
+tell the database owner and we will decide on a schema or seed change.
 
 ### Adding more demo data
 
@@ -234,7 +312,7 @@ tell the database owner and we will decide on a schema change.
    Keep the order: a row can only point to rows that already exist.
 2. Use `seedUuid("kind:name")` for ids and `dateOnly()` / `dateTime()` for dates.
 3. New tables that belong to a user must be removed in `clear.ts` as well.
-4. Write to Prisma Client only. For `Place` use raw SQL (see section 4.1).
+4. Write to Prisma Client only. For `Place` use raw SQL (see section 4.3).
 5. If you set a date in the past, set both `createdAt` and `updatedAt`
    yourself, and keep `createdAt` the same as or earlier than `updatedAt`.
 
@@ -244,15 +322,19 @@ tell the database owner and we will decide on a schema change.
 2. Delete the two demo users in Supabase > Authentication > Users.
 3. Keep `npm run db:seed` data (place categories).
 
+---
+
 ## 9. Troubleshooting
 
 | Problem                                                      | Likely cause and fix                                                                                          |
 | ------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------- |
 | `Cannot find module '@/generated/prisma/client'`             | The client was not generated. Run `npm install` (or `npx prisma generate`).                                   |
+| A new column is missing in TypeScript (`sittingExperience`)  | Your client is old. Run `npm install` after `git pull`.                                                       |
 | `DATABASE_URL is not set`                                    | `.env.local` is missing or incomplete. Ask the database owner for the values.                                 |
 | `P1001: Can't reach database server` and a strange host name | The password contains special characters. Use a letters-and-numbers password.                                 |
 | `migrate dev` fails with a `DIRECT_URL` / placeholder host   | `DIRECT_URL` is missing from `.env.local`.                                                                    |
 | A query returns an empty list but the table has rows         | You are using `supabase-js` on a table (blocked by RLS). Use Prisma on the server.                            |
-| `P3006` / a migration fails on the "shadow database"         | The migration SQL refers to something that does not exist yet in a fresh database. Fix the SQL order.         |
+| `P3006` / a migration fails on the "shadow database"         | The shadow database has no Supabase schemas (`storage`, `auth`). Use the hand-written steps in section 7.     |
+| `git pull` says "Need to specify how to reconcile"           | Use `git pull --no-rebase origin dev`.                                                                        |
 | `SEED_MAYA_AUTH_ID is missing or is not a UUID`              | Add the "User UID" of the demo user from Supabase > Authentication > Users to `.env.local`.                   |
 | `function st_setsrid(...) does not exist` while seeding      | PostGIS functions live in the `extensions` schema. Use `extensions.ST_SetSRID(extensions.ST_MakePoint(...))`. |
