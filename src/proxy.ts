@@ -3,7 +3,7 @@ import { updateSession } from "@/lib/supabase/proxy";
 
 // Next.js 16 renamed middleware.ts to proxy.ts; the behaviour is the same.
 // updateSession() also sends unsigned visitors on /admin (except /admin/login)
-// to the admin login page.
+// to the shared login page.
 export async function proxy(request: NextRequest) {
   return await updateSession(request);
 }

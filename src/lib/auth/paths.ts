@@ -1,3 +1,4 @@
+export const MEMBER_LOGIN_PATH = "/login";
 export const ADMIN_LOGIN_PATH = "/admin/login";
 
 export function isAdminProtectedPath(pathname: string): boolean {

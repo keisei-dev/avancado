@@ -3,6 +3,7 @@ import "server-only";
 import { cache } from "react";
 import { connection } from "next/server";
 import type { User } from "@supabase/supabase-js";
+import { UserRole } from "@/generated/prisma/client";
 import { createClient } from "@/lib/supabase/server";
 import { hasDatabaseEnv, hasSupabaseEnv } from "@/lib/auth/admin";
 
@@ -17,8 +18,17 @@ export async function findMember(id: string) {
       image: true,
       isVerified: true,
       accountStatus: true,
+      role: true,
     },
   });
+}
+
+export function isAdminMember(member: { role: UserRole }): boolean {
+  return member.role === UserRole.ADMIN;
+}
+
+export function memberHomePath(member: { role: UserRole }): string {
+  return isAdminMember(member) ? "/admin" : "/";
 }
 
 // Create the application profile only after Supabase has authenticated the user.
