@@ -2,12 +2,13 @@ import { Suspense } from "react";
 import { redirect } from "next/navigation";
 import { AuthFrame } from "@/components/auth/auth-frame";
 import { MemberAuthForm } from "@/components/auth/member-auth-form";
-import { getCurrentMember } from "@/lib/auth/member";
+import { getCurrentMember, memberHomePath } from "@/lib/auth/member";
 
 export const metadata = { title: "Log in" };
 
 async function LoginContent({ searchParams }: PageProps<"/login">) {
-  if (await getCurrentMember()) redirect("/");
+  const member = await getCurrentMember();
+  if (member) redirect(memberHomePath(member));
   const query = await searchParams;
   return <MemberAuthForm linkError={query.error === "auth_link"} />;
 }

@@ -2,7 +2,7 @@
 
 import { redirect } from "next/navigation";
 import {
-  ADMIN_LOGIN_PATH,
+  MEMBER_LOGIN_PATH,
   hasDatabaseEnv,
   hasSupabaseEnv,
   isAdmin,
@@ -66,5 +66,5 @@ export async function logoutAdmin() {
     const supabase = await createClient();
     await supabase.auth.signOut();
   }
-  redirect(ADMIN_LOGIN_PATH);
+  redirect(MEMBER_LOGIN_PATH);
 }

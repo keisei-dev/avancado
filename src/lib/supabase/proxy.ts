@@ -1,6 +1,6 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
-import { ADMIN_LOGIN_PATH, isAdminProtectedPath } from "@/lib/auth/paths";
+import { MEMBER_LOGIN_PATH, isAdminProtectedPath } from "@/lib/auth/paths";
 
 /**
  * Refreshes the Supabase Auth session and forwards the updated cookies to both
@@ -62,7 +62,7 @@ function redirectAdminIfNeeded(
   }
 
   const url = request.nextUrl.clone();
-  url.pathname = ADMIN_LOGIN_PATH;
+  url.pathname = MEMBER_LOGIN_PATH;
   const redirectResponse = NextResponse.redirect(url);
   supabaseResponse.cookies.getAll().forEach(({ name, value }) => {
     redirectResponse.cookies.set(name, value);

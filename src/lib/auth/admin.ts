@@ -1,9 +1,13 @@
 import { connection } from "next/server";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import { ADMIN_LOGIN_PATH } from "@/lib/auth/paths";
+import { MEMBER_LOGIN_PATH } from "@/lib/auth/paths";
 
-export { ADMIN_LOGIN_PATH, isAdminProtectedPath } from "@/lib/auth/paths";
+export {
+  ADMIN_LOGIN_PATH,
+  MEMBER_LOGIN_PATH,
+  isAdminProtectedPath,
+} from "@/lib/auth/paths";
 
 type AdminRecord = {
   id: string;
@@ -38,12 +42,13 @@ export async function isAdmin(userId: string): Promise<boolean> {
 }
 
 /**
- * Loads the current user from the Supabase server client and redirects to
- * /admin/login unless they are signed in and their Prisma User.role is ADMIN.
+ * Loads the current user from the Supabase server client and redirects unless
+ * they are signed in and their Prisma User.role is ADMIN. Guests go to the
+ * shared login; signed-in members who are not admins go home.
  */
 export async function requireAdmin(): Promise<AdminUser> {
   if (!hasSupabaseEnv() || !hasDatabaseEnv()) {
-    redirect(ADMIN_LOGIN_PATH);
+    redirect(MEMBER_LOGIN_PATH);
   }
 
   // Supabase getUser() compares token expiry to Date.now(); wait for the
@@ -56,12 +61,12 @@ export async function requireAdmin(): Promise<AdminUser> {
   } = await supabase.auth.getUser();
 
   if (!user) {
-    redirect(ADMIN_LOGIN_PATH);
+    redirect(MEMBER_LOGIN_PATH);
   }
 
   const admin = await findAdminUser(user.id);
   if (!admin) {
-    redirect(ADMIN_LOGIN_PATH);
+    redirect("/");
   }
 
   const email = admin.email || user.email || "";

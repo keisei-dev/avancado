@@ -5,7 +5,7 @@ import "./globals.css";
 
 import { AppShell } from "@/components/layout/app-shell";
 import { TopBar } from "@/components/layout/top-bar";
-import { getCurrentMember } from "@/lib/auth/member";
+import { getCurrentMember, isAdminMember } from "@/lib/auth/member";
 import { logoutMember } from "@/app/(auth)/actions";
 
 import { getMyNotifications } from "@/lib/notifications/queries";
@@ -24,6 +24,7 @@ async function MemberTopBar() {
               email: member.email,
               avatarUrl: member.image,
               verified: member.isVerified,
+              isAdmin: isAdminMember(member),
             }
           : null
       }
