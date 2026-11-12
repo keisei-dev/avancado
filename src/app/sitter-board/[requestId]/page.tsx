@@ -2,7 +2,7 @@ import { connection } from 'next/server';
 import Image from 'next/image';
 import Link from 'next/link';
 import { ReportRequestButton } from '@/components/sitter-board/report-request-button';
-import { getCurrentMember } from '@/lib/auth/member';
+import { getCurrentMember, isAdminMember } from '@/lib/auth/member';
 import { getSitterRequestDetail } from './actions';
 
 export const instant = false;
@@ -32,6 +32,7 @@ export default async function SitterDetailPage({ params }: PageProps) {
 
   const req = result.data;
   const pet = req.pet;
+  const isAdmin = member ? isAdminMember(member) : false;
 
   const startDateFormatted = new Date(req.startAt).toLocaleDateString('en-US', {
     month: 'short',
@@ -160,6 +161,7 @@ export default async function SitterDetailPage({ params }: PageProps) {
             </div>
           </div>
 
+          {isAdmin ? null : (
           <div className="p-8 pt-0 flex justify-end">
             <ReportRequestButton
               requestId={req.id}
@@ -167,6 +169,7 @@ export default async function SitterDetailPage({ params }: PageProps) {
               isOwn={member?.id === req.authorId}
             />
           </div>
+          )}
         </div>
 
         <div className="flex flex-col">
@@ -248,6 +251,7 @@ export default async function SitterDetailPage({ params }: PageProps) {
               )}
             </div>
 
+            {isAdmin ? null : (
             <div className="pt-2">
               <button
                 type="button"
@@ -259,6 +263,7 @@ export default async function SitterDetailPage({ params }: PageProps) {
                 🔒 Log in to offer your help.
               </p>
             </div>
+            )}
           </div>
         </div>
       </div>

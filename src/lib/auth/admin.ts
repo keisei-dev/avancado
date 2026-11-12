@@ -80,6 +80,32 @@ export async function requireAdmin(): Promise<AdminUser> {
   };
 }
 
+export const ADMIN_USER_ACTION_ERROR =
+  "Admin accounts can't do this. Use a personal account.";
+
+/**
+ * Rejects signed-in Prisma ADMIN users from member content actions.
+ * Returns the error message to send back; guests and regular members get null.
+ */
+export async function assertNotAdmin(): Promise<string | null> {
+  if (!hasSupabaseEnv() || !hasDatabaseEnv()) {
+    return null;
+  }
+
+  await connection();
+
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user || !(await isAdmin(user.id))) {
+    return null;
+  }
+
+  return ADMIN_USER_ACTION_ERROR;
+}
+
 async function findAdminUser(userId: string): Promise<AdminRecord | null> {
   if (!hasDatabaseEnv()) {
     return null;

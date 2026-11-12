@@ -1,6 +1,6 @@
 import { connection } from "next/server";
 import { hasDatabaseEnv } from "@/lib/auth/admin";
-import { getCurrentMember } from "@/lib/auth/member";
+import { getCurrentMember, isAdminMember } from "@/lib/auth/member";
 import { CommunityFeed } from "@/components/community/community-feed";
 import type { CommunityPostView } from "@/components/community/post-card";
 
@@ -92,7 +92,12 @@ export default async function CommunityPage({
       sitters={sitters}
       member={
         member
-          ? { id: member.id, name: member.name, image: member.image }
+          ? {
+              id: member.id,
+              name: member.name,
+              image: member.image,
+              isAdmin: isAdminMember(member),
+            }
           : null
       }
       unavailable={unavailable}
