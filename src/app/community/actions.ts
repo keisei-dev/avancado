@@ -2,12 +2,15 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+import { assertNotAdmin } from "@/lib/auth/admin";
 import { getCurrentMember } from "@/lib/auth/member";
 import { createClient } from "@/lib/supabase/server";
 
 const uuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 export async function createPost(_previous: { error: string }, data: FormData) {
+  const blocked = await assertNotAdmin();
+  if (blocked) return { error: blocked };
   const member = await getCurrentMember();
   if (!member) return { error: "Please sign in to create a post." };
   const caption = String(data.get("caption") ?? "").trim();
@@ -89,6 +92,8 @@ export async function createPost(_previous: { error: string }, data: FormData) {
 }
 
 export async function reactToPost(postId: string, liked: boolean) {
+  const blocked = await assertNotAdmin();
+  if (blocked) return { error: blocked };
   const member = await getCurrentMember();
   if (!member) return { error: "Please sign in to react." };
   if (!uuid.test(postId) || typeof liked !== "boolean")
@@ -179,6 +184,8 @@ export async function markPetFound(postId: string) {
 }
 
 export async function reportCommunityPost(postId: string, reason: string) {
+  const blocked = await assertNotAdmin();
+  if (blocked) return { error: blocked };
   const member = await getCurrentMember();
   if (!member || !uuid.test(postId)) return { error: "Please sign in." };
   if (

@@ -2,7 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { connection } from "next/server";
 import { ArrowLeft } from "lucide-react";
-import { getCurrentMember } from "@/lib/auth/member";
+import { getCurrentMember, isAdminMember } from "@/lib/auth/member";
 import { PostCard } from "@/components/community/post-card";
 
 export const instant = false;
@@ -48,7 +48,16 @@ export default async function PostDetailPage({
       <h1 className="sr-only">Community post by {post.author.name}</h1>
       <PostCard
         post={{ ...post, liked: post.likes.length > 0 }}
-        member={member}
+        member={
+          member
+            ? {
+                id: member.id,
+                name: member.name,
+                image: member.image,
+                isAdmin: isAdminMember(member),
+              }
+            : null
+        }
         detail
       />
     </main>

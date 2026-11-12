@@ -42,7 +42,12 @@ export type CommunityPostView = {
     isVerified: boolean;
   };
 };
-type Member = { id: string; name: string; image: string | null };
+type Member = {
+  id: string;
+  name: string;
+  image: string | null;
+  isAdmin?: boolean;
+};
 export function PostCard({
   post,
   detail = false,
@@ -154,6 +159,7 @@ export function PostCard({
             </time>
           </p>
         </div>
+        {mine || !member?.isAdmin ? (
         <div className="relative">
           <button
             aria-label="Post actions"
@@ -176,13 +182,15 @@ export function PostCard({
               <div className="absolute top-10 right-0 z-20 w-40 rounded-12 border border-line bg-white p-1.5 shadow-raised">
                 {mine ? (
                   <>
-                    <button
-                      onClick={() => open("edit")}
-                      className="flex w-full items-center gap-2 rounded-10 p-2 text-sm hover:bg-ivory"
-                    >
-                      <Edit3 size={14} />
-                      Edit
-                    </button>
+                    {member?.isAdmin ? null : (
+                      <button
+                        onClick={() => open("edit")}
+                        className="flex w-full items-center gap-2 rounded-10 p-2 text-sm hover:bg-ivory"
+                      >
+                        <Edit3 size={14} />
+                        Edit
+                      </button>
+                    )}
                     <button
                       onClick={() => open("delete")}
                       className="flex w-full items-center gap-2 rounded-10 p-2 text-sm text-coral hover:bg-ivory"
@@ -204,6 +212,7 @@ export function PostCard({
             </>
           )}
         </div>
+        ) : null}
       </div>
       <img
         loading="lazy"
@@ -213,21 +222,23 @@ export function PostCard({
       />
       <div className="px-4 pt-3.5 pb-5">
         <div className="mb-3 flex items-center justify-between border-b border-line pb-3">
-          <button
-            disabled={pending}
-            aria-label="React with a paw"
-            aria-pressed={post.liked ?? false}
-            onClick={() => {
-              if (requireAuth())
-                run(
-                  () => reactToPost(post.id, !post.liked),
-                  () => {},
-                );
-            }}
-            className={`grid h-[38px] w-11 place-items-center rounded-full text-peach-ink disabled:opacity-50 ${post.liked ? "bg-peach ring-1 ring-peach-ink/30" : "bg-peach-soft hover:bg-peach"}`}
-          >
-            <PawPrint size={18} fill={post.liked ? "currentColor" : "none"} />
-          </button>
+          {member?.isAdmin ? null : (
+            <button
+              disabled={pending}
+              aria-label="React with a paw"
+              aria-pressed={post.liked ?? false}
+              onClick={() => {
+                if (requireAuth())
+                  run(
+                    () => reactToPost(post.id, !post.liked),
+                    () => {},
+                  );
+              }}
+              className={`grid h-[38px] w-11 place-items-center rounded-full text-peach-ink disabled:opacity-50 ${post.liked ? "bg-peach ring-1 ring-peach-ink/30" : "bg-peach-soft hover:bg-peach"}`}
+            >
+              <PawPrint size={18} fill={post.liked ? "currentColor" : "none"} />
+            </button>
+          )}
           <span className="text-xs text-muted">
             <strong className="mr-1 text-[15px] font-semibold text-brown">
               {post.likeCount}
