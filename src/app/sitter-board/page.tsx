@@ -1,20 +1,43 @@
+'use client';
+
+import { useEffect, useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { Search, Plus } from 'lucide-react';
-import { getSitterRequests } from './actions';
+import { getSitterRequests, getMyPetsForSitter } from './actions';
 import { buttonClass, Button } from '@/components/ui/button';
+import {
+  CreateSitterRequestModal,
+  type PetOption,
+} from '@/components/sitter-board/create-request-modal';
 
-export const instant = false;
+type SitterRequests = NonNullable<Awaited<ReturnType<typeof getSitterRequests>>['data']>;
 
-export default async function SitterBoardPage() {
-  const result = await getSitterRequests();
 
-  if (!result.success || !result.data) {
-    return (
-      <div className="p-6 text-coral">
-        {result.error || 'An error occurred while loading data.'}
-      </div>
-    );
+export default function SitterBoardPage() {
+  const router = useRouter();
+  const [modalOpen, setModalOpen] = useState(false);
+  const [requests, setRequests] = useState<SitterRequests | null>(null);
+  const [pets, setPets] = useState<PetOption[]>([]);
+  const [error, setError] = useState<string | null>(null);
+
+useEffect(() => {
+    getSitterRequests().then((result) => {
+      if (result.success && result.data) setRequests(result.data);
+      else setError(result.error || 'An error occurred while loading data.');
+    });
+    getMyPetsForSitter().then((result) => {
+      if (result.success && result.data) setPets(result.data);
+    });
+  }, []);
+
+  if (error) {
+    return <div className="p-6 text-coral">{error}</div>;
+  }
+
+  if (!requests) {
+    return <div className="p-6 text-muted">Loading...</div>;
   }
 
   return (
@@ -31,12 +54,11 @@ export default async function SitterBoardPage() {
             Pet owners post care requests. Local sitters apply to help.
           </p>
         </div>
-        <Link href="/sitter-board/new">
-          <Button variant="primary" size="md">
-            <Plus size={16} aria-hidden="true" />
-            Request a sitter
-          </Button>
-        </Link>
+
+        <Button variant="primary" size="md" onClick={() => setModalOpen(true)}>
+          <Plus size={16} aria-hidden="true" />
+          Request a sitter
+        </Button>
       </div>
 
       <div className="mb-6 inline-flex max-w-full items-center gap-1 bg-cream p-1 rounded-full overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
@@ -46,7 +68,7 @@ export default async function SitterBoardPage() {
         >
           All requests
           <span className="text-xs bg-line text-brown-2 px-1.5 py-0.5 rounded-full font-medium">
-            {result.data.length}
+            {requests.length}
           </span>
         </Link>
         <Link
@@ -79,10 +101,10 @@ export default async function SitterBoardPage() {
 
       {/* Sitter request cards grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {result.data.length === 0 ? (
-          <p className="text-muted col-span-2">No sitter requests found.</p>
+        {requests.length === 0 ? (
+          <p className="text-muted md:col-span-2">No sitter requests found.</p>
         ) : (
-          result.data.map((req) => {
+          requests.map((req) => {
             const startDateFormatted = new Date(req.startAt).toLocaleDateString('en-US', {
               month: 'short',
               day: 'numeric',
@@ -116,6 +138,7 @@ export default async function SitterBoardPage() {
                         src={req.pet.imageUrl}
                         alt={req.pet.name}
                         fill
+                        sizes="(min-width: 768px) 50vw, 100vw"
                         className="object-cover"
                       />
                     ) : (
@@ -145,9 +168,7 @@ export default async function SitterBoardPage() {
 
                     <div className="space-y-2 text-xs text-brown-2 border-t border-line pt-3">
                       <div className="flex items-center gap-4">
-                        <span className="flex items-center gap-1.5">
-                          📅 {startDateFormatted}
-                        </span>
+                        <span className="flex items-center gap-1.5">📅 {startDateFormatted}</span>
                         <span className="flex items-center gap-1.5">
                           ⏰ {startTime} – {endTime}
                         </span>
@@ -155,13 +176,9 @@ export default async function SitterBoardPage() {
 
                       <div className="flex items-center gap-4">
                         {durationHours && (
-                          <span className="flex items-center gap-1.5">
-                            ⚡ {durationHours} hours
-                          </span>
+                          <span className="flex items-center gap-1.5">⚡ {durationHours} hours</span>
                         )}
-                        <span className="flex items-center gap-1.5">
-                          📍 {req.areaName}
-                        </span>
+                        <span className="flex items-center gap-1.5">📍 {req.areaName}</span>
                       </div>
                     </div>
                   </div>
@@ -169,7 +186,8 @@ export default async function SitterBoardPage() {
 
                 <div className="px-5 py-4 border-t border-line flex items-center justify-between bg-ivory/50">
                   <span className="text-xs font-medium text-muted">
-                    <strong className="text-brown">{req.applications?.length || 0}</strong> applicants
+                    <strong className="text-brown">{req.applications?.length || 0}</strong>{' '}
+                    applicants
                   </span>
                   <Link
                     href={`/sitter-board/${req.id}`}
@@ -183,6 +201,21 @@ export default async function SitterBoardPage() {
           })
         )}
       </div>
+
+      {modalOpen && (
+        <CreateSitterRequestModal
+          open
+          onClose={() => setModalOpen(false)}
+          pets={pets}
+          onSubmit={async (formData) => {
+            // TODO:
+            console.log('submit:', formData);
+            await new Promise((r) => setTimeout(r, 800));
+          }}
+          onViewBoard={() => router.push('/sitter-board')}
+          onViewMyRequest={() => router.push('/sitter-board/my-requests')}
+        />
+      )}
     </main>
   );
 }
