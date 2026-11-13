@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/prisma/client";
+import type { PetProfile } from "@/lib/pets/types";
 
 // Loads everything a profile page shows, for any user.
 // viewerId = who is looking (used for the "liked" heart on posts).
@@ -32,14 +33,25 @@ export async function getProfileData(userId: string, viewerId: string) {
     });
 
     const sitterRating = await prisma.review.aggregate({ where: sitterReviewWhere, _avg: { rating: true }, _count: { _all: true } });
-    const pets = await prisma.pet.findMany({
-        where: { ownerId: userId },
-        orderBy: { name: "asc" },
+    // Active pets only (ARCHIVED = the owner hid it), oldest first like My Pets
+    const petRows = await prisma.pet.findMany({
+        where: { ownerId: userId, status: "ACTIVE" },
+        orderBy: { createdAt: "asc" },
         select: {
             id: true, name: true, species: true, breed: true, birthDate: true,
-            weight: true, gender: true, isNeutered: true, notes: true, imageUrl: true,
+            weight: true, gender: true, isNeutered: true, isVaccinated: true,
+            notes: true, imageUrl: true, updatedAt: true,
         },
     });
+
+    // Same shape as the My Pets pages, so we can reuse PetProfileCard.
+    // Dates and Decimal become plain values.
+    const pets: PetProfile[] = petRows.map((pet) => ({
+        ...pet,
+        birthDate: pet.birthDate ? pet.birthDate.toISOString().slice(0, 10) : null,
+        weight: pet.weight === null ? null : Number(pet.weight),
+        updatedAt: pet.updatedAt.toISOString(),
+    }));
 
     const postRows = await prisma.communityPost.findMany({
         where: { authorId: userId, status: { not: "HIDDEN" } },

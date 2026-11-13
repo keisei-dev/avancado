@@ -30,11 +30,7 @@ export default async function ProfilePage() {
           // Only my own page shows my email
           user={{ ...data.user, email: member.email }}
           canEdit
-          pets={data.pets.map((pet) => ({
-            ...pet,
-            birthDate: pet.birthDate?.toISOString() ?? null,
-            weight: pet.weight === null ? null : Number(pet.weight),
-          }))}
+          pets={data.pets}
         />
       </div>
       <div className="flex min-w-0 flex-col gap-4">
