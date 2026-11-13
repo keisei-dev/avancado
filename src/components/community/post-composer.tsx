@@ -199,7 +199,7 @@ export function PostComposer({
                   type="radio"
                   name="type"
                   value={value}
-                  defaultChecked={existing?.type === value}
+                  defaultChecked={(existing?.type ?? "GENERAL") === value}
                   required
                   className="sr-only"
                 />

@@ -66,7 +66,10 @@ async function removeCommunityPostImage(imageUrl: string) {
       .from("community-posts")
       .remove([path]);
     if (error) {
-      console.error("Community post image could not be removed.", error.message);
+      console.error(
+        "Community post image could not be removed.",
+        error.message,
+      );
     }
   } catch (error) {
     console.error("Community post image could not be removed.", error);
@@ -98,6 +101,41 @@ export async function hideCommunityPost(formData: FormData) {
   await resolveOpenPostReports(postId, admin.id);
   await logAdminAction(admin.id, "HIDE_POST", postId);
   revalidateCommunity(postId);
+}
+
+export async function reopenCommunityReport(formData: FormData) {
+  const admin = await requireAdmin();
+  const reportId = readId(formData, "reportId");
+  const postId = readId(formData, "postId");
+  if (!reportId || !postId) return { error: "Invalid report." };
+
+  try {
+    const reopened = await prisma.$transaction(async (tx) => {
+      const result = await tx.report.updateMany({
+        where: { id: reportId, postId, status: ReportStatus.RESOLVED },
+        data: { status: ReportStatus.OPEN, handledById: null, handledAt: null },
+      });
+      if (!result.count) return false;
+      await tx.adminActionLog.create({
+        data: {
+          adminId: admin.id,
+          action: "REOPEN_REPORT",
+          targetType: "POST",
+          targetId: postId,
+          note: `Reopened report ${reportId}`,
+        },
+      });
+      return true;
+    });
+    if (!reopened)
+      return {
+        error: "This report is no longer resolved. Refresh and try again.",
+      };
+  } catch {
+    return { error: "This report could not be reopened. Try again." };
+  }
+  revalidateCommunity(postId);
+  return { error: null };
 }
 
 export async function restoreCommunityPost(formData: FormData) {

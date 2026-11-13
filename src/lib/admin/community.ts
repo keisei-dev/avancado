@@ -21,12 +21,7 @@ export const ADMIN_COMMUNITY_FILTERS = [
 
 export type AdminCommunityFilter = (typeof ADMIN_COMMUNITY_FILTERS)[number];
 
-export const ADMIN_COMMUNITY_RANGES = [
-  "all",
-  "7d",
-  "30d",
-  "custom",
-] as const;
+export const ADMIN_COMMUNITY_RANGES = ["all", "7d", "30d", "custom"] as const;
 
 export type AdminCommunityRange = AdminTimeRange;
 
@@ -35,6 +30,7 @@ export type AdminCommunityReport = {
   reason: string;
   createdAt: Date;
   reporterName: string;
+  status: ReportStatus;
 };
 
 export type AdminCommunityPost = {
@@ -53,6 +49,7 @@ export type AdminCommunityPost = {
     isVerified: boolean;
   };
   openReports: AdminCommunityReport[];
+  resolvedReports: AdminCommunityReport[];
 };
 
 export type AdminCommunityListResult = {
@@ -79,7 +76,10 @@ const PER_PAGE_OPTIONS = [5, 10, 25] as const;
 export function parseAdminCommunityFilter(
   value: string | undefined,
 ): AdminCommunityFilter {
-  if (value && ADMIN_COMMUNITY_FILTERS.includes(value as AdminCommunityFilter)) {
+  if (
+    value &&
+    ADMIN_COMMUNITY_FILTERS.includes(value as AdminCommunityFilter)
+  ) {
     return value as AdminCommunityFilter;
   }
   return "all";
@@ -181,11 +181,12 @@ const postSelect = {
     },
   },
   reports: {
-    where: { status: ReportStatus.OPEN },
+    where: { status: { in: [ReportStatus.OPEN, ReportStatus.RESOLVED] } },
     orderBy: { createdAt: "desc" as const },
     select: {
       id: true,
       reason: true,
+      status: true,
       createdAt: true,
       reporter: { select: { name: true } },
     },
@@ -212,6 +213,7 @@ function toAdminPost(row: {
     reason: string;
     createdAt: Date;
     reporter: { name: string };
+    status: ReportStatus;
   }[];
 }): AdminCommunityPost {
   return {
@@ -224,12 +226,24 @@ function toAdminPost(row: {
     createdAt: row.createdAt,
     likeCount: row.likeCount,
     author: row.author,
-    openReports: row.reports.map((report) => ({
-      id: report.id,
-      reason: report.reason,
-      createdAt: report.createdAt,
-      reporterName: report.reporter.name,
-    })),
+    openReports: row.reports
+      .filter((report) => report.status === ReportStatus.OPEN)
+      .map((report) => ({
+        id: report.id,
+        reason: report.reason,
+        status: report.status,
+        createdAt: report.createdAt,
+        reporterName: report.reporter.name,
+      })),
+    resolvedReports: row.reports
+      .filter((report) => report.status === ReportStatus.RESOLVED)
+      .map((report) => ({
+        id: report.id,
+        reason: report.reason,
+        status: report.status,
+        createdAt: report.createdAt,
+        reporterName: report.reporter.name,
+      })),
   };
 }
 

@@ -14,6 +14,7 @@ import {
   deleteCommunityPost,
   hideCommunityPost,
   restoreCommunityPost,
+  reopenCommunityReport,
 } from "@/app/admin/(protected)/community/actions";
 import { Button } from "@/components/ui/button";
 import { Modal } from "@/components/ui/modal";
@@ -29,6 +30,7 @@ type ViewPost = {
   createdAt: Date | string;
   likeCount: number;
   author: { name: string };
+  resolvedReports: { id: string; reason: string; reporterName: string }[];
 };
 
 const emptySubscribe = () => () => {};
@@ -117,18 +119,50 @@ const ACTION_BTN =
 const CLOSE_BTN =
   "grid size-[38px] place-items-center rounded-12 border border-line bg-white text-brown-2 transition-colors hover:border-line-strong hover:bg-ivory focus-visible:shadow-focus focus-visible:outline-none";
 
-function InfoCard({
-  label,
-  children,
-}: {
-  label: string;
-  children: ReactNode;
-}) {
+function InfoCard({ label, children }: { label: string; children: ReactNode }) {
   return (
     <div className="rounded-12 bg-ivory px-3.5 py-3">
       <p className="text-xs text-muted">{label}</p>
       <div className="text-sm font-semibold text-brown">{children}</div>
     </div>
+  );
+}
+
+function ReopenReportButton({
+  reportId,
+  postId,
+}: {
+  reportId: string;
+  postId: string;
+}) {
+  const [pending, setPending] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  return (
+    <form
+      action={async (data) => {
+        setPending(true);
+        setError(null);
+        try {
+          const result = await reopenCommunityReport(data);
+          setError(result.error);
+        } catch {
+          setError("This report could not be reopened. Try again.");
+        } finally {
+          setPending(false);
+        }
+      }}
+    >
+      <input type="hidden" name="reportId" value={reportId} />
+      <input type="hidden" name="postId" value={postId} />
+      <Button type="submit" variant="secondary" loading={pending}>
+        Reopen report
+      </Button>
+      {error && (
+        <p role="alert" className="mt-2 text-sm text-coral">
+          {error}
+        </p>
+      )}
+    </form>
   );
 }
 
@@ -263,6 +297,26 @@ function CommunityPostViewDialog({
               <RelativePostedAt at={post.createdAt} />
             </InfoCard>
           </div>
+          {post.resolvedReports.length > 0 && (
+            <section className="mt-5 space-y-3" aria-label="Resolved reports">
+              <h3 className="text-sm font-semibold">Resolved reports</h3>
+              <p className="text-xs text-muted">
+                Reopening a report keeps the post’s current visibility.
+              </p>
+              {post.resolvedReports.map((report) => (
+                <div
+                  key={report.id}
+                  className="space-y-2 rounded-12 border border-line p-3"
+                >
+                  <p className="text-sm">{report.reason}</p>
+                  <p className="text-xs text-muted">
+                    Reported by {report.reporterName}
+                  </p>
+                  <ReopenReportButton reportId={report.id} postId={post.id} />
+                </div>
+              ))}
+            </section>
+          )}
           <div className="mt-[26px] flex justify-end gap-2.5 border-t border-line pt-5">
             <form
               action={hidden ? restoreCommunityPost : hideCommunityPost}
@@ -298,7 +352,11 @@ export function ViewCommunityPostButton({ post }: { post: ViewPost }) {
 
   return (
     <>
-      <button type="button" onClick={() => setOpen(true)} className={ACTION_BTN}>
+      <button
+        type="button"
+        onClick={() => setOpen(true)}
+        className={ACTION_BTN}
+      >
         <Eye size={15} aria-hidden="true" />
         View
       </button>
@@ -402,11 +460,7 @@ function DeleteCommunityPostConfirm({
   );
 }
 
-export function DeleteCommunityPostButton({
-  postId,
-}: {
-  postId: string;
-}) {
+export function DeleteCommunityPostButton({ postId }: { postId: string }) {
   const [open, setOpen] = useState(false);
 
   return (
