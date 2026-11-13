@@ -50,12 +50,28 @@ function formatRelative(date: Date, nowMs: number) {
   return formatAbsoluteDate(date);
 }
 
+function formatDayLabel(date: Date, nowMs: number) {
+  const today = new Date(nowMs);
+  today.setHours(0, 0, 0, 0);
+  const postedDay = new Date(date);
+  postedDay.setHours(0, 0, 0, 0);
+  const dayDiff = Math.round(
+    (today.getTime() - postedDay.getTime()) / 86_400_000,
+  );
+  if (dayDiff <= 0) return "Today";
+  if (dayDiff === 1) return "Yesterday";
+  if (dayDiff < 7) return `${dayDiff} days ago`;
+  return formatAbsoluteDate(date);
+}
+
 export function RelativePostedAt({
   at,
   className,
+  dayLabel = false,
 }: {
   at: Date | string;
   className?: string;
+  dayLabel?: boolean;
 }) {
   const iso = typeof at === "string" ? at : at.toISOString();
   const date = new Date(iso);
@@ -65,7 +81,9 @@ export function RelativePostedAt({
     () => false,
   );
   const label = isClient
-    ? formatRelative(date, new Date().getTime())
+    ? dayLabel
+      ? formatDayLabel(date, new Date().getTime())
+      : formatRelative(date, new Date().getTime())
     : formatAbsoluteDate(date);
 
   return (
