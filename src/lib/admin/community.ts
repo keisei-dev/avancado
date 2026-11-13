@@ -41,6 +41,7 @@ export type AdminCommunityPost = {
   id: string;
   caption: string;
   imageUrl: string;
+  location: string | null;
   type: PostType;
   status: PostStatus;
   createdAt: Date;
@@ -166,6 +167,7 @@ const postSelect = {
   id: true,
   caption: true,
   imageUrl: true,
+  location: true,
   type: true,
   status: true,
   createdAt: true,
@@ -194,6 +196,7 @@ function toAdminPost(row: {
   id: string;
   caption: string;
   imageUrl: string;
+  location: string | null;
   type: PostType;
   status: PostStatus;
   createdAt: Date;
@@ -215,6 +218,7 @@ function toAdminPost(row: {
     id: row.id,
     caption: row.caption,
     imageUrl: row.imageUrl,
+    location: row.location,
     type: row.type,
     status: row.status,
     createdAt: row.createdAt,
@@ -311,7 +315,7 @@ export function formatPostedDate(date: Date): string {
 }
 
 export function postTypeLabel(type: PostType): string {
-  return type === PostType.LOST_PET ? "Lost pet" : "Post";
+  return type === PostType.LOST_PET ? "Lost pet alert" : "Community post";
 }
 
 export function postStatusLabel(status: PostStatus): string {
