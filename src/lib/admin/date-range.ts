@@ -129,3 +129,68 @@ export function appendRangeParams(
     params.set("range", range);
   }
 }
+
+export const DASHBOARD_RANGES = ["week", "month", "custom"] as const;
+
+export type DashboardRange = (typeof DASHBOARD_RANGES)[number];
+
+export function parseDashboardRange(
+  value: string | undefined,
+): DashboardRange {
+  if (value === "month" || value === "custom" || value === "week") {
+    return value;
+  }
+  return "week";
+}
+
+export function resolveDashboardRange(query: {
+  range?: string | string[];
+  from?: string | string[];
+  to?: string | string[];
+}): { range: DashboardRange; from?: string; to?: string } {
+  const range = parseDashboardRange(firstParam(query.range));
+  if (range !== "custom") return { range };
+  const custom = parseCustomRange(firstParam(query.from), firstParam(query.to));
+  if (!custom) return { range: "week" };
+  return { range: "custom", from: custom.from, to: custom.to };
+}
+
+export function dashboardCreatedAtWhere(
+  range: DashboardRange,
+  now: Date,
+  custom?: AdminCustomRange,
+) {
+  if (range === "custom" && custom) return customRangeWhere(custom);
+  const days = range === "week" ? 7 : 30;
+  const from = new Date(now.getTime() - days * 24 * 60 * 60 * 1000);
+  return { createdAt: { gte: from } };
+}
+
+export function dashboardPeriodLabel(
+  range: DashboardRange,
+  from?: string,
+  to?: string,
+) {
+  if (range === "custom" && from && to) {
+    return formatCustomRangeLabel(from, to);
+  }
+  if (range === "month") return "Last 30 days";
+  return "Last 7 days";
+}
+
+export function dashboardHref(opts: {
+  range: DashboardRange;
+  from?: string;
+  to?: string;
+}) {
+  const params = new URLSearchParams();
+  if (opts.range === "custom" && opts.from && opts.to) {
+    params.set("range", "custom");
+    params.set("from", opts.from);
+    params.set("to", opts.to);
+  } else if (opts.range === "month") {
+    params.set("range", "month");
+  }
+  const query = params.toString();
+  return query ? `/admin?${query}` : "/admin";
+}

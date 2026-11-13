@@ -2,9 +2,10 @@ import type { PostingTimeBucket } from "@/lib/admin/mock-data";
 
 type PostingChartProps = {
   buckets: PostingTimeBucket[];
+  periodLabel: string;
 };
 
-export function PostingChart({ buckets }: PostingChartProps) {
+export function PostingChart({ buckets, periodLabel }: PostingChartProps) {
   return (
     <section className="rounded-20 border border-line bg-white p-[22px] shadow-admin">
       <div className="mb-[18px]">
@@ -12,7 +13,7 @@ export function PostingChart({ buckets }: PostingChartProps) {
           Popular posting times
         </h2>
         <p className="mt-0.5 text-[13px] text-muted">
-          Community posts and sitter events · Last 30 days
+          Community posts and sitter events · {periodLabel}
         </p>
       </div>
       <div className="relative flex h-[220px] items-end gap-3.5 px-1 pb-[26px]">

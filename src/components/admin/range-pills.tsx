@@ -7,25 +7,26 @@ import { Calendar } from "lucide-react";
 import {
   formatCustomRangeLabel,
   parseCustomRange,
-  type AdminTimeRange,
 } from "@/lib/admin/date-range";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/cn";
 
 const CHIP =
-  "inline-flex h-8 shrink-0 items-center rounded-full px-3 text-[12px] font-semibold outline-none focus-visible:shadow-focus";
+  "inline-flex shrink-0 items-center rounded-full outline-none focus-visible:shadow-focus";
 
-const RANGES: { id: Exclude<AdminTimeRange, "custom">; label: string }[] = [
-  { id: "all", label: "All time" },
-  { id: "7d", label: "Last 7 days" },
-  { id: "30d", label: "Last 30 days" },
-];
+export type AdminRangeOption = {
+  id: string;
+  label: string;
+};
 
 type AdminRangePillsProps = {
-  range: AdminTimeRange;
+  range: string;
   from?: string;
   to?: string;
-  hrefs: Record<"all" | "7d" | "30d", string>;
+  options: AdminRangeOption[];
+  hrefs: Record<string, string>;
+  clearHref: string;
+  size?: "sm" | "md";
 };
 
 function pad2(value: number) {
@@ -48,7 +49,10 @@ export function AdminRangePills({
   range,
   from,
   to,
+  options,
   hrefs,
+  clearHref,
+  size = "sm",
 }: AdminRangePillsProps) {
   const router = useRouter();
   const pathname = usePathname();
@@ -61,6 +65,10 @@ export function AdminRangePills({
 
   const customActive = range === "custom" && Boolean(from && to);
   const today = localYmd(new Date());
+  const chipSize =
+    size === "md"
+      ? "h-[34px] gap-1.5 px-3.5 text-[13px] font-medium"
+      : "h-8 gap-1.5 px-3 text-[12px] font-semibold";
 
   useEffect(() => {
     if (!open) return;
@@ -113,20 +121,21 @@ export function AdminRangePills({
   function clear() {
     setOpen(false);
     setError(null);
-    router.push(hrefs.all);
+    router.push(clearHref);
   }
 
   return (
     <div className="flex flex-wrap gap-1.5">
-      {RANGES.map((item) => {
+      {options.map((item) => {
         const selected = range === item.id;
         return (
           <Link
             key={item.id}
-            href={hrefs[item.id]}
+            href={hrefs[item.id] ?? "#"}
             aria-current={selected ? "page" : undefined}
             className={cn(
               CHIP,
+              chipSize,
               selected
                 ? "border border-olive-hover bg-olive-hover text-white"
                 : "border border-line bg-white text-brown hover:bg-ivory",
@@ -144,7 +153,7 @@ export function AdminRangePills({
           aria-haspopup="dialog"
           className={cn(
             CHIP,
-            "gap-1.5",
+            chipSize,
             customActive
               ? "border border-olive-hover bg-olive-hover text-white"
               : "border border-line bg-white text-brown hover:bg-ivory",

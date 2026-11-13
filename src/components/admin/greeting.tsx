@@ -1,13 +1,15 @@
 "use client";
 
-import { useState, useSyncExternalStore } from "react";
-import { Calendar } from "lucide-react";
+import { useSyncExternalStore } from "react";
+import { AdminRangePills } from "@/components/admin/range-pills";
+import { dashboardHref, type DashboardRange } from "@/lib/admin/date-range";
 
 type AdminGreetingProps = {
   displayName: string;
+  range: DashboardRange;
+  from?: string;
+  to?: string;
 };
-
-type DashboardRange = "week" | "month" | "custom";
 
 const emptySubscribe = () => () => {};
 
@@ -29,14 +31,18 @@ function greetingForHour(hour: number): string {
   return "Good evening";
 }
 
-export function AdminGreeting({ displayName }: AdminGreetingProps) {
+export function AdminGreeting({
+  displayName,
+  range,
+  from,
+  to,
+}: AdminGreetingProps) {
   const isClient = useSyncExternalStore(
     emptySubscribe,
     () => true,
     () => false,
   );
   const now = isClient ? new Date() : null;
-  const [range, setRange] = useState<DashboardRange>("week");
 
   return (
     <div>
@@ -54,57 +60,22 @@ export function AdminGreeting({ displayName }: AdminGreetingProps) {
             Here is what is happening across Avancado today.
           </p>
         </div>
-        <div
-          role="group"
-          aria-label="Dashboard date range"
-          className="flex flex-wrap items-center gap-2"
-        >
-          <RangeButton
-            label="Week"
-            pressed={range === "week"}
-            onClick={() => setRange("week")}
-          />
-          <RangeButton
-            label="Month"
-            pressed={range === "month"}
-            onClick={() => setRange("month")}
-          />
-          <RangeButton
-            label="Custom"
-            pressed={range === "custom"}
-            onClick={() => setRange("custom")}
-            icon
-          />
-        </div>
+        <AdminRangePills
+          range={range}
+          from={from}
+          to={to}
+          size="md"
+          options={[
+            { id: "week", label: "Week" },
+            { id: "month", label: "Month" },
+          ]}
+          hrefs={{
+            week: dashboardHref({ range: "week" }),
+            month: dashboardHref({ range: "month" }),
+          }}
+          clearHref={dashboardHref({ range: "week" })}
+        />
       </div>
     </div>
-  );
-}
-
-function RangeButton({
-  label,
-  pressed,
-  onClick,
-  icon = false,
-}: {
-  label: string;
-  pressed: boolean;
-  onClick: () => void;
-  icon?: boolean;
-}) {
-  return (
-    <button
-      type="button"
-      aria-pressed={pressed}
-      onClick={onClick}
-      className={`inline-flex h-[34px] items-center gap-1.5 rounded-full border px-3.5 text-[13px] font-medium ${
-        pressed
-          ? "border-olive-hover bg-olive-hover text-white"
-          : "border-line-strong bg-white text-brown-2"
-      }`}
-    >
-      {icon ? <Calendar aria-hidden="true" size={14} /> : null}
-      {label}
-    </button>
   );
 }

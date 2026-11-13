@@ -126,9 +126,24 @@ export function SitterRequestsBoard({
           range={range}
           from={rangeFrom}
           to={rangeTo}
+          options={[
+            { id: "all", label: "All time" },
+            { id: "7d", label: "Last 7 days" },
+            { id: "30d", label: "Last 30 days" },
+          ]}
           hrefs={{
-            all: sitterListHref({ q, filter, range: "all", perPage: list.perPage }),
-            "7d": sitterListHref({ q, filter, range: "7d", perPage: list.perPage }),
+            all: sitterListHref({
+              q,
+              filter,
+              range: "all",
+              perPage: list.perPage,
+            }),
+            "7d": sitterListHref({
+              q,
+              filter,
+              range: "7d",
+              perPage: list.perPage,
+            }),
             "30d": sitterListHref({
               q,
               filter,
@@ -136,6 +151,12 @@ export function SitterRequestsBoard({
               perPage: list.perPage,
             }),
           }}
+          clearHref={sitterListHref({
+            q,
+            filter,
+            range: "all",
+            perPage: list.perPage,
+          })}
         />
       </div>
 

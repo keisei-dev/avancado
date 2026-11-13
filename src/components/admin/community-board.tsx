@@ -123,9 +123,24 @@ export function CommunityBoard({
           range={range}
           from={rangeFrom}
           to={rangeTo}
+          options={[
+            { id: "all", label: "All time" },
+            { id: "7d", label: "Last 7 days" },
+            { id: "30d", label: "Last 30 days" },
+          ]}
           hrefs={{
-            all: communityListHref({ q, filter, range: "all", perPage: list.perPage }),
-            "7d": communityListHref({ q, filter, range: "7d", perPage: list.perPage }),
+            all: communityListHref({
+              q,
+              filter,
+              range: "all",
+              perPage: list.perPage,
+            }),
+            "7d": communityListHref({
+              q,
+              filter,
+              range: "7d",
+              perPage: list.perPage,
+            }),
             "30d": communityListHref({
               q,
               filter,
@@ -133,6 +148,12 @@ export function CommunityBoard({
               perPage: list.perPage,
             }),
           }}
+          clearHref={communityListHref({
+            q,
+            filter,
+            range: "all",
+            perPage: list.perPage,
+          })}
         />
       </div>
 
