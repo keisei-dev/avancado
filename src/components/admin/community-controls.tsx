@@ -46,10 +46,33 @@ function formatRelative(date: Date, nowMs: number) {
     (today.getTime() - postedDay.getTime()) / 86_400_000,
   );
   if (dayDiff === 1) return "Yesterday";
+  if (dayDiff >= 2 && dayDiff < 7) return `${dayDiff} days ago`;
   return formatAbsoluteDate(date);
 }
 
-export function RelativePostedAt({ at }: { at: Date | string }) {
+function formatDayLabel(date: Date, nowMs: number) {
+  const today = new Date(nowMs);
+  today.setHours(0, 0, 0, 0);
+  const postedDay = new Date(date);
+  postedDay.setHours(0, 0, 0, 0);
+  const dayDiff = Math.round(
+    (today.getTime() - postedDay.getTime()) / 86_400_000,
+  );
+  if (dayDiff <= 0) return "Today";
+  if (dayDiff === 1) return "Yesterday";
+  if (dayDiff < 7) return `${dayDiff} days ago`;
+  return formatAbsoluteDate(date);
+}
+
+export function RelativePostedAt({
+  at,
+  className,
+  dayLabel = false,
+}: {
+  at: Date | string;
+  className?: string;
+  dayLabel?: boolean;
+}) {
   const iso = typeof at === "string" ? at : at.toISOString();
   const date = new Date(iso);
   const isClient = useSyncExternalStore(
@@ -58,10 +81,16 @@ export function RelativePostedAt({ at }: { at: Date | string }) {
     () => false,
   );
   const label = isClient
-    ? formatRelative(date, new Date().getTime())
+    ? dayLabel
+      ? formatDayLabel(date, new Date().getTime())
+      : formatRelative(date, new Date().getTime())
     : formatAbsoluteDate(date);
 
-  return <time dateTime={iso}>{label}</time>;
+  return (
+    <time dateTime={iso} className={className}>
+      {label}
+    </time>
+  );
 }
 
 const ACTION_BTN =
@@ -130,10 +159,8 @@ export function ViewCommunityPostButton({ post }: { post: ViewPost }) {
 
 export function DeleteCommunityPostButton({
   postId,
-  authorName,
 }: {
   postId: string;
-  authorName: string;
 }) {
   const [open, setOpen] = useState(false);
 
@@ -150,9 +177,8 @@ export function DeleteCommunityPostButton({
       <Modal
         open={open}
         onClose={() => setOpen(false)}
-        eyebrow="Permanent action"
-        title={`Delete ${authorName}’s post?`}
-        lead="This hides it from Community. Use Hide if you might want to restore it later."
+        title="Delete this post?"
+        lead="This hides it from Community. You can restore it later from Hidden."
         footer={
           <>
             <Button variant="secondary" onClick={() => setOpen(false)}>
@@ -161,7 +187,8 @@ export function DeleteCommunityPostButton({
             <form action={deleteCommunityPost} onSubmit={() => setOpen(false)}>
               <input type="hidden" name="postId" value={postId} />
               <Button type="submit" variant="danger">
-                Delete post
+                <Trash2 size={16} aria-hidden="true" />
+                Delete
               </Button>
             </form>
           </>
