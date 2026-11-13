@@ -7,13 +7,13 @@ export default function PetHealthLogsPage({
   params,
 }: PageProps<"/my-pets/[petId]/logs">) {
   return (
-    <main className="flex flex-1 flex-col gap-2 p-8">
+    <section className="flex flex-col gap-2">
       <h1 className="text-2xl font-bold">Health Data Log</h1>
       <Suspense fallback={<p>Loading…</p>}>
         {params.then(({ petId }) => (
           <p>Pet ID: {petId}</p>
         ))}
       </Suspense>
-    </main>
+    </section>
   );
 }

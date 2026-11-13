@@ -1,10 +1,48 @@
 // Notion flow: My Pets: View my pets and health dashboard
-// TODO: implement
+// Opens the first pet. With no pets yet, shows the empty state.
+
+import { Suspense } from "react";
+import Link from "next/link";
+import { redirect } from "next/navigation";
+import { PawPrint, Plus } from "lucide-react";
+import { buttonClass } from "@/components/ui/button";
+import { EmptyState } from "@/components/ui/empty-state";
+import { getCurrentMember } from "@/lib/auth/member";
+import { getMyPets } from "@/lib/pets/queries";
+
+export const metadata = { title: "My Pets" };
 
 export default function MyPetsPage() {
   return (
-    <main className="flex flex-1 flex-col gap-2 p-8">
-      <h1 className="text-2xl font-bold">My Pets</h1>
-    </main>
+    <Suspense
+      fallback={
+        <p className="text-sm text-muted" role="status">
+          Loading your pets…
+        </p>
+      }
+    >
+      <FirstPetOrEmpty />
+    </Suspense>
+  );
+}
+
+async function FirstPetOrEmpty() {
+  const member = await getCurrentMember();
+  if (!member) redirect("/login");
+  const [firstPet] = await getMyPets(member.id);
+  if (firstPet) redirect(`/my-pets/${firstPet.id}`);
+
+  return (
+    <EmptyState
+      icon={<PawPrint size={24} />}
+      title="No pets yet"
+      text="Add your first pet to start tracking meals, walks, vaccines and more."
+      action={
+        <Link href="/my-pets/new" className={buttonClass()}>
+          <Plus size={17} aria-hidden="true" />
+          Add a pet
+        </Link>
+      }
+    />
   );
 }

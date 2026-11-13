@@ -1,19 +1,54 @@
 // Notion flow: Pet detail and health data log
-// TODO: implement
+// Pet dashboard: profile card now, health cards in a later step.
 
 import { Suspense } from "react";
+import { notFound, redirect } from "next/navigation";
+import { PetProfileCard } from "@/components/my-pets/pet-profile-card";
+import { getCurrentMember } from "@/lib/auth/member";
+import { getMyPetDetail } from "@/lib/pets/queries";
+import { ArchivePetButton } from "@/components/my-pets/archive-pet-button";
+import { EditPetButton } from "@/components/my-pets/pet-form-modal";
 
 export default function PetDetailPage({
   params,
 }: PageProps<"/my-pets/[petId]">) {
   return (
-    <main className="flex flex-1 flex-col gap-2 p-8">
-      <h1 className="text-2xl font-bold">Pet Detail</h1>
-      <Suspense fallback={<p>Loading…</p>}>
-        {params.then(({ petId }) => (
-          <p>Pet ID: {petId}</p>
-        ))}
-      </Suspense>
-    </main>
+    <Suspense
+      fallback={
+        <p className="text-sm text-muted" role="status">
+          Loading pet…
+        </p>
+      }
+    >
+      <PetDashboard params={params} />
+    </Suspense>
+  );
+}
+
+async function PetDashboard({
+  params,
+}: {
+  params: PageProps<"/my-pets/[petId]">["params"];
+}) {
+  const { petId } = await params;
+  const member = await getCurrentMember();
+  if (!member) redirect("/login");
+
+  // null for a wrong id, another member's pet, or an archived pet.
+  const detail = await getMyPetDetail(member.id, petId);
+  if (!detail) notFound();
+
+  return (
+    <div className="flex flex-col gap-6">
+      <PetProfileCard
+        pet={detail.pet}
+        action={
+          <div className="flex gap-2 tablet:flex-col tablet:items-end">
+            <EditPetButton memberId={member.id} pet={detail.pet} />
+            <ArchivePetButton petId={detail.pet.id} petName={detail.pet.name} />
+          </div>
+        }
+      />
+    </div>
   );
 }
