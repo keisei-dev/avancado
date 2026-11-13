@@ -131,6 +131,8 @@ export function sitterListHref(opts: {
   return query ? `/admin/sitter-requests?${query}` : "/admin/sitter-requests";
 }
 
+const DISPLAY_ID_PATTERN = /^SR-([0-9a-f]{6})$/i;
+
 function searchWhere(q: string) {
   if (!q) return {};
   const clauses: object[] = [
@@ -141,6 +143,12 @@ function searchWhere(q: string) {
   ];
   if (UUID_PATTERN.test(q)) {
     clauses.push({ id: q });
+  }
+  const displayId = DISPLAY_ID_PATTERN.exec(q);
+  if (displayId) {
+    clauses.push({
+      id: { startsWith: displayId[1].toLowerCase() },
+    });
   }
   return { OR: clauses };
 }
@@ -346,7 +354,7 @@ export async function getAdminSitterRequestList(
 }
 
 export function shortRequestId(id: string) {
-  return id.replaceAll("-", "").slice(0, 8).toUpperCase();
+  return `SR-${id.slice(0, 6).toUpperCase()}`;
 }
 
 export function formatSittingDate(date: Date) {

@@ -32,7 +32,7 @@ type ViewRequest = {
 };
 
 function shortRequestId(id: string) {
-  return id.replaceAll("-", "").slice(0, 8).toUpperCase();
+  return `SR-${id.slice(0, 6).toUpperCase()}`;
 }
 
 function formatSittingDate(date: Date | string) {

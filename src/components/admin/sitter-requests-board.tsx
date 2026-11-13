@@ -19,7 +19,6 @@ import {
   ViewSitterRequestButton,
 } from "@/components/admin/sitter-requests-controls";
 import { UsersPerPageSelect } from "@/components/admin/users-controls";
-import { Avatar } from "@/components/ui/avatar";
 import { EmptyState } from "@/components/ui/empty-state";
 import { SearchField } from "@/components/ui/search-field";
 import {
@@ -270,20 +269,21 @@ export function SitterRequestsBoard({
                     >
                       <td className="px-4 py-3.5 align-middle">
                         <span
-                          className="font-mono text-[13px] font-semibold text-brown"
+                          className="text-sm font-bold text-brown"
                           title={request.id}
                         >
                           {shortRequestId(request.id)}
                         </span>
                       </td>
                       <td className="px-4 py-3.5 align-middle">
-                        <div className="flex min-w-0 items-center gap-2">
-                          <Avatar
-                            name={owner}
-                            src={request.author.image}
-                            size="sm"
-                          />
-                          <p className="truncate text-sm font-semibold text-brown">
+                        <div className="flex items-center gap-2">
+                          <span
+                            aria-hidden="true"
+                            className="grid size-8 shrink-0 place-items-center rounded-full bg-sage text-sm font-semibold text-olive"
+                          >
+                            {(owner.split(/\s+/)[0]?.[0] ?? "?").toUpperCase()}
+                          </span>
+                          <p className="text-sm font-semibold leading-5 text-brown">
                             {owner}
                           </p>
                         </div>
@@ -313,8 +313,11 @@ export function SitterRequestsBoard({
                           </span>
                         ) : null}
                       </td>
-                      <td className="px-4 py-3.5 align-middle text-sm whitespace-nowrap text-brown">
-                        <RelativePostedAt at={request.createdAt} />
+                      <td className="px-4 py-3.5 align-middle text-sm whitespace-nowrap">
+                        <RelativePostedAt
+                          at={request.createdAt}
+                          className="text-muted"
+                        />
                       </td>
                       <td className="px-4 py-3.5 align-middle text-sm whitespace-nowrap text-brown">
                         {formatSittingDate(request.startAt)}

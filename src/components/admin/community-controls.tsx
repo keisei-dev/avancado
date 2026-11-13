@@ -46,10 +46,17 @@ function formatRelative(date: Date, nowMs: number) {
     (today.getTime() - postedDay.getTime()) / 86_400_000,
   );
   if (dayDiff === 1) return "Yesterday";
+  if (dayDiff >= 2 && dayDiff < 7) return `${dayDiff} days ago`;
   return formatAbsoluteDate(date);
 }
 
-export function RelativePostedAt({ at }: { at: Date | string }) {
+export function RelativePostedAt({
+  at,
+  className,
+}: {
+  at: Date | string;
+  className?: string;
+}) {
   const iso = typeof at === "string" ? at : at.toISOString();
   const date = new Date(iso);
   const isClient = useSyncExternalStore(
@@ -61,7 +68,11 @@ export function RelativePostedAt({ at }: { at: Date | string }) {
     ? formatRelative(date, new Date().getTime())
     : formatAbsoluteDate(date);
 
-  return <time dateTime={iso}>{label}</time>;
+  return (
+    <time dateTime={iso} className={className}>
+      {label}
+    </time>
+  );
 }
 
 const ACTION_BTN =
