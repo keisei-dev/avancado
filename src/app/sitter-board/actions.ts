@@ -3,6 +3,7 @@
 import { RequestStatus } from '@/generated/prisma/client';
 import { prisma } from '@/lib/prisma/client';
 import { getCurrentMember } from '@/lib/auth/member';
+import { revalidatePath } from 'next/cache';
 
 export async function getSitterRequests() {
   try {
@@ -65,5 +66,68 @@ export async function getMyPetsForSitter() {
   } catch (error) {
     console.error('Failed to fetch my pets:', error);
     return { success: false, error: 'Failed to fetch pets.' };
+  }
+}
+
+export async function createSitterRequest(input: {
+  petIds: string[];
+  title: string;
+  description: string;
+  areaName: string;
+  startAt: string;
+  endAt: string;
+}) {
+  try {
+    const member = await getCurrentMember();
+    if (!member) return { success: false, error: 'Please log in.' };
+
+    const title = input.title.trim();
+    const description = input.description.trim();
+    const areaName = input.areaName.trim();
+    if (!title || !description || !areaName) {
+      return { success: false, error: 'Please fill in all fields.' };
+    }
+
+    const startAt = new Date(input.startAt);
+    const endAt = new Date(input.endAt);
+    if (Number.isNaN(startAt.getTime()) || Number.isNaN(endAt.getTime())) {
+      return { success: false, error: 'Invalid date or time.' };
+    }
+    if (endAt <= startAt) {
+      return { success: false, error: 'End must be after the start.' };
+    }
+
+    const durationMinutes = Math.round((endAt.getTime() - startAt.getTime()) / 60000);
+    if (durationMinutes > 30 * 24 * 60) {
+      return { success: false, error: 'A request can be at most 30 days long.' };
+    }
+
+    if (input.petIds.length === 0) {
+      return { success: false, error: 'Choose a pet.' };
+    }
+    const pet = await prisma.pet.findFirst({
+      where: { id: input.petIds[0], ownerId: member.id, status: 'ACTIVE' },
+      select: { id: true },
+    });
+    if (!pet) return { success: false, error: 'Pet not found.' };
+
+    await prisma.sitterRequest.create({
+      data: {
+        authorId: member.id,
+        petId: pet.id,
+        title,
+        description,
+        areaName,
+        startAt,
+        endAt,
+        durationMinutes,
+      },
+    });
+
+    revalidatePath('/sitter-board');
+    return { success: true };
+  } catch (error) {
+    console.error('Failed to create sitter request:', error);
+    return { success: false, error: 'Failed to create request.' };
   }
 }

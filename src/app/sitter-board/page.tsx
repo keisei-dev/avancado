@@ -5,7 +5,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Search, Plus } from 'lucide-react';
-import { getSitterRequests, getMyPetsForSitter } from './actions';
+import { getSitterRequests, getMyPetsForSitter, createSitterRequest } from './actions';
 import { buttonClass, Button } from '@/components/ui/button';
 import {
   CreateSitterRequestModal,
@@ -22,11 +22,14 @@ export default function SitterBoardPage() {
   const [pets, setPets] = useState<PetOption[]>([]);
   const [error, setError] = useState<string | null>(null);
 
-useEffect(() => {
-    getSitterRequests().then((result) => {
-      if (result.success && result.data) setRequests(result.data);
-      else setError(result.error || 'An error occurred while loading data.');
-    });
+  const loadRequests = async () => {
+    const result = await getSitterRequests();
+    if (result.success && result.data) setRequests(result.data);
+    else setError(result.error || 'An error occurred while loading data.');
+  };
+
+  useEffect(() => {
+    loadRequests();
     getMyPetsForSitter().then((result) => {
       if (result.success && result.data) setPets(result.data);
     });
@@ -208,9 +211,9 @@ useEffect(() => {
           onClose={() => setModalOpen(false)}
           pets={pets}
           onSubmit={async (formData) => {
-            // TODO:
-            console.log('submit:', formData);
-            await new Promise((r) => setTimeout(r, 800));
+            const result = await createSitterRequest(formData);
+            if (!result.success) throw new Error(result.error);
+            await loadRequests();
           }}
           onViewBoard={() => router.push('/sitter-board')}
           onViewMyRequest={() => router.push('/sitter-board/my-requests')}
