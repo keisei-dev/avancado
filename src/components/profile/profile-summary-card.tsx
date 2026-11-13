@@ -51,7 +51,7 @@ export default function ProfileSummaryCard({
       {/* Soft green band behind the photo (decoration only) */}
       <div
         aria-hidden="true"
-        className="absolute inset-x-0 top-0 h-20 bg-sage"
+        className="absolute inset-x-0 top-0 h-20 bg-linear-to-br from-olive to-amber"
       />
       <div className="relative">
         <Avatar
