@@ -5,7 +5,7 @@ import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { hasDatabaseEnv, hasSupabaseEnv } from "@/lib/auth/admin";
-import { provisionMember } from "@/lib/auth/member";
+import { isAdminMember, provisionMember } from "@/lib/auth/member";
 
 export type AuthState = {
   error: string | null;
@@ -50,6 +50,7 @@ export async function loginMember(
   if (!email || !password || password.length > 1024)
     return { error: "Enter a valid email address and password." };
 
+  let isAdmin = false;
   try {
     const supabase = await createClient();
     const { data, error } = await supabase.auth.signInWithPassword({
@@ -71,6 +72,7 @@ export async function loginMember(
           error: "This account is unavailable. Please contact support.",
         };
       }
+      isAdmin = isAdminMember(member);
     } catch {
       await supabase.auth.signOut();
       return { error: "We couldn’t load your profile. Please try again." };
@@ -79,7 +81,7 @@ export async function loginMember(
     return { error: "We couldn’t connect. Please try again." };
   }
   revalidatePath("/", "layout");
-  redirect("/");
+  redirect(isAdmin ? "/admin" : "/");
 }
 
 export async function signupMember(

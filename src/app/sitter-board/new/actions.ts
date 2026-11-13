@@ -2,6 +2,7 @@
 
 import { prisma } from '@/lib/prisma/client';
 import { revalidatePath } from 'next/cache';
+import { assertNotAdmin } from '@/lib/auth/admin';
 
 export async function createSitterRequest(formData: {
   authorId: string;
@@ -13,6 +14,11 @@ export async function createSitterRequest(formData: {
   endAt: string | Date;
   durationMinutes: number;
 }) {
+  const blocked = await assertNotAdmin();
+  if (blocked) {
+    return { success: false, error: blocked };
+  }
+
   try {
     const { authorId, petId, title, description, areaName, startAt, endAt, durationMinutes } = formData;
 

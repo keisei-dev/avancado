@@ -3,7 +3,8 @@
 // UI library (P2): AccountMenu
 /**
  * Avatar button in the top bar that opens: View profile, My pets,
- * Account settings, Log out. Closes on outside click, Escape, or picking an item.
+ * Account settings, Admin dashboard (admins only), Log out.
+ * Closes on outside click, Escape, or picking an item.
  * On phones only the avatar shows (name and arrow are hidden).
  */
 
@@ -12,6 +13,7 @@ import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import {
   ChevronDown,
+  LayoutDashboard,
   LogOut,
   PawPrint,
   Settings,
@@ -25,6 +27,7 @@ export type AccountMenuUser = {
   email: string;
   avatarUrl?: string | null;
   verified?: boolean;
+  isAdmin?: boolean;
 };
 
 export type AccountMenuProps = {
@@ -134,6 +137,21 @@ export function AccountMenu({ user, logoutAction }: AccountMenuProps) {
             <Settings size={17} className="text-muted" aria-hidden="true" />
             Account settings
           </Link>
+          {user.isAdmin ? (
+            <Link
+              role="menuitem"
+              href="/admin"
+              onClick={close}
+              className={ITEM}
+            >
+              <LayoutDashboard
+                size={17}
+                className="text-muted"
+                aria-hidden="true"
+              />
+              Admin dashboard
+            </Link>
+          ) : null}
           <hr className="my-1 border-line" />
           <form action={logoutAction}>
             <button

@@ -11,7 +11,12 @@ import { Toast } from "@/components/ui/toast";
 import { Avatar } from "@/components/ui/avatar";
 import { buttonClass } from "@/components/ui/button";
 
-type Member = { id: string; name: string; image: string | null };
+type Member = {
+  id: string;
+  name: string;
+  image: string | null;
+  isAdmin?: boolean;
+};
 export function CommunityFeed({
   posts,
   sitters,
@@ -55,25 +60,27 @@ export function CommunityFeed({
             neighbours.
           </p>
         </header>
-        <button
-          onClick={() => (member ? setOpen(true) : router.push("/login"))}
-          className="my-4 flex w-full items-center gap-3 rounded-20 border border-line bg-white p-2.5 text-left shadow-card hover:border-line-strong"
-        >
-          {member ? (
-            <Avatar name={member.name} src={member.image} />
-          ) : (
-            <span className="rounded-full bg-sage-soft p-3 text-olive-dark">
-              <Camera size={18} />
+        {member?.isAdmin ? null : (
+          <button
+            onClick={() => (member ? setOpen(true) : router.push("/login"))}
+            className="my-4 flex w-full items-center gap-3 rounded-20 border border-line bg-white p-2.5 text-left shadow-card hover:border-line-strong"
+          >
+            {member ? (
+              <Avatar name={member.name} src={member.image} />
+            ) : (
+              <span className="rounded-full bg-sage-soft p-3 text-olive-dark">
+                <Camera size={18} />
+              </span>
+            )}
+            <span className="flex-1 text-sm text-muted">
+              Share a moment or a lost pet alert…
             </span>
-          )}
-          <span className="flex-1 text-sm text-muted">
-            Share a moment or a lost pet alert…
-          </span>
-          <span className={buttonClass({ size: "sm" })}>
-            <Plus size={16} />
-            <span className="hidden sm:inline">Create post</span>
-          </span>
-        </button>
+            <span className={buttonClass({ size: "sm" })}>
+              <Plus size={16} />
+              <span className="hidden sm:inline">Create post</span>
+            </span>
+          </button>
+        )}
         <nav
           aria-label="Post filters"
           className="mb-5 inline-flex max-w-full gap-1 overflow-x-auto rounded-full bg-cream p-1"
@@ -209,7 +216,7 @@ export function CommunityFeed({
           Avancado · Made for Vancouver’s pets and their people.
         </p>
       </aside>
-      {open && member && (
+      {open && member && !member.isAdmin && (
         <Modal
           open
           onClose={() => {

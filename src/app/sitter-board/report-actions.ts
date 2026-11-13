@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { ReportStatus } from "@/generated/prisma/client";
+import { assertNotAdmin } from "@/lib/auth/admin";
 import { getCurrentMember } from "@/lib/auth/member";
 import { prisma } from "@/lib/prisma/client";
 import { isSitterReportReason } from "@/lib/report/sitter-reasons";
@@ -15,6 +16,11 @@ export type ReportSitterRequestResult =
 export async function reportSitterRequest(
   formData: FormData,
 ): Promise<ReportSitterRequestResult> {
+  const blocked = await assertNotAdmin();
+  if (blocked) {
+    return { ok: false, error: blocked };
+  }
+
   const member = await getCurrentMember();
   if (!member) {
     return { ok: false, error: "Please sign in to report this request." };

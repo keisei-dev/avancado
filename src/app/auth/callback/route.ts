@@ -1,7 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { hasSupabaseEnv, hasDatabaseEnv } from "@/lib/auth/admin";
-import { provisionMember } from "@/lib/auth/member";
+import { isAdminMember, provisionMember } from "@/lib/auth/member";
 
 export async function GET(request: NextRequest) {
   const failure = () => {
@@ -17,12 +17,14 @@ export async function GET(request: NextRequest) {
     const supabase = await createClient();
     const { data, error } = await supabase.auth.exchangeCodeForSession(code);
     if (error || !data.user) return failure();
+    let isAdmin = false;
     try {
       const member = await provisionMember(data.user);
       if (!member || member.accountStatus !== "ACTIVE") {
         await supabase.auth.signOut();
         return failure();
       }
+      isAdmin = isAdminMember(member);
     } catch {
       await supabase.auth.signOut();
       return failure();
@@ -31,7 +33,9 @@ export async function GET(request: NextRequest) {
     const destination =
       request.nextUrl.searchParams.get("next") === "/reset-password"
         ? "/reset-password"
-        : "/";
+        : isAdmin
+          ? "/admin"
+          : "/";
     const response = NextResponse.redirect(new URL(destination, request.url));
     response.headers.set("Cache-Control", "private, no-store");
     return response;

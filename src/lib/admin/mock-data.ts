@@ -116,7 +116,7 @@ const mockReviewQueue: ReviewQueueItem[] = [
     subject: "Weekend walks for my gentle senior beagle",
     reason: "Spam",
     date: "Today",
-    href: "/admin/sitter-requests",
+    href: "/admin/sitter-requests?filter=reported",
   },
   {
     id: "rep-2",

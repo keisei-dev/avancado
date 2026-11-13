@@ -1,5 +1,6 @@
 'use server';
 
+import { RequestStatus } from '@/generated/prisma/client';
 import { prisma } from '@/lib/prisma/client';
 import { revalidatePath } from 'next/cache';
 
@@ -18,7 +19,7 @@ export async function getSitterRequestDetail(requestId: string) {
       },
     });
 
-    if (!request) {
+    if (!request || request.status === RequestStatus.HIDDEN) {
       return { success: false, error: 'Sitter request not found.' };
     }
 

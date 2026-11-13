@@ -14,6 +14,7 @@ const pets = [
     weight: 29,
     gender: "MALE",
     isNeutered: true,
+    isVaccinated: true,
     imageUrl: photos.dog1,
     notes:
       "Playful, friendly, and happiest on long neighbourhood walks. Loves people, gentle dogs, and a good game of fetch. Allergic to chicken.",
@@ -28,6 +29,7 @@ const pets = [
     weight: 4.6,
     gender: "FEMALE",
     isNeutered: true,
+    isVaccinated: true,
     imageUrl: photos.cat3,
     notes:
       "Gentle and cuddly once she feels comfortable. Indoor cat who enjoys quiet company and short play sessions.",
@@ -42,6 +44,7 @@ const pets = [
     weight: 13,
     gender: "MALE",
     isNeutered: true,
+    isVaccinated: false,
     imageUrl: photos.dog1,
     notes:
       "Senior and gentle. Takes a joint supplement with breakfast (in the blue jar). Slow walker who loves to sniff. Pulls toward squirrels.",
@@ -56,6 +59,7 @@ const pets = [
     weight: 10,
     gender: "FEMALE",
     isNeutered: true,
+    isVaccinated: false,
     imageUrl: photos.dog3,
     notes:
       "Friendly with dogs and people. Responds well to treats. Still learning not to jump up to say hello.",
@@ -70,6 +74,7 @@ const pets = [
     weight: 5,
     gender: "FEMALE",
     isNeutered: true,
+    isVaccinated: false,
     imageUrl: photos.cat2,
     notes:
       "Indoor only, so please keep the balcony door closed. Hides for the first 10 minutes, then wants cuddles. Wet food morning and evening.",
@@ -84,6 +89,7 @@ const pets = [
     weight: 31,
     gender: "MALE",
     isNeutered: false,
+    isVaccinated: false,
     imageUrl: photos.dog5,
     notes:
       "High energy. Fetch is his favourite thing. Strong puller, so use the front-clip harness. Will eat anything off the ground.",
@@ -98,6 +104,7 @@ const pets = [
     weight: 8,
     gender: "FEMALE",
     isNeutered: true,
+    isVaccinated: false,
     imageUrl: photos.dog4,
     notes:
       "Calm and cuddly. Gets anxious with loud noises. Prefers short evening walks.",
@@ -159,6 +166,7 @@ export async function seedPets() {
       weight: pet.weight,
       gender: pet.gender,
       isNeutered: pet.isNeutered,
+      isVaccinated: pet.isVaccinated,
       notes: pet.notes,
       imageUrl: pet.imageUrl,
     };
