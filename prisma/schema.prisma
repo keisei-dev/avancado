@@ -112,27 +112,32 @@ enum ConversationType {
   LOST_FOUND
 }
 
+enum PetStatus {
+  ACTIVE
+  ARCHIVED
+}
+
 // ---------- Account & Safety ----------
 
 model User {
   // Same value as Supabase Auth's auth.users.id, so there is no default here.
-  id              String        @id @db.Uuid
-  email           String        @unique
-  name            String
-  phoneNumber     String? // Never shown to other users.
-  image           String? // Path in Supabase Storage.
-  role            UserRole      @default(USER)
-  accountStatus   AccountStatus @default(ACTIVE)
-  isVerified      Boolean       @default(false)
+  id                  String        @id @db.Uuid
+  email               String        @unique
+  name                String
+  phoneNumber         String? // Never shown to other users.
+  image               String? // Path in Supabase Storage.
+  role                UserRole      @default(USER)
+  accountStatus       AccountStatus @default(ACTIVE)
+  isVerified          Boolean       @default(false)
   areaName            String? // Neighbourhood only, e.g. Kitsilano.
   bio                 String? 
   sittingExperience   String?
   careSpecies         Species[] @default([]) // Animals the member can care for.
   certificateName     String?
   certificateIssuedBy String?
-  termsAcceptedAt DateTime      @db.Timestamptz
-  createdAt       DateTime      @default(now()) @db.Timestamptz
-  updatedAt       DateTime      @updatedAt @db.Timestamptz
+  termsAcceptedAt     DateTime      @db.Timestamptz
+  createdAt           DateTime      @default(now()) @db.Timestamptz
+  updatedAt           DateTime      @updatedAt @db.Timestamptz
 
   // Relation fields (not real columns): they let us write user.idVerifications.
   idVerifications       IdVerification[] @relation("VerificationSubmitter")
@@ -187,19 +192,21 @@ model AdminActionLog {
 // ---------- Pets ----------
 
 model Pet {
-  id         String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  ownerId    String    @db.Uuid
-  name       String
-  species    Species
-  breed      String
-  birthDate  DateTime? @db.Date
-  weight     Decimal?  @db.Decimal(5, 2)
-  gender     Gender
-  isNeutered Boolean
-  notes      String? // Personality, allergies, behaviour issues, medication.
-  imageUrl   String?
-  createdAt  DateTime  @default(now()) @db.Timestamptz
-  updatedAt  DateTime  @updatedAt @db.Timestamptz
+  id           String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  ownerId      String    @db.Uuid
+  name         String
+  species      Species
+  breed        String
+  birthDate    DateTime? @db.Date
+  weight       Decimal?  @db.Decimal(5, 2)
+  gender       Gender
+  isNeutered   Boolean
+  isVaccinated Boolean   @default(false)
+  status       PetStatus @default(ACTIVE) // ARCHIVED = hidden by the owner (soft delete)
+  notes        String? // Personality, allergies, behaviour issues, medication.
+  imageUrl     String?
+  createdAt    DateTime  @default(now()) @db.Timestamptz
+  updatedAt    DateTime  @updatedAt @db.Timestamptz
 
   owner             User               @relation(fields: [ownerId], references: [id], onDelete: Cascade)
   vaccines          PetVaccine[]

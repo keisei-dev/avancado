@@ -14,7 +14,7 @@ If something here is wrong or unclear, ask the database owner.
 | ------------------- | ------------------------------------------------------------------ |
 | Database            | PostgreSQL on Supabase (one shared database for the whole team)    |
 | ORM                 | Prisma 7 (stable, **not** the Prisma 8 release candidate)          |
-| Schema (source)     | `prisma/schema.prisma`: 16 enums and 24 tables                     |
+| Schema (source)     | `prisma/schema.prisma`: 17 enums and 24 tables                     |
 | Migrations          | `prisma/migrations/` (committed to Git)                            |
 | Prisma CLI config   | `prisma7.config.ts` (loads `.env.local`, uses `DIRECT_URL`)        |
 | Generated client    | `src/generated/prisma` (**git-ignored**, created by `npm install`) |
@@ -86,17 +86,19 @@ Rules:
 
 ### 4.1 Things that are different from a normal table
 
-| Topic                     | What to know                                                                                                                   |
-| ------------------------- | ------------------------------------------------------------------------------------------------------------------------------ |
-| `Pet.birthDate`           | Optional date. Age is **calculated** from it, never stored.                                                                    |
-| `Pet.species`             | Enum: `DOG` or `CAT`.                                                                                                          |
-| `SittingReport.summary`   | `String[]`. An **empty array means "not generated yet"** (Prisma lists cannot be NULL).                                        |
-| `CommunityPost.likeCount` | A copy of the number of `PostLike` rows. Change it **in the same `prisma.$transaction`** as every `PostLike` insert or delete. |
-| `Place.location`          | PostGIS point. Prisma cannot write it, so `prisma.place.create()` does not work. Use raw SQL (example below).                  |
-| `updatedAt` columns       | Set by Prisma Client, not by the database. Raw SQL inserts and updates must set `"updatedAt"` themselves (use `now()`).        |
-| Soft delete               | Prefer `HIDDEN` / `CANCELLED` statuses over deleting rows.                                                                     |
-| `AdminActionLog`          | Every admin moderation or verification decision must write one row.                                                            |
-| IDs                       | Rows get a UUID from the database (`gen_random_uuid()`). Only `User.id` has no default: pass the Supabase Auth user id.        |
+| Topic                     | What to know                                                                                                                                 |
+| ------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------- |
+| `Pet.birthDate`           | Optional date. Age is **calculated** from it, never stored.                                                                                  |
+| `Pet.species`             | Enum: `DOG` or `CAT`.                                                                                                                        |
+| `Pet.isVaccinated`        | The owner's own answer ("Vaccinated" / "Not yet"). It is **not** calculated from `PetVaccine` rows.                                          |
+| `Pet.status`              | `ACTIVE` or `ARCHIVED` (hidden by the owner). Lists of pets must filter `status: "ACTIVE"`. Old sitter requests still link to archived pets. |
+| `SittingReport.summary`   | `String[]`. An **empty array means "not generated yet"** (Prisma lists cannot be NULL).                                                      |
+| `CommunityPost.likeCount` | A copy of the number of `PostLike` rows. Change it **in the same `prisma.$transaction`** as every `PostLike` insert or delete.               |
+| `Place.location`          | PostGIS point. Prisma cannot write it, so `prisma.place.create()` does not work. Use raw SQL (example below).                                |
+| `updatedAt` columns       | Set by Prisma Client, not by the database. Raw SQL inserts and updates must set `"updatedAt"` themselves (use `now()`).                      |
+| Soft delete               | Prefer `HIDDEN` / `CANCELLED` / `ARCHIVED` statuses over deleting rows.                                                                      |
+| `AdminActionLog`          | Every admin moderation or verification decision must write one row.                                                                          |
+| IDs                       | Rows get a UUID from the database (`gen_random_uuid()`). Only `User.id` has no default: pass the Supabase Auth user id.                      |
 
 ### 4.2 Profile fields (`User`)
 
