@@ -107,56 +107,56 @@ export function CommunityBoard({
 
   return (
     <div>
-      <div>
-        <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
+      <div className="flex flex-wrap items-end justify-between gap-x-4 gap-y-2">
+        <div className="min-w-0">
           <h1 className="font-display text-[30px] font-bold tracking-tight text-brown">
             Community Moderation
           </h1>
-          <div className="flex flex-wrap gap-1.5">
-            {RANGES.map((item) => {
-              const selected = range === item.id;
-              return (
-                <Link
-                  key={item.id}
-                  href={communityListHref({
-                    q,
-                    filter,
-                    range: item.id,
-                    perPage: list.perPage,
-                  })}
-                  aria-current={selected ? "page" : undefined}
-                  className={cn(
-                    CHIP,
-                    selected
-                      ? "border border-olive-hover bg-olive-hover text-white"
-                      : "border border-line bg-white text-brown hover:bg-ivory",
-                  )}
-                >
-                  {item.label}
-                </Link>
-              );
-            })}
-            {/* TODO: Custom date range from the prototype is not wired yet. */}
-            <button
-              type="button"
-              disabled
-              title="Custom date range is not available yet"
-              className={cn(
-                CHIP,
-                "cursor-not-allowed gap-1.5 border border-line bg-white text-muted opacity-45",
-              )}
-            >
-              <Calendar size={14} aria-hidden="true" />
-              Custom
-            </button>
-          </div>
+          <p className="mt-1 max-w-[640px] text-sm leading-6 text-muted">
+            Review photos and lost-pet alerts shared by the community.
+          </p>
         </div>
-        <p className="mt-2 max-w-[640px] text-sm leading-6 text-muted">
-          Review photos and lost-pet alerts shared by the community.
-        </p>
+        <div className="flex flex-wrap gap-1.5">
+          {RANGES.map((item) => {
+            const selected = range === item.id;
+            return (
+              <Link
+                key={item.id}
+                href={communityListHref({
+                  q,
+                  filter,
+                  range: item.id,
+                  perPage: list.perPage,
+                })}
+                aria-current={selected ? "page" : undefined}
+                className={cn(
+                  CHIP,
+                  selected
+                    ? "border border-olive-hover bg-olive-hover text-white"
+                    : "border border-line bg-white text-brown hover:bg-ivory",
+                )}
+              >
+                {item.label}
+              </Link>
+            );
+          })}
+          {/* TODO: Custom date range from the prototype is not wired yet. */}
+          <button
+            type="button"
+            disabled
+            title="Custom date range is not available yet"
+            className={cn(
+              CHIP,
+              "cursor-not-allowed gap-1.5 border border-line bg-white text-muted opacity-45",
+            )}
+          >
+            <Calendar size={14} aria-hidden="true" />
+            Custom
+          </button>
+        </div>
       </div>
 
-      <div className="mt-6 flex flex-wrap items-center gap-x-2 gap-y-2.5">
+      <div className="mt-4 flex flex-wrap items-center gap-x-2 gap-y-2.5">
         <form
           action="/admin/community"
           method="get"
@@ -230,15 +230,15 @@ export function CommunityBoard({
             />
           </div>
         ) : (
-          <div className="overflow-x-auto">
+          <div>
             <table className="w-full table-fixed text-left">
               <colgroup>
-                <col className="w-[88px]" />
+                <col className="w-[11%]" />
                 <col className="w-[18%]" />
-                <col />
-                <col className="w-[88px]" />
-                <col className="w-[132px]" />
-                <col className="w-[188px]" />
+                <col className="w-[28%]" />
+                <col className="w-[8%]" />
+                <col className="w-[13%]" />
+                <col className="w-[22%]" />
               </colgroup>
               <thead>
                 <tr className="border-b border-line bg-ivory text-[11px] font-semibold tracking-[0.08em] text-muted uppercase">
@@ -255,21 +255,24 @@ export function CommunityBoard({
                   const hidden = post.status === PostStatus.HIDDEN;
                   const reported = post.openReports.length > 0;
                   const author = post.author.name.trim() || "Member";
+                  const reportCount = post.openReports.length;
+                  const reportReason = post.openReports[0]?.reason;
                   return (
                     <tr
                       key={post.id}
                       className="border-b border-line last:border-0 hover:bg-row-hover"
                     >
-                      <td className="px-4 py-3.5 align-top">
+                      <td className="px-4 py-3.5 align-middle">
                         <PostThumb post={post} />
                       </td>
-                      <td className="px-4 py-3.5 align-top">
+                      <td className="px-4 py-3.5 align-middle">
                         <p className="truncate text-sm font-semibold text-brown">
                           {author}
                         </p>
+                        {/* TODO: CommunityPost has no petId; pets belong to User / SitterRequest only. */}
                       </td>
-                      <td className="px-4 py-3.5 align-top">
-                        <p className="line-clamp-4 whitespace-pre-wrap text-sm leading-6 text-brown-2">
+                      <td className="px-4 py-3.5 align-middle">
+                        <p className="line-clamp-4 text-sm leading-6 text-brown-2">
                           {post.caption}
                         </p>
                         {reported || hidden ? (
@@ -278,7 +281,7 @@ export function CommunityBoard({
                               <span
                                 className={cn(
                                   PILL_BADGE,
-                                  "bg-coral-soft text-coral",
+                                  "max-w-full bg-coral-soft text-coral",
                                 )}
                               >
                                 <Flag
@@ -286,7 +289,12 @@ export function CommunityBoard({
                                   strokeWidth={2.4}
                                   aria-hidden="true"
                                 />
-                                Reported
+                                <span className="min-w-0 truncate">
+                                  {reportCount === 1
+                                    ? "1 report"
+                                    : `${reportCount} reports`}
+                                  {reportReason ? ` · ${reportReason}` : ""}
+                                </span>
                               </span>
                             ) : null}
                             {hidden ? (
@@ -299,7 +307,7 @@ export function CommunityBoard({
                           </div>
                         ) : null}
                       </td>
-                      <td className="px-4 py-3.5 align-top">
+                      <td className="px-4 py-3.5 align-middle">
                         <span className="inline-flex items-center gap-1.5 text-sm font-semibold text-peach-ink">
                           <Heart
                             size={15}
@@ -309,10 +317,10 @@ export function CommunityBoard({
                           {post.likeCount}
                         </span>
                       </td>
-                      <td className="px-4 py-3.5 align-top text-sm whitespace-nowrap text-brown">
+                      <td className="px-4 py-3.5 align-middle text-sm whitespace-nowrap text-brown">
                         <RelativePostedAt at={post.createdAt} />
                       </td>
-                      <td className="px-4 py-3.5 align-top">
+                      <td className="px-4 py-3.5 align-middle">
                         <div className="flex w-[176px] flex-wrap gap-1.5">
                           <ViewCommunityPostButton post={post} />
                           {hidden ? (
