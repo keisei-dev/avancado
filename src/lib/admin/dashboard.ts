@@ -141,6 +141,7 @@ function toPostingTimes(dates: Date[]): PostingTimeBucket[] {
   const max = Math.max(0, ...counts.map((bucket) => bucket.count));
   return counts.map((bucket) => ({
     label: bucket.label,
+    count: bucket.count,
     percent: max === 0 ? 0 : Math.round((bucket.count / max) * 100),
   }));
 }
@@ -242,7 +243,10 @@ export async function getDashboardData(query: DashboardQuery): Promise<{
       select: { createdAt: true },
     }),
     prisma.sitterRequest.findMany({
-      where: { status: { not: RequestStatus.HIDDEN }, ...createdAtWhere },
+      where: {
+        status: { in: [RequestStatus.OPEN, RequestStatus.MATCHED] },
+        ...createdAtWhere,
+      },
       select: { createdAt: true },
     }),
     prisma.report.findMany({

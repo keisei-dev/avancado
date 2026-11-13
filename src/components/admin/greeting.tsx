@@ -2,7 +2,11 @@
 
 import { useSyncExternalStore } from "react";
 import { AdminRangePills } from "@/components/admin/range-pills";
-import { dashboardHref, type DashboardRange } from "@/lib/admin/date-range";
+import {
+  dashboardGreetingCopy,
+  dashboardHref,
+  type DashboardRange,
+} from "@/lib/admin/date-range";
 
 type AdminGreetingProps = {
   displayName: string;
@@ -31,6 +35,28 @@ function greetingForHour(hour: number): string {
   return "Good evening";
 }
 
+function pad2(value: number) {
+  return String(value).padStart(2, "0");
+}
+
+function localYmd(date: Date) {
+  return `${date.getFullYear()}-${pad2(date.getMonth() + 1)}-${pad2(date.getDate())}`;
+}
+
+function rangeCopy(
+  range: DashboardRange,
+  from: string | undefined,
+  to: string | undefined,
+  now: Date | null,
+) {
+  if (range === "custom" && from && to && from === to && now) {
+    if (from === localYmd(now)) {
+      return "Here is what is happening across Avancado today.";
+    }
+  }
+  return dashboardGreetingCopy(range, from, to);
+}
+
 export function AdminGreeting({
   displayName,
   range,
@@ -57,7 +83,7 @@ export function AdminGreeting({
               : `Welcome, ${displayName}`}
           </h1>
           <p className="mt-1 text-sm text-muted">
-            Here is what is happening across Avancado today.
+            {rangeCopy(range, from, to, now)}
           </p>
         </div>
         <AdminRangePills

@@ -29,6 +29,7 @@ export type DashboardStats = {
 export type PostingTimeBucket = {
   label: string;
   percent: number;
+  count: number;
 };
 
 export type ReviewTarget = "post" | "request" | "place" | "verification";

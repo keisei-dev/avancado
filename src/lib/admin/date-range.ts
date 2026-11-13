@@ -178,6 +178,24 @@ export function dashboardPeriodLabel(
   return "Last 7 days";
 }
 
+export function dashboardGreetingCopy(
+  range: DashboardRange,
+  from?: string,
+  to?: string,
+) {
+  if (range === "custom" && from && to) {
+    const label = formatCustomRangeLabel(from, to);
+    if (from === to) {
+      return `Here is what is happening across Avancado on ${label}.`;
+    }
+    return `Here is what is happening across Avancado from ${label}.`;
+  }
+  if (range === "month") {
+    return "Here is what is happening across Avancado over the last 30 days.";
+  }
+  return "Here is what is happening across Avancado over the last 7 days.";
+}
+
 export function dashboardHref(opts: {
   range: DashboardRange;
   from?: string;
