@@ -216,7 +216,7 @@ function CommunityPostViewDialog({
 
   return createPortal(
     <div
-      className="fixed inset-0 z-[100] grid place-items-center bg-[rgb(36_28_20/0.42)] p-4 backdrop-blur-[4px]"
+      className="fixed inset-0 z-[100] flex items-center justify-center bg-[rgb(36_28_20/0.42)] p-4 backdrop-blur-[4px]"
       onMouseDown={(event) => {
         if (event.target === event.currentTarget) onClose();
       }}
@@ -227,7 +227,7 @@ function CommunityPostViewDialog({
         aria-modal="true"
         aria-labelledby={titleId}
         tabIndex={-1}
-        className="relative w-full max-w-[376px] max-h-[calc(100vh-2rem)] overflow-y-auto rounded-3xl bg-white p-6 text-brown shadow-overlay outline-none"
+        className="relative w-[calc(100%-2rem)] max-w-[376px] shrink-0 max-h-[calc(100vh-2rem)] overflow-y-auto rounded-3xl bg-white p-6 text-brown shadow-overlay outline-none"
       >
         {imageUrl ? (
           <div className="relative">
