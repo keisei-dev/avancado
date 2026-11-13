@@ -6,7 +6,7 @@ import { Flag } from "lucide-react";
 import { reportSitterRequest } from "@/app/sitter-board/report-actions";
 import { ReportModal } from "@/components/report/report-modal";
 import { Toast, useToast } from "@/components/ui/toast";
-import { SITTER_REPORT_REASONS } from "@/lib/report/sitter-reasons";
+import { DEFAULT_SITTER_REPORT_REASON } from "@/lib/report/sitter-reasons";
 
 const TRIGGER_CLASS =
   "inline-flex min-h-8 items-center gap-1.5 rounded-10 px-1.5 text-[12px] font-semibold text-coral transition-colors hover:text-coral-hover focus-visible:shadow-focus focus-visible:outline-none";
@@ -38,7 +38,7 @@ export function ReportRequestButton({
   isOwn: boolean;
 }) {
   const [open, setOpen] = useState(false);
-  const [reason, setReason] = useState("");
+  const [reason, setReason] = useState(DEFAULT_SITTER_REPORT_REASON);
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
   const { message, showToast } = useToast();
@@ -61,6 +61,7 @@ export function ReportRequestButton({
     if (pending) return;
     setOpen(false);
     setError(null);
+    setReason(DEFAULT_SITTER_REPORT_REASON);
   };
 
   const submit = () => {
@@ -74,7 +75,7 @@ export function ReportRequestButton({
         return;
       }
       setOpen(false);
-      setReason("");
+      setReason(DEFAULT_SITTER_REPORT_REASON);
       setError(null);
       showToast("Your report was received.");
     });
@@ -94,7 +95,6 @@ export function ReportRequestButton({
       <ReportModal
         open={open}
         onClose={close}
-        reasons={SITTER_REPORT_REASONS}
         selectedReason={reason}
         onReasonChange={(next) => {
           setReason(next);
