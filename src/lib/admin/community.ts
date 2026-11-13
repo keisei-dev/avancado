@@ -28,7 +28,6 @@ export type AdminCommunityReport = {
 export type AdminCommunityPost = {
   id: string;
   caption: string;
-  location: string | null;
   imageUrl: string;
   type: PostType;
   status: PostStatus;
@@ -147,7 +146,6 @@ function rangeWhere(range: AdminCommunityRange, now: Date) {
 const postSelect = {
   id: true,
   caption: true,
-  location: true,
   imageUrl: true,
   type: true,
   status: true,
@@ -176,7 +174,6 @@ const postSelect = {
 function toAdminPost(row: {
   id: string;
   caption: string;
-  location: string | null;
   imageUrl: string;
   type: PostType;
   status: PostStatus;
@@ -198,7 +195,6 @@ function toAdminPost(row: {
   return {
     id: row.id,
     caption: row.caption,
-    location: row.location,
     imageUrl: row.imageUrl,
     type: row.type,
     status: row.status,
@@ -261,10 +257,10 @@ export async function getAdminCommunityList(
   const page = Math.min(requestedPage, pageCount);
 
   const rows = await prisma.communityPost.findMany({
-    where,
+    ...(Object.keys(where).length > 0 ? { where } : {}),
     select: postSelect,
     orderBy: { createdAt: "desc" },
-    skip: (page - 1) * perPage,
+    ...(page > 1 ? { skip: (page - 1) * perPage } : {}),
     take: perPage,
   });
 

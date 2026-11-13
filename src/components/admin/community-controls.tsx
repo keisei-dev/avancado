@@ -1,14 +1,13 @@
 "use client";
 
-import { useState } from "react";
-import { Flag, Trash2 } from "lucide-react";
+import { useState, useSyncExternalStore } from "react";
+import { Eye, Flag, Trash2 } from "lucide-react";
 import { deleteCommunityPost } from "@/app/admin/(protected)/community/actions";
 import { Button } from "@/components/ui/button";
 import { Modal } from "@/components/ui/modal";
 
 type ViewPost = {
   caption: string;
-  location: string | null;
   imageUrl: string;
   type: string;
   author: { name: string };
@@ -20,13 +19,54 @@ type ViewPost = {
   }[];
 };
 
-function postedOn(date: Date) {
+const emptySubscribe = () => () => {};
+
+function formatAbsoluteDate(date: Date) {
   return date.toLocaleDateString("en-US", {
     month: "short",
     day: "numeric",
     year: "numeric",
   });
 }
+
+function formatRelative(date: Date, nowMs: number) {
+  const diff = nowMs - date.getTime();
+  const minutes = Math.max(0, Math.round(diff / 60000));
+  if (minutes < 1) return "Just now";
+  if (minutes === 1) return "1 minute ago";
+  if (minutes < 60) return `${minutes} minutes ago`;
+  const hours = Math.round(minutes / 60);
+  if (hours === 1) return "1 hour ago";
+  if (hours < 24) return `${hours} hours ago`;
+
+  const today = new Date(nowMs);
+  today.setHours(0, 0, 0, 0);
+  const postedDay = new Date(date);
+  postedDay.setHours(0, 0, 0, 0);
+  const dayDiff = Math.round(
+    (today.getTime() - postedDay.getTime()) / 86_400_000,
+  );
+  if (dayDiff === 1) return "Yesterday";
+  return formatAbsoluteDate(date);
+}
+
+export function RelativePostedAt({ at }: { at: Date | string }) {
+  const iso = typeof at === "string" ? at : at.toISOString();
+  const date = new Date(iso);
+  const isClient = useSyncExternalStore(
+    emptySubscribe,
+    () => true,
+    () => false,
+  );
+  const label = isClient
+    ? formatRelative(date, new Date().getTime())
+    : formatAbsoluteDate(date);
+
+  return <time dateTime={iso}>{label}</time>;
+}
+
+const ACTION_BTN =
+  "inline-flex h-8 items-center gap-1.5 rounded-10 border border-line bg-white px-2.5 text-[12px] font-medium text-brown-2 outline-none hover:bg-ivory focus-visible:shadow-focus";
 
 export function ViewCommunityPostButton({ post }: { post: ViewPost }) {
   const [open, setOpen] = useState(false);
@@ -35,11 +75,8 @@ export function ViewCommunityPostButton({ post }: { post: ViewPost }) {
 
   return (
     <>
-      <button
-        type="button"
-        onClick={() => setOpen(true)}
-        className="inline-flex h-8 items-center rounded-10 border border-line bg-white px-2.5 text-[12px] font-medium text-brown-2"
-      >
+      <button type="button" onClick={() => setOpen(true)} className={ACTION_BTN}>
+        <Eye size={15} aria-hidden="true" />
         View
       </button>
       <Modal
@@ -47,7 +84,7 @@ export function ViewCommunityPostButton({ post }: { post: ViewPost }) {
         onClose={() => setOpen(false)}
         eyebrow={lost ? "Lost pet" : "Post"}
         title={author}
-        lead={post.location || "Vancouver"}
+        lead={lost ? "Lost pet alert" : "Community post"}
         size="wide"
       >
         <div className="grid gap-4">
@@ -78,7 +115,8 @@ export function ViewCommunityPostButton({ post }: { post: ViewPost }) {
                     <span className="font-semibold">{report.reason}</span>
                     <span className="text-muted">
                       {" "}
-                      · {report.reporterName} · {postedOn(report.createdAt)}
+                      · {report.reporterName} ·{" "}
+                      {formatAbsoluteDate(report.createdAt)}
                     </span>
                   </li>
                 ))}
@@ -105,9 +143,9 @@ export function DeleteCommunityPostButton({
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="inline-flex h-8 items-center gap-1.5 rounded-10 border border-line bg-white px-2.5 text-[12px] font-medium text-coral"
+        className="inline-flex h-8 items-center gap-1.5 rounded-10 border border-line bg-white px-2.5 text-[12px] font-medium text-coral outline-none hover:bg-ivory focus-visible:shadow-focus"
       >
-        <Trash2 size={14} aria-hidden="true" />
+        <Trash2 size={15} aria-hidden="true" />
         Delete
       </button>
       <Modal
