@@ -7,8 +7,8 @@ import { requireAdmin } from "@/lib/auth/admin";
 import {
   getAdminSitterRequestList,
   parseAdminSitterFilter,
-  parseAdminSitterRange,
 } from "@/lib/admin/sitter-requests";
+import { resolveAdminRange } from "@/lib/admin/date-range";
 
 export const metadata: Metadata = {
   title: "Sitter Requests",
@@ -33,9 +33,16 @@ async function SitterRequestsContent({
   const filter = parseAdminSitterFilter(
     Array.isArray(query.filter) ? query.filter[0] : query.filter,
   );
-  const range = parseAdminSitterRange(
-    Array.isArray(query.range) ? query.range[0] : query.range,
-  );
+  const { range, from, to } = resolveAdminRange(query);
 
-  return <SitterRequestsBoard list={list} q={q} filter={filter} range={range} />;
+  return (
+    <SitterRequestsBoard
+      list={list}
+      q={q}
+      filter={filter}
+      range={range}
+      from={from}
+      to={to}
+    />
+  );
 }
