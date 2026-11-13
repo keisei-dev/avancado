@@ -109,7 +109,7 @@ export function ReportModal({
         aria-labelledby={titleId}
         aria-describedby={descriptionId}
         tabIndex={-1}
-        className="relative w-full max-w-[540px] shrink-0 sm:w-[540px] max-h-[calc(100vh-40px)] overflow-y-auto rounded-3xl bg-white p-6 text-brown shadow-overlay outline-none"
+        className="relative w-full max-w-[540px] shrink-0 sm:w-[540px] max-h-[calc(100vh-40px)] overflow-y-auto rounded-3xl bg-white px-8 pt-8 pb-7 text-brown shadow-overlay outline-none"
       >
         <button
           type="button"
@@ -127,16 +127,16 @@ export function ReportModal({
           </p>
           <h2
             id={titleId}
-            className="font-display mt-1 pr-8 text-2xl leading-[1.3] font-bold tracking-[-0.02em]"
+            className="font-display mt-3 pr-8 text-[22px] leading-[1.3] font-bold tracking-[-0.02em]"
           >
             Report this request
           </h2>
-          <p id={descriptionId} className="mt-2 text-[15px] leading-6 text-muted">
+          <p id={descriptionId} className="mt-2.5 text-[15px] leading-6 text-muted">
             Select the reason that best describes your concern. Your report stays
             private.
           </p>
 
-          <fieldset className="mt-5 grid gap-2 border-0 p-0">
+          <fieldset className="mt-6 grid gap-2 border-0 p-0">
             <legend className="sr-only">Report reason</legend>
             {SITTER_REPORT_REASONS.map((reason) => {
               const checked = selectedReason === reason.key;
@@ -144,7 +144,7 @@ export function ReportModal({
                 <label
                   key={reason.key}
                   className={cn(
-                    "flex cursor-pointer items-start gap-2.5 rounded-xl border border-line bg-white px-4 py-3.5 transition-colors",
+                    "flex cursor-pointer items-start gap-3.5 rounded-xl border border-line bg-white px-[18px] py-3.5 transition-colors",
                     "hover:bg-cream has-[:checked]:border-2 has-[:checked]:border-olive has-[:checked]:bg-sage-faint has-[:checked]:hover:bg-sage-faint",
                     "has-[:focus-visible]:shadow-focus",
                     pending && "cursor-not-allowed",
@@ -186,7 +186,7 @@ export function ReportModal({
             </p>
           ) : null}
 
-          <div className="mt-4 flex justify-end gap-2 border-t border-line pt-4">
+          <div className="mt-5 flex justify-end gap-2 border-t border-line pt-4">
             <Button variant="secondary" onClick={onClose} disabled={pending}>
               Cancel
             </Button>
