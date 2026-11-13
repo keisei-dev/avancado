@@ -1,25 +1,40 @@
 "use client";
 
-import { useState, useSyncExternalStore } from "react";
-import { Eye, Flag, Trash2 } from "lucide-react";
-import { deleteCommunityPost } from "@/app/admin/(protected)/community/actions";
+import {
+  useEffect,
+  useId,
+  useRef,
+  useState,
+  useSyncExternalStore,
+  type ReactNode,
+} from "react";
+import { createPortal } from "react-dom";
+import { Eye, Trash2, X } from "lucide-react";
+import {
+  deleteCommunityPost,
+  hideCommunityPost,
+  restoreCommunityPost,
+} from "@/app/admin/(protected)/community/actions";
 import { Button } from "@/components/ui/button";
 import { Modal } from "@/components/ui/modal";
+import { cn } from "@/lib/cn";
 
 type ViewPost = {
+  id: string;
   caption: string;
   imageUrl: string;
+  location: string | null;
   type: string;
+  status: string;
+  createdAt: Date | string;
+  likeCount: number;
   author: { name: string };
-  openReports: {
-    id: string;
-    reason: string;
-    createdAt: Date;
-    reporterName: string;
-  }[];
 };
 
 const emptySubscribe = () => () => {};
+
+const FOCUSABLE =
+  'button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), a[href], [tabindex]:not([tabindex="-1"])';
 
 function formatAbsoluteDate(date: Date) {
   return date.toLocaleDateString("en-US", {
@@ -93,13 +108,207 @@ export function RelativePostedAt({
   );
 }
 
+function postTypeLabel(type: string) {
+  return type === "LOST_PET" ? "Lost pet alert" : "Community post";
+}
+
+function displayCaption(caption: string) {
+  return caption.replace(/^\s*LOST PET:\s*/i, "");
+}
+
 const ACTION_BTN =
   "inline-flex h-8 items-center gap-1.5 rounded-10 border border-line bg-white px-2.5 text-[12px] font-medium text-brown-2 outline-none hover:bg-ivory focus-visible:shadow-focus";
 
+const CLOSE_BTN =
+  "grid size-8 place-items-center rounded-full bg-cream text-muted transition-colors hover:bg-ivory hover:text-brown focus-visible:shadow-focus focus-visible:outline-none";
+
+function InfoCard({
+  label,
+  children,
+}: {
+  label: string;
+  children: ReactNode;
+}) {
+  return (
+    <div className="rounded-12 bg-cream px-2.5 py-2.5">
+      <p className="text-[11px] text-muted">{label}</p>
+      <div className="mt-0.5 text-sm font-semibold text-brown">{children}</div>
+    </div>
+  );
+}
+
+function CommunityPostViewDialog({
+  open,
+  onClose,
+  post,
+  onDelete,
+}: {
+  open: boolean;
+  onClose: () => void;
+  post: ViewPost;
+  onDelete: () => void;
+}) {
+  const dialogRef = useRef<HTMLDivElement>(null);
+  const titleId = useId();
+  const onCloseRef = useRef(onClose);
+  const imageUrl = post.imageUrl.trim();
+  const author = post.author.name.trim() || "Member";
+  const hidden = post.status === "HIDDEN";
+  const location = post.location?.trim() || "—";
+
+  useEffect(() => {
+    onCloseRef.current = onClose;
+  });
+
+  useEffect(() => {
+    if (!open) return;
+    const dialog = dialogRef.current;
+    if (!dialog) return;
+
+    const previousFocus = document.activeElement as HTMLElement | null;
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+
+    const first = dialog.querySelector<HTMLElement>(
+      `[data-modal-content] :is(${FOCUSABLE})`,
+    );
+    (first ?? dialog).focus();
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        event.preventDefault();
+        onCloseRef.current();
+        return;
+      }
+      if (event.key !== "Tab") return;
+
+      const focusable = Array.from(
+        dialog.querySelectorAll<HTMLElement>(FOCUSABLE),
+      );
+      if (focusable.length === 0) {
+        event.preventDefault();
+        dialog.focus();
+        return;
+      }
+      const firstEl = focusable[0];
+      const lastEl = focusable[focusable.length - 1];
+      const active = document.activeElement;
+
+      if (event.shiftKey && (active === firstEl || active === dialog)) {
+        event.preventDefault();
+        lastEl.focus();
+      } else if (!event.shiftKey && active === lastEl) {
+        event.preventDefault();
+        firstEl.focus();
+      }
+    };
+
+    document.addEventListener("keydown", handleKeyDown);
+    return () => {
+      document.removeEventListener("keydown", handleKeyDown);
+      document.body.style.overflow = previousOverflow;
+      previousFocus?.focus();
+    };
+  }, [open]);
+
+  if (!open || typeof document === "undefined") return null;
+
+  return createPortal(
+    <div
+      className="fixed inset-0 z-[100] grid place-items-center bg-[rgb(36_28_20/0.42)] p-4 backdrop-blur-[4px]"
+      onMouseDown={(event) => {
+        if (event.target === event.currentTarget) onClose();
+      }}
+    >
+      <div
+        ref={dialogRef}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby={titleId}
+        tabIndex={-1}
+        className="relative w-full max-w-[368px] max-h-[calc(100vh-2rem)] overflow-y-auto rounded-[24px] bg-white p-5 text-brown shadow-overlay outline-none"
+      >
+        {imageUrl ? (
+          <div className="relative">
+            {/* Photos come from Supabase Storage; a plain img avoids next/image host config. */}
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={imageUrl}
+              alt=""
+              className="h-[200px] w-full rounded-16 object-cover"
+            />
+            <button
+              type="button"
+              onClick={onClose}
+              aria-label="Close"
+              className={cn(CLOSE_BTN, "absolute top-2.5 right-2.5")}
+            >
+              <X size={16} aria-hidden="true" />
+            </button>
+          </div>
+        ) : (
+          <button
+            type="button"
+            onClick={onClose}
+            aria-label="Close"
+            className={cn(CLOSE_BTN, "absolute top-3.5 right-3.5")}
+          >
+            <X size={16} aria-hidden="true" />
+          </button>
+        )}
+
+        <div data-modal-content className={cn(imageUrl ? "mt-4" : "pr-10")}>
+          <p className="text-[11px] font-semibold tracking-[0.08em] text-olive uppercase">
+            {postTypeLabel(post.type)}
+          </p>
+          <h2
+            id={titleId}
+            className="font-display mt-1 text-[22px] font-bold tracking-tight text-brown"
+          >
+            {author}
+          </h2>
+          <p className="mt-2 whitespace-pre-wrap text-sm font-normal leading-relaxed text-muted">
+            {displayCaption(post.caption)}
+          </p>
+          <div className="mt-4 grid grid-cols-3 gap-2">
+            <InfoCard label="Location">{location}</InfoCard>
+            <InfoCard label="Paws">{post.likeCount}</InfoCard>
+            <InfoCard label="Posted">
+              <RelativePostedAt at={post.createdAt} />
+            </InfoCard>
+          </div>
+          <div className="mt-4 flex justify-end gap-2 border-t border-line pt-4">
+            <form
+              action={hidden ? restoreCommunityPost : hideCommunityPost}
+              onSubmit={onClose}
+            >
+              <input type="hidden" name="postId" value={post.id} />
+              <button
+                type="submit"
+                className="inline-flex h-9 items-center rounded-full border border-line bg-ivory px-4 text-[13px] font-semibold text-brown outline-none hover:bg-white focus-visible:shadow-focus"
+              >
+                {hidden ? "Unhide post" : "Hide post"}
+              </button>
+            </form>
+            <button
+              type="button"
+              onClick={onDelete}
+              className="inline-flex h-9 items-center gap-1.5 rounded-full bg-coral px-4 text-[13px] font-semibold text-white outline-none hover:bg-coral-hover focus-visible:shadow-focus"
+            >
+              <Trash2 size={15} aria-hidden="true" />
+              Delete
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>,
+    document.body,
+  );
+}
+
 export function ViewCommunityPostButton({ post }: { post: ViewPost }) {
   const [open, setOpen] = useState(false);
-  const author = post.author.name.trim() || "Member";
-  const lost = post.type === "LOST_PET";
+  const [confirmDelete, setConfirmDelete] = useState(false);
 
   return (
     <>
@@ -107,53 +316,60 @@ export function ViewCommunityPostButton({ post }: { post: ViewPost }) {
         <Eye size={15} aria-hidden="true" />
         View
       </button>
-      <Modal
+      <CommunityPostViewDialog
         open={open}
         onClose={() => setOpen(false)}
-        eyebrow={lost ? "Lost pet" : "Post"}
-        title={author}
-        lead={lost ? "Lost pet alert" : "Community post"}
-        size="wide"
-      >
-        <div className="grid gap-4">
-          {post.imageUrl ? (
-            // Photos come from Supabase Storage; a plain img avoids next/image host config.
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
-              src={post.imageUrl}
-              alt=""
-              className="max-h-[360px] w-full rounded-16 bg-cream object-contain"
-            />
-          ) : null}
-          <p className="whitespace-pre-wrap text-sm leading-6 text-brown">
-            {lost ? <span className="font-semibold">LOST PET: </span> : null}
-            {post.caption}
-          </p>
-          {post.openReports.length > 0 ? (
-            <div className="rounded-12 bg-coral-soft p-3">
-              <p className="mb-2 flex items-center gap-1.5 text-xs font-semibold text-coral">
-                <Flag size={13} aria-hidden="true" />
-                {post.openReports.length === 1
-                  ? "1 open report"
-                  : `${post.openReports.length} open reports`}
-              </p>
-              <ul className="grid gap-1.5">
-                {post.openReports.map((report) => (
-                  <li key={report.id} className="text-[13px] text-brown">
-                    <span className="font-semibold">{report.reason}</span>
-                    <span className="text-muted">
-                      {" "}
-                      · {report.reporterName} ·{" "}
-                      {formatAbsoluteDate(report.createdAt)}
-                    </span>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          ) : null}
-        </div>
-      </Modal>
+        post={post}
+        onDelete={() => {
+          setOpen(false);
+          setConfirmDelete(true);
+        }}
+      />
+      <DeleteCommunityPostConfirm
+        open={confirmDelete}
+        postId={post.id}
+        onClose={() => setConfirmDelete(false)}
+        onCancel={() => {
+          setConfirmDelete(false);
+          setOpen(true);
+        }}
+      />
     </>
+  );
+}
+
+function DeleteCommunityPostConfirm({
+  open,
+  postId,
+  onClose,
+  onCancel,
+}: {
+  open: boolean;
+  postId: string;
+  onClose: () => void;
+  onCancel?: () => void;
+}) {
+  return (
+    <Modal
+      open={open}
+      onClose={onClose}
+      title="Delete this post?"
+      lead="This hides it from Community. You can restore it later from Hidden."
+      footer={
+        <>
+          <Button variant="secondary" onClick={onCancel ?? onClose}>
+            Cancel
+          </Button>
+          <form action={deleteCommunityPost} onSubmit={() => onClose()}>
+            <input type="hidden" name="postId" value={postId} />
+            <Button type="submit" variant="danger">
+              <Trash2 size={16} aria-hidden="true" />
+              Delete
+            </Button>
+          </form>
+        </>
+      }
+    />
   );
 }
 
@@ -174,25 +390,10 @@ export function DeleteCommunityPostButton({
         <Trash2 size={15} aria-hidden="true" />
         Delete
       </button>
-      <Modal
+      <DeleteCommunityPostConfirm
         open={open}
+        postId={postId}
         onClose={() => setOpen(false)}
-        title="Delete this post?"
-        lead="This hides it from Community. You can restore it later from Hidden."
-        footer={
-          <>
-            <Button variant="secondary" onClick={() => setOpen(false)}>
-              Cancel
-            </Button>
-            <form action={deleteCommunityPost} onSubmit={() => setOpen(false)}>
-              <input type="hidden" name="postId" value={postId} />
-              <Button type="submit" variant="danger">
-                <Trash2 size={16} aria-hidden="true" />
-                Delete
-              </Button>
-            </form>
-          </>
-        }
       />
     </>
   );
