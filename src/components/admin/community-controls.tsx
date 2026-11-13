@@ -60,9 +60,8 @@ function formatRelative(date: Date, nowMs: number) {
   const dayDiff = Math.round(
     (today.getTime() - postedDay.getTime()) / 86_400_000,
   );
-  if (dayDiff === 1) return "Yesterday";
-  if (dayDiff >= 2 && dayDiff < 7) return `${dayDiff} days ago`;
-  return formatAbsoluteDate(date);
+  if (dayDiff <= 1) return "Yesterday";
+  return `${dayDiff} days ago`;
 }
 
 function formatDayLabel(date: Date, nowMs: number) {
@@ -99,7 +98,7 @@ export function RelativePostedAt({
     ? dayLabel
       ? formatDayLabel(date, new Date().getTime())
       : formatRelative(date, new Date().getTime())
-    : formatAbsoluteDate(date);
+    : "\u00a0";
 
   return (
     <time dateTime={iso} className={className}>
@@ -120,7 +119,7 @@ const ACTION_BTN =
   "inline-flex h-8 items-center gap-1.5 rounded-10 border border-line bg-white px-2.5 text-[12px] font-medium text-brown-2 outline-none hover:bg-ivory focus-visible:shadow-focus";
 
 const CLOSE_BTN =
-  "grid size-8 place-items-center rounded-full bg-cream text-muted transition-colors hover:bg-ivory hover:text-brown focus-visible:shadow-focus focus-visible:outline-none";
+  "grid size-8 place-items-center rounded-full bg-ivory text-brown shadow-admin transition-colors hover:bg-white focus-visible:shadow-focus focus-visible:outline-none";
 
 function InfoCard({
   label,
@@ -130,9 +129,11 @@ function InfoCard({
   children: ReactNode;
 }) {
   return (
-    <div className="rounded-12 bg-cream px-2.5 py-2.5">
+    <div className="rounded-xl bg-cream p-3">
       <p className="text-[11px] text-muted">{label}</p>
-      <div className="mt-0.5 text-sm font-semibold text-brown">{children}</div>
+      <div className="mt-0.5 text-sm font-semibold leading-snug text-brown">
+        {children}
+      </div>
     </div>
   );
 }
@@ -226,7 +227,7 @@ function CommunityPostViewDialog({
         aria-modal="true"
         aria-labelledby={titleId}
         tabIndex={-1}
-        className="relative w-full max-w-[368px] max-h-[calc(100vh-2rem)] overflow-y-auto rounded-[24px] bg-white p-5 text-brown shadow-overlay outline-none"
+        className="relative w-full max-w-[376px] max-h-[calc(100vh-2rem)] overflow-y-auto rounded-3xl bg-white p-6 text-brown shadow-overlay outline-none"
       >
         {imageUrl ? (
           <div className="relative">
@@ -235,7 +236,7 @@ function CommunityPostViewDialog({
             <img
               src={imageUrl}
               alt=""
-              className="h-[200px] w-full rounded-16 object-cover"
+              className="h-48 w-full rounded-2xl object-cover"
             />
             <button
               type="button"
@@ -258,12 +259,12 @@ function CommunityPostViewDialog({
         )}
 
         <div data-modal-content className={cn(imageUrl ? "mt-4" : "pr-10")}>
-          <p className="text-[11px] font-semibold tracking-[0.08em] text-olive uppercase">
+          <p className="text-[11px] font-semibold tracking-wider text-olive uppercase">
             {postTypeLabel(post.type)}
           </p>
           <h2
             id={titleId}
-            className="font-display mt-1 text-[22px] font-bold tracking-tight text-brown"
+            className="font-display mt-1 text-xl font-bold tracking-tight text-brown"
           >
             {author}
           </h2>
@@ -271,7 +272,9 @@ function CommunityPostViewDialog({
             {displayCaption(post.caption)}
           </p>
           <div className="mt-4 grid grid-cols-3 gap-2">
-            <InfoCard label="Location">{location}</InfoCard>
+            <InfoCard label="Location">
+              <span className="line-clamp-2 break-words">{location}</span>
+            </InfoCard>
             <InfoCard label="Paws">{post.likeCount}</InfoCard>
             <InfoCard label="Posted">
               <RelativePostedAt at={post.createdAt} />
@@ -285,7 +288,7 @@ function CommunityPostViewDialog({
               <input type="hidden" name="postId" value={post.id} />
               <button
                 type="submit"
-                className="inline-flex h-9 items-center rounded-full border border-line bg-ivory px-4 text-[13px] font-semibold text-brown outline-none hover:bg-white focus-visible:shadow-focus"
+                className="inline-flex items-center rounded-full border border-[#e8e0d2] bg-white px-5 py-2.5 text-sm font-semibold text-brown outline-none hover:bg-ivory focus-visible:shadow-focus"
               >
                 {hidden ? "Unhide post" : "Hide post"}
               </button>
@@ -293,7 +296,7 @@ function CommunityPostViewDialog({
             <button
               type="button"
               onClick={onDelete}
-              className="inline-flex h-9 items-center gap-1.5 rounded-full bg-coral px-4 text-[13px] font-semibold text-white outline-none hover:bg-coral-hover focus-visible:shadow-focus"
+              className="inline-flex items-center gap-1.5 rounded-full bg-coral px-5 py-2.5 text-sm font-semibold text-white outline-none hover:bg-coral-hover focus-visible:shadow-focus"
             >
               <Trash2 size={15} aria-hidden="true" />
               Delete
