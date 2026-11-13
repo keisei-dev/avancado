@@ -12,6 +12,8 @@ type SittingStatsProps = {
   certificateName?: string | null;
   certificateIssuedBy?: string | null;
   sittingExperience?: string | null;
+  name?: string;
+  canEdit?: boolean;
 };
 
 export default function SittingStats({
@@ -22,6 +24,8 @@ export default function SittingStats({
   certificateName = null,
   certificateIssuedBy = null,
   sittingExperience = null,
+  name = "This member",
+  canEdit = false,
 }: SittingStatsProps) {
   return (
     <div className="flex flex-col gap-3">
@@ -29,25 +33,27 @@ export default function SittingStats({
         <div className="text-md text-brown-2">
           {sittingExperience}
         </div>
-      ) : (
+      ) : canEdit ? (
         <EmptyState
           title="No sitting experience yet"
           text="Share the pets you have cared for so owners can get to know you."
           icon={<PawPrint size={24} aria-hidden="true" />}
           className="py-6"
         />
-      )}
+      ) : null}
 
       {/* New sitter: no sits yet, so show a friendly message instead of zeros */}
       {completedSits === 0 ? (
-        <div className="flex items-center gap-3 rounded-lg bg-sage-faint p-4 shadow-md">
+        <div className="flex items-center gap-3 rounded-lg bg-sage-faint p-4">
           <span className="grid h-10 w-10 place-items-center rounded-full bg-sage-soft text-olive-dark">
             <Sprout size={20} aria-hidden="true" />
           </span>
           <div className="flex flex-col">
             <strong className="font-semibold text-brown">New sitter</strong>
             <small className="text-xs text-gray-600">
-              No sits completed yet. Ratings will show after the first sit.
+              {canEdit
+                ? "No sits completed yet. Ratings will show after the first sit."
+                : `${name} is new to pet sitting on Avancado.`}
             </small>
           </div>
         </div>
@@ -109,14 +115,14 @@ export default function SittingStats({
             )}
           </div>
         </div>
-      ) : (
+      ) : canEdit ? (
         <EmptyState
           title="No certificate yet"
           text="Add a certificate to show your sitting qualifications."
           icon={<Award size={24} aria-hidden="true" />}
           className="py-6"
         />
-      )}
+      ) : null}
     </div>
   );
 }

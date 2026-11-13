@@ -7,6 +7,9 @@ type ProfileStatsProps = {
   postLikes?: number;
   createdAt?: Date | string;
   bio?: string | null;
+  name?: string;
+  areaName?: string | null;
+  canEdit?: boolean;
 };
 
 function getYearsSince(createdAt: Date | string) {
@@ -29,6 +32,9 @@ export default function ProfileStats({
   postLikes = 0,
   createdAt,
   bio = null,
+  name = "This member",
+  areaName = null,
+  canEdit = false,
 }: ProfileStatsProps) {
   const years = createdAt ? getYearsSince(createdAt) : 0;
   const memberSince = createdAt
@@ -70,6 +76,15 @@ export default function ProfileStats({
       {bio ? (
         <div className="text-md text-brown-2">
           {bio}
+        </div>
+      ) : !canEdit ? (
+        // Visitors: build a short intro from info every member has
+        <div className="text-md text-brown-2">
+          {name} {areaName ? `lives in ${areaName} and ` : ""}joined Avancado in{" "}
+          {createdAt
+            ? new Date(createdAt).toLocaleDateString("en-US", { month: "long", year: "numeric" })
+            : "recently"}
+          .
         </div>
       ) : (
         <EmptyState

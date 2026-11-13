@@ -38,7 +38,7 @@ export default function SittingReview({
         </div>
 
       </div>
-      <p className="text-sm text-brown-2">"{comment}"</p>
+      <p className="text-sm text-brown-2">&ldquo;{comment}&rdquo;</p>
     </div>
   );
 }

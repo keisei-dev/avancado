@@ -13,6 +13,8 @@ import { PostCard } from "@/components/community/post-card";
 import type { CommunityPostView } from "@/components/community/post-card";
 
 type ProfileTabsProps = {
+  name: string;
+  areaName?: string | null;
   posts: number;
   postLikes: number;
   createdAt: Date | string;
@@ -34,12 +36,15 @@ type ProfileTabsProps = {
 
   communityPosts?: CommunityPostView[];
   member?: { id: string; name: string; image: string | null } | null;
+  canEdit?: boolean; // whether the viewer can edit this profile (true for own profile, false for public profile)
 };
 
 // The database saves "DOG" / "CAT". Show them as "Dogs" / "Cats".
 const SPECIES_LABELS: Record<string, string> = { DOG: "Dogs", CAT: "Cats" };
 
 export function ProfileTabs({
+  name,
+  areaName = null,
   posts,
   postLikes,
   createdAt,
@@ -54,6 +59,7 @@ export function ProfileTabs({
   sittingExperience = null,
   communityPosts = [],
   member = null,
+  canEdit = false,
 }: ProfileTabsProps) {
   const [activeTab, setActiveTab] = useState("community");
 
@@ -84,12 +90,14 @@ export function ProfileTabs({
                     A short introduction for neighbours.
                   </p>
                 </div>
-                <LinkNext
-                  href="/profile/me/edit?section=about"
-                  className={`${buttonClass({ variant: "text" })} shrink-0`}
-                >
-                  Edit
-                </LinkNext>
+                {canEdit && (
+                  <LinkNext
+                    href="/profile/me/edit?section=about"
+                    className={`${buttonClass({ variant: "text" })} shrink-0`}
+                  >
+                    Edit
+                  </LinkNext>
+                )}
               </div>
 
               <div className="mt-5">
@@ -98,6 +106,9 @@ export function ProfileTabs({
                   postLikes={postLikes}
                   createdAt={createdAt}
                   bio={bio}
+                  name={name}
+                  areaName={areaName}
+                  canEdit={canEdit}
                 />
               </div>
             </div>
@@ -107,7 +118,9 @@ export function ProfileTabs({
             <div className="rounded-16 border border-line bg-white p-6">
               <h2 className="text-lg font-semibold">Community posts</h2>
               <p className="text-sm text-muted">
-                Everything you have shared with the community.
+                {canEdit
+                  ? "Everything you have shared with the community."
+                  : `Moments ${name} has shared with the community.`}
               </p>
               <div className="mt-4">
                 {communityPosts.length > 0 ? (
@@ -116,12 +129,14 @@ export function ProfileTabs({
                       <PostCard key={post.id} post={post} member={member} />
                     ))}
                   </div>
-                ) : (
+                ) : canEdit ? (
                   <EmptyState
                     title="No community posts yet"
                     text="Share your moments with the community."
                     className="py-6"
                   />
+                ) : (
+                  <p className="text-sm text-muted">{`${name} hasn't posted yet.`}</p>
                 )}
               </div>
             </div>
@@ -133,15 +148,19 @@ export function ProfileTabs({
                 <div className="min-w-0">
                   <h2 className="text-lg font-semibold">Sitting experience</h2>
                   <p className="mt-1 text-sm text-muted">
-                    Share your experience caring for pets.
+                    {canEdit
+                      ? "Share your experience caring for pets."
+                      : `How ${name} cares for pets.`}
                   </p>
                 </div>
-                <LinkNext
-                  href="/profile/me/edit?section=sitting"
-                  className={`${buttonClass({ variant: "text" })} shrink-0`}
-                >
-                  Edit
-                </LinkNext>
+                {canEdit && (
+                  <LinkNext
+                    href="/profile/me/edit?section=sitting"
+                    className={`${buttonClass({ variant: "text" })} shrink-0`}
+                  >
+                    Edit
+                  </LinkNext>
+                )}
               </div>
 
               <div className="mt-5">
@@ -155,14 +174,17 @@ export function ProfileTabs({
                   certificateName={certificateName}
                   certificateIssuedBy={certificateIssuedBy}
                   sittingExperience={sittingExperience}
+                  name={name}
+                  canEdit={canEdit}
                 />
               </div>
             </div>
 
+            {/* Visitors: hide the Reviews card when empty. "New sitter" above already explains why. */}
+            {(canEdit || reviews.length > 0) && (
             <div className="rounded-16 border border-line bg-white p-6">
               <h2 className="mb-2 text-lg font-semibold">Reviews</h2>
 
-              {/* Sample review until we load real reviews from the database */}
               {reviews.length > 0 ? (
                 <div className="flex flex-col gap-3">
                   {reviews.map((review) => (
@@ -176,14 +198,15 @@ export function ProfileTabs({
                     />
                   ))}
                 </div>
-              ) : (
+              ) : canEdit ? (
                 <EmptyState
                   title="No reviews yet"
                   text="Reviews from pet owners will show here after a sit."
                   className="py-6"
                 />
-              )}
+              ) : null}
             </div>
+            )}
           </>
         )}
       </div>
