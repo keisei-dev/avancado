@@ -93,7 +93,7 @@ function DetailCard({
   children: ReactNode;
 }) {
   return (
-    <div className="rounded-12 bg-cream px-3.5 py-3">
+    <div className="rounded-12 bg-ivory px-3.5 py-3">
       <p className="text-[12px] text-muted">{label}</p>
       <div className="mt-1 text-sm font-semibold text-brown">{children}</div>
     </div>
