@@ -81,30 +81,44 @@ export async function restoreSitterRequest(formData: FormData) {
   revalidateSitter(requestId);
 }
 
-/**
- * Prototype "Delete". RequestStatus has no DELETED value, so this hides the
- * request instead of removing the row.
- * TODO: persist a deleted state when the schema supports it.
- */
-export async function deleteSitterRequest(formData: FormData) {
+export type DeleteSitterRequestResult = {
+  error: string | null;
+};
+
+export async function deleteSitterRequest(
+  formData: FormData,
+): Promise<DeleteSitterRequestResult> {
   const admin = await requireAdmin();
   const requestId = readId(formData, "requestId");
-  if (!requestId) return;
+  if (!requestId) {
+    return { error: "This request could not be deleted." };
+  }
 
-  const result = await prisma.sitterRequest.updateMany({
-    where: { id: requestId },
-    data: { status: RequestStatus.HIDDEN },
-  });
-  if (!result.count) return;
+  try {
+    await prisma.$transaction(async (tx) => {
+      await tx.sitterApply.deleteMany({ where: { requestId } });
+      await tx.sittingReport.deleteMany({ where: { requestId } });
+      await tx.review.deleteMany({ where: { requestId } });
+      await tx.report.deleteMany({ where: { requestId } });
+      await tx.conversation.deleteMany({ where: { sitterRequestId: requestId } });
+      await tx.sitterRequest.delete({ where: { id: requestId } });
+      await tx.adminActionLog.create({
+        data: {
+          adminId: admin.id,
+          action: "DELETE_REQUEST",
+          targetType: "REQUEST",
+          targetId: requestId,
+        },
+      });
+    });
+  } catch {
+    return {
+      error: "This request could not be deleted. Try again.",
+    };
+  }
 
-  await resolveOpenRequestReports(requestId, admin.id);
-  await logAdminAction(
-    admin.id,
-    "DELETE_REQUEST",
-    requestId,
-    "HIDDEN until RequestStatus supports DELETED",
-  );
   revalidateSitter(requestId);
+  return { error: null };
 }
 
 export async function resolveSitterReport(formData: FormData) {
