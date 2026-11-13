@@ -33,16 +33,16 @@ async function FirstPetOrEmpty() {
   if (firstPet) redirect(`/my-pets/${firstPet.id}`);
 
   return (
-    <div className="flex flex-col items-center gap-4">
-      <EmptyState
-        icon={<PawPrint size={24} />}
-        title="No pets yet"
-        text="Add your first pet to start tracking meals, walks, vaccines and more."
-      />
-      <Link href="/my-pets/new" className={buttonClass({ className: "gap-2" })}>
-        <Plus size={17} aria-hidden="true" />
-        Add a pet
-      </Link>
-    </div>
+    <EmptyState
+      icon={<PawPrint size={24} />}
+      title="No pets yet"
+      text="Add your first pet to start tracking meals, walks, vaccines and more."
+      action={
+        <Link href="/my-pets/new" className={buttonClass()}>
+          <Plus size={17} aria-hidden="true" />
+          Add a pet
+        </Link>
+      }
+    />
   );
 }

@@ -1,6 +1,6 @@
 // Top card of the pet dashboard. Server-safe.
 
-import { cn } from "@/lib/cn";
+import { Badge } from "@/components/ui/badge";
 import {
   genderLabel,
   neuterLabel,
@@ -35,14 +35,18 @@ export function PetProfileCard({ pet, action }: PetProfileCardProps) {
         <h1 className="font-display text-2xl font-bold text-brown">
           {pet.name}
         </h1>
-        <ul className="mt-2 flex flex-wrap gap-1.5" aria-label="Pet details">
-          <Chip>{speciesLabel(pet.species)}</Chip>
-          {pet.gender !== "UNKNOWN" && <Chip>{genderLabel(pet.gender)}</Chip>}
-          {pet.isNeutered && <Chip>{neuterLabel(pet.gender)}</Chip>}
-          <Chip tone={pet.isVaccinated ? "good" : "warn"}>
+        <div className="mt-2 flex flex-wrap gap-1.5">
+          <Badge tone="default">{speciesLabel(pet.species)}</Badge>
+          {pet.gender !== "UNKNOWN" && (
+            <Badge tone="default">{genderLabel(pet.gender)}</Badge>
+          )}
+          {pet.isNeutered && (
+            <Badge tone="default">{neuterLabel(pet.gender)}</Badge>
+          )}
+          <Badge tone={pet.isVaccinated ? "green" : "amber"}>
             {pet.isVaccinated ? "Vaccinated" : "Not vaccinated yet"}
-          </Chip>
-        </ul>
+          </Badge>
+        </div>
         <p className="mt-2 text-sm text-muted">
           {facts.join(" · ")}
           {facts.length > 0 && " · "}
@@ -56,27 +60,5 @@ export function PetProfileCard({ pet, action }: PetProfileCardProps) {
       </div>
       {action}
     </section>
-  );
-}
-
-// Temporary chip. Swap for the UI library's Badge or Chip in the next step.
-function Chip({
-  children,
-  tone = "plain",
-}: {
-  children: React.ReactNode;
-  tone?: "plain" | "good" | "warn";
-}) {
-  return (
-    <li
-      className={cn(
-        "rounded-full px-2.5 py-1 text-xs font-semibold",
-        tone === "plain" && "bg-ivory text-brown-2",
-        tone === "good" && "bg-success-soft text-success-ink",
-        tone === "warn" && "bg-amber-soft text-amber-ink",
-      )}
-    >
-      {children}
-    </li>
   );
 }
