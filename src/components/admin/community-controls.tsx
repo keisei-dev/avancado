@@ -335,27 +335,70 @@ function DeleteCommunityPostConfirm({
   onClose: () => void;
   onCancel?: () => void;
 }) {
+  const [error, setError] = useState<string | null>(null);
+  const [pending, setPending] = useState(false);
+
+  const close = () => {
+    if (pending) return;
+    setError(null);
+    onClose();
+  };
+
+  const cancel = () => {
+    if (pending) return;
+    setError(null);
+    (onCancel ?? onClose)();
+  };
+
+  async function submit(formData: FormData) {
+    setError(null);
+    setPending(true);
+    try {
+      const result = await deleteCommunityPost(formData);
+      if (result.error) {
+        setError(result.error);
+        return;
+      }
+      setError(null);
+      onClose();
+    } catch {
+      setError("This post could not be deleted. Try again.");
+    } finally {
+      setPending(false);
+    }
+  }
+
   return (
     <Modal
       open={open}
-      onClose={onClose}
+      onClose={close}
+      eyebrow={<span className="text-olive-dark">Permanent action</span>}
       title="Delete this post?"
-      lead="This hides it from Community. You can restore it later from Hidden."
+      lead="This permanently removes it from Avancado and cannot be undone. Use Hide if you might want to restore it later."
       footer={
         <>
-          <Button variant="secondary" onClick={onCancel ?? onClose}>
+          <Button variant="secondary" onClick={cancel} disabled={pending}>
             Cancel
           </Button>
-          <form action={deleteCommunityPost} onSubmit={() => onClose()}>
+          <form action={submit}>
             <input type="hidden" name="postId" value={postId} />
-            <Button type="submit" variant="danger">
+            <Button type="submit" variant="danger" loading={pending}>
               <Trash2 size={16} aria-hidden="true" />
-              Delete
+              Delete permanently
             </Button>
           </form>
         </>
       }
-    />
+    >
+      {error ? (
+        <p
+          role="alert"
+          className="rounded-12 border border-coral/20 bg-coral-soft px-3 py-2 text-sm text-coral"
+        >
+          {error}
+        </p>
+      ) : null}
+    </Modal>
   );
 }
 
