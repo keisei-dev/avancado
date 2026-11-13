@@ -32,7 +32,7 @@ export async function reportSitterRequest(
   if (!UUID_PATTERN.test(requestId)) {
     return { ok: false, error: "This request could not be found." };
   }
-  if (!isSitterReportReason(reason)) {
+  if (!reason || !isSitterReportReason(reason)) {
     return { ok: false, error: "Choose a reason for this report." };
   }
 

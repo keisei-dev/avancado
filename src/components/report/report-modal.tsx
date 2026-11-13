@@ -24,7 +24,7 @@ export function ReportModal({
 }: {
   open: boolean;
   onClose: () => void;
-  selectedReason: string;
+  selectedReason: SitterReportReason | null;
   onReasonChange: (reason: SitterReportReason) => void;
   pending?: boolean;
   error?: string | null;
@@ -136,7 +136,7 @@ export function ReportModal({
             private.
           </p>
 
-          <fieldset className="mt-4 grid gap-2 border-0 p-0">
+          <fieldset className="mt-5 grid gap-2 border-0 p-0">
             <legend className="sr-only">Report reason</legend>
             {SITTER_REPORT_REASONS.map((reason) => {
               const checked = selectedReason === reason.key;
@@ -144,7 +144,7 @@ export function ReportModal({
                 <label
                   key={reason.key}
                   className={cn(
-                    "flex cursor-pointer items-start gap-2.5 rounded-xl border border-line bg-white p-3 transition-colors",
+                    "flex cursor-pointer items-start gap-2.5 rounded-xl border border-line bg-white px-4 py-3.5 transition-colors",
                     "hover:bg-cream has-[:checked]:border-2 has-[:checked]:border-olive has-[:checked]:bg-sage-faint has-[:checked]:hover:bg-sage-faint",
                     "has-[:focus-visible]:shadow-focus",
                     pending && "cursor-not-allowed",
@@ -190,7 +190,17 @@ export function ReportModal({
             <Button variant="secondary" onClick={onClose} disabled={pending}>
               Cancel
             </Button>
-            <Button variant="primary" loading={pending} onClick={onSubmit}>
+            <Button
+              variant="primary"
+              loading={pending}
+              disabled={!selectedReason}
+              aria-disabled={!selectedReason || pending}
+              className="disabled:cursor-not-allowed disabled:opacity-50"
+              onClick={() => {
+                if (!selectedReason) return;
+                onSubmit();
+              }}
+            >
               <Flag size={16} aria-hidden="true" />
               Report
             </Button>
