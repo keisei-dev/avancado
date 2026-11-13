@@ -111,15 +111,11 @@ function postTypeLabel(type: string) {
   return type === "LOST_PET" ? "Lost pet alert" : "Community post";
 }
 
-function displayCaption(caption: string) {
-  return caption.replace(/^\s*LOST PET:\s*/i, "");
-}
-
 const ACTION_BTN =
   "inline-flex h-8 items-center gap-1.5 rounded-10 border border-line bg-white px-2.5 text-[12px] font-medium text-brown-2 outline-none hover:bg-ivory focus-visible:shadow-focus";
 
 const CLOSE_BTN =
-  "grid size-8 place-items-center rounded-full bg-ivory text-brown shadow-admin transition-colors hover:bg-white focus-visible:shadow-focus focus-visible:outline-none";
+  "grid size-[38px] place-items-center rounded-12 border border-line bg-white text-brown-2 transition-colors hover:border-line-strong hover:bg-ivory focus-visible:shadow-focus focus-visible:outline-none";
 
 function InfoCard({
   label,
@@ -129,11 +125,9 @@ function InfoCard({
   children: ReactNode;
 }) {
   return (
-    <div className="rounded-xl bg-cream p-3">
-      <p className="text-[11px] text-muted">{label}</p>
-      <div className="mt-0.5 text-sm font-semibold leading-snug text-brown">
-        {children}
-      </div>
+    <div className="rounded-12 bg-ivory px-3.5 py-3">
+      <p className="text-xs text-muted">{label}</p>
+      <div className="text-sm font-semibold text-brown">{children}</div>
     </div>
   );
 }
@@ -216,7 +210,7 @@ function CommunityPostViewDialog({
 
   return createPortal(
     <div
-      className="fixed inset-0 z-[100] flex items-center justify-center bg-[rgb(36_28_20/0.42)] p-4 backdrop-blur-[4px]"
+      className="fixed inset-0 z-[100] flex items-center justify-center bg-[rgb(36_28_20/0.42)] p-5 backdrop-blur-[4px]"
       onMouseDown={(event) => {
         if (event.target === event.currentTarget) onClose();
       }}
@@ -227,60 +221,49 @@ function CommunityPostViewDialog({
         aria-modal="true"
         aria-labelledby={titleId}
         tabIndex={-1}
-        className="relative w-[calc(100%-2rem)] max-w-[376px] shrink-0 max-h-[calc(100vh-2rem)] overflow-y-auto rounded-3xl bg-white p-6 text-brown shadow-overlay outline-none"
+        className="relative w-full max-w-[540px] shrink-0 max-h-[calc(100vh-40px)] overflow-y-auto rounded-20 bg-white p-8 text-brown shadow-overlay outline-none"
       >
+        <button
+          type="button"
+          onClick={onClose}
+          aria-label="Close"
+          className={cn(CLOSE_BTN, "absolute top-[18px] right-[18px]")}
+        >
+          <X size={19} aria-hidden="true" />
+        </button>
         {imageUrl ? (
-          <div className="relative">
-            {/* Photos come from Supabase Storage; a plain img avoids next/image host config. */}
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src={imageUrl}
-              alt=""
-              className="h-48 w-full rounded-2xl object-cover"
-            />
-            <button
-              type="button"
-              onClick={onClose}
-              aria-label="Close"
-              className={cn(CLOSE_BTN, "absolute top-2.5 right-2.5")}
-            >
-              <X size={16} aria-hidden="true" />
-            </button>
-          </div>
-        ) : (
-          <button
-            type="button"
-            onClick={onClose}
-            aria-label="Close"
-            className={cn(CLOSE_BTN, "absolute top-3.5 right-3.5")}
-          >
-            <X size={16} aria-hidden="true" />
-          </button>
-        )}
+          /* Photos come from Supabase Storage; a plain img avoids next/image host config. */
+          /* eslint-disable-next-line @next/next/no-img-element */
+          <img
+            src={imageUrl}
+            alt=""
+            className="mb-5 h-[280px] w-full rounded-16 object-cover"
+          />
+        ) : null}
 
-        <div data-modal-content className={cn(imageUrl ? "mt-4" : "pr-10")}>
-          <p className="text-[11px] font-semibold tracking-wider text-olive uppercase">
+        <div data-modal-content>
+          <p className="mb-2 text-xs font-semibold tracking-[0.06em] text-olive-dark uppercase">
             {postTypeLabel(post.type)}
           </p>
           <h2
             id={titleId}
-            className="font-display mt-1 text-xl font-bold tracking-tight text-brown"
+            className="font-display mt-1 mr-10 mb-2 text-[24px] leading-[1.3] font-bold tracking-[-0.02em] text-brown"
           >
             {author}
           </h2>
-          <p className="mt-2 whitespace-pre-wrap text-sm font-normal leading-relaxed text-muted">
-            {displayCaption(post.caption)}
+          <p className="mb-[22px] text-[15px] leading-[1.6] font-normal whitespace-pre-wrap text-muted">
+            {post.caption}
           </p>
-          <div className="mt-4 grid grid-cols-3 gap-2">
+          <div className="mb-4 grid grid-cols-[repeat(auto-fit,minmax(140px,1fr))] gap-2.5">
             <InfoCard label="Location">
-              <span className="line-clamp-2 break-words">{location}</span>
+              <span className="break-words">{location}</span>
             </InfoCard>
             <InfoCard label="Paws">{post.likeCount}</InfoCard>
             <InfoCard label="Posted">
               <RelativePostedAt at={post.createdAt} />
             </InfoCard>
           </div>
-          <div className="mt-4 flex justify-end gap-2 border-t border-line pt-4">
+          <div className="mt-[26px] flex justify-end gap-2.5 border-t border-line pt-5">
             <form
               action={hidden ? restoreCommunityPost : hideCommunityPost}
               onSubmit={onClose}
@@ -288,7 +271,7 @@ function CommunityPostViewDialog({
               <input type="hidden" name="postId" value={post.id} />
               <button
                 type="submit"
-                className="inline-flex items-center rounded-full border border-[#e8e0d2] bg-white px-5 py-2.5 text-sm font-semibold text-brown outline-none hover:bg-ivory focus-visible:shadow-focus"
+                className="inline-flex min-h-11 items-center rounded-full border border-line-strong bg-white px-5 text-sm font-semibold text-brown outline-none hover:bg-ivory focus-visible:shadow-focus"
               >
                 {hidden ? "Unhide post" : "Hide post"}
               </button>
@@ -296,9 +279,9 @@ function CommunityPostViewDialog({
             <button
               type="button"
               onClick={onDelete}
-              className="inline-flex items-center gap-1.5 rounded-full bg-coral px-5 py-2.5 text-sm font-semibold text-white outline-none hover:bg-coral-hover focus-visible:shadow-focus"
+              className="inline-flex min-h-11 items-center gap-2 rounded-full bg-coral px-5 text-sm font-semibold text-white outline-none hover:bg-coral-hover focus-visible:shadow-focus"
             >
-              <Trash2 size={15} aria-hidden="true" />
+              <Trash2 size={16} aria-hidden="true" />
               Delete
             </button>
           </div>
