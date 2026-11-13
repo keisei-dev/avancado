@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { PostStatus, ReportStatus } from "@/generated/prisma/client";
 import { requireAdmin } from "@/lib/auth/admin";
 import { prisma } from "@/lib/prisma/client";
+import { createClient } from "@/lib/supabase/server";
 
 const UUID_PATTERN =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -34,8 +35,42 @@ async function logAdminAction(
 
 function revalidateCommunity(postId: string) {
   revalidatePath(COMMUNITY_ADMIN_PATH);
+  revalidatePath("/admin");
   revalidatePath("/community", "layout");
   revalidatePath(`/community/${postId}`);
+}
+
+const COMMUNITY_IMAGE_MARKER = "/community-posts/";
+
+/** Storage path for a photo uploaded to the community-posts bucket, if this URL is one. */
+function communityPostStoragePath(imageUrl: string): string | null {
+  const index = imageUrl.indexOf(COMMUNITY_IMAGE_MARKER);
+  if (index === -1) return null;
+  const path = imageUrl
+    .slice(index + COMMUNITY_IMAGE_MARKER.length)
+    .split("?")[0];
+  if (!path || path.includes("..")) return null;
+  try {
+    return decodeURIComponent(path);
+  } catch {
+    return null;
+  }
+}
+
+async function removeCommunityPostImage(imageUrl: string) {
+  const path = communityPostStoragePath(imageUrl);
+  if (!path) return;
+  try {
+    const supabase = await createClient();
+    const { error } = await supabase.storage
+      .from("community-posts")
+      .remove([path]);
+    if (error) {
+      console.error("Community post image could not be removed.", error.message);
+    }
+  } catch (error) {
+    console.error("Community post image could not be removed.", error);
+  }
 }
 
 async function resolveOpenPostReports(postId: string, adminId: string) {
@@ -81,28 +116,55 @@ export async function restoreCommunityPost(formData: FormData) {
   revalidateCommunity(postId);
 }
 
+export type DeleteCommunityPostResult = {
+  error: string | null;
+};
+
 /**
- * Prototype "Delete". PostStatus has no DELETED value, so this hides the post
- * (HIDDEN) instead of removing the row.
- * TODO: persist a deleted state when the schema supports it.
+ * Permanent delete. PostLike, Report, and Conversation already use
+ * onDelete: Cascade (messages and participants follow the conversation),
+ * so those rows are removed with the post and are not deleted here.
  */
-export async function deleteCommunityPost(formData: FormData) {
+export async function deleteCommunityPost(
+  formData: FormData,
+): Promise<DeleteCommunityPostResult> {
   const admin = await requireAdmin();
   const postId = readId(formData, "postId");
-  if (!postId) return;
+  if (!postId) {
+    return { error: "This post could not be deleted." };
+  }
 
-  const result = await prisma.communityPost.updateMany({
+  const post = await prisma.communityPost.findUnique({
     where: { id: postId },
-    data: { status: PostStatus.HIDDEN },
+    select: { id: true, imageUrl: true },
   });
-  if (!result.count) return;
+  if (!post) {
+    return { error: "This post no longer exists." };
+  }
 
-  await resolveOpenPostReports(postId, admin.id);
-  await logAdminAction(
-    admin.id,
-    "DELETE_POST",
-    postId,
-    "HIDDEN until PostStatus supports DELETED",
-  );
+  try {
+    await prisma.$transaction(async (tx) => {
+      await tx.communityPost.delete({ where: { id: postId } });
+      await tx.adminActionLog.create({
+        data: {
+          adminId: admin.id,
+          action: "DELETE_POST",
+          targetType: "POST",
+          targetId: postId,
+        },
+      });
+    });
+  } catch (error) {
+    const missing =
+      typeof error === "object" &&
+      error !== null &&
+      "code" in error &&
+      (error as { code: string }).code === "P2025";
+    if (missing) return { error: "This post no longer exists." };
+    return { error: "This post could not be deleted. Try again." };
+  }
+
+  await removeCommunityPostImage(post.imageUrl);
   revalidateCommunity(postId);
+  return { error: null };
 }
