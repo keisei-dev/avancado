@@ -109,7 +109,7 @@ export function ReportModal({
         aria-labelledby={titleId}
         aria-describedby={descriptionId}
         tabIndex={-1}
-        className="relative w-full max-w-[376px] shrink-0 max-h-[calc(100vh-2rem)] overflow-y-auto rounded-3xl bg-white p-6 text-brown shadow-overlay outline-none"
+        className="relative w-[calc(100%-2rem)] max-w-[376px] shrink-0 max-h-[calc(100vh-2rem)] overflow-y-auto rounded-3xl bg-white p-6 text-brown shadow-overlay outline-none"
       >
         <button
           type="button"
@@ -144,36 +144,36 @@ export function ReportModal({
                 <label
                   key={reason.key}
                   className={cn(
-                    "flex cursor-pointer items-start gap-2.5 rounded-xl border border-line bg-white p-3 transition-colors",
+                    "block cursor-pointer rounded-xl border border-line bg-white p-3 transition-colors",
                     "hover:bg-cream has-[:checked]:border-2 has-[:checked]:border-olive has-[:checked]:bg-sage-faint has-[:checked]:hover:bg-sage-faint",
                     "has-[:focus-visible]:shadow-focus",
                     pending && "cursor-not-allowed",
                   )}
                 >
-                  <input
-                    type="radio"
-                    name={groupName}
-                    value={reason.key}
-                    checked={checked}
-                    aria-checked={checked}
-                    disabled={pending}
-                    onChange={() => onReasonChange(reason.key)}
-                    className="peer sr-only"
-                  />
-                  <span
-                    aria-hidden="true"
-                    className="mt-0.5 grid size-[18px] shrink-0 place-items-center rounded-full border border-line-strong bg-white text-transparent peer-checked:border-olive peer-checked:bg-olive peer-checked:text-white"
-                  >
-                    <Check size={12} strokeWidth={3} />
-                  </span>
-                  <span className="min-w-0">
-                    <span className="flex items-center gap-1.5 text-sm font-semibold text-brown">
+                  <span className="flex items-center gap-2.5">
+                    <input
+                      type="radio"
+                      name={groupName}
+                      value={reason.key}
+                      checked={checked}
+                      aria-checked={checked}
+                      disabled={pending}
+                      onChange={() => onReasonChange(reason.key)}
+                      className="peer sr-only"
+                    />
+                    <span
+                      aria-hidden="true"
+                      className="grid size-[18px] shrink-0 place-items-center rounded-full border border-line-strong bg-white text-transparent peer-checked:border-olive peer-checked:bg-olive peer-checked:text-white"
+                    >
+                      <Check size={12} strokeWidth={3} />
+                    </span>
+                    <span className="flex min-w-0 items-center gap-1.5 text-sm font-semibold text-brown">
                       <Ban size={14} aria-hidden="true" className="shrink-0" />
                       {reason.key}
                     </span>
-                    <span className="mt-0.5 block text-xs leading-5 text-muted">
-                      {reason.description}
-                    </span>
+                  </span>
+                  <span className="mt-1 block text-xs leading-5 tracking-tight text-muted">
+                    {reason.description}
                   </span>
                 </label>
               );
