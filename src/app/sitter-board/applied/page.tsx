@@ -1,10 +1,8 @@
 // Notion flow: Applied tab, Withdraw sitter application
-// TODO: implement
+// TODO: withdraw application
+
+import { SitterBoardView } from '@/components/sitter-board/sitter-board-view';
 
 export default function AppliedSitterRequestsPage() {
-  return (
-    <main className="flex flex-1 flex-col gap-2 p-8">
-      <h1 className="text-2xl font-bold">Applied Sitter Requests</h1>
-    </main>
-  );
+  return <SitterBoardView tab="applied" />;
 }

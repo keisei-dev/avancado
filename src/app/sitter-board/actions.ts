@@ -29,6 +29,55 @@ export async function getSitterRequests() {
   }
 }
 
+const boardRequestInclude = {
+  pet: {
+    select: { id: true, name: true, breed: true, imageUrl: true, isVaccinated: true },
+  },
+  author: {
+    select: { id: true, name: true },
+  },
+  applications: {
+    select: { id: true, applicantId: true, status: true },
+  },
+} as const;
+
+export async function getSitterBoard() {
+  try {
+    const member = await getCurrentMember();
+    const visible = { status: { not: RequestStatus.HIDDEN } };
+
+    const [all, mine, applied] = await Promise.all([
+      prisma.sitterRequest.findMany({
+        where: { status: RequestStatus.OPEN },
+        orderBy: { createdAt: 'desc' },
+        include: boardRequestInclude,
+      }),
+      member
+        ? prisma.sitterRequest.findMany({
+            where: { ...visible, authorId: member.id },
+            orderBy: { createdAt: 'desc' },
+            include: boardRequestInclude,
+          })
+        : [],
+      member
+        ? prisma.sitterRequest.findMany({
+            where: { ...visible, applications: { some: { applicantId: member.id } } },
+            orderBy: { createdAt: 'desc' },
+            include: boardRequestInclude,
+          })
+        : [],
+    ]);
+
+    return {
+      success: true,
+      data: { memberId: member?.id ?? null, all, mine, applied },
+    };
+  } catch (error) {
+    console.error('Failed to fetch sitter board:', error);
+    return { success: false, error: 'Failed to fetch sitter requests.' };
+  }
+}
+
 export async function getMyPetsForSitter() {
   try {
     const member = await getCurrentMember();
