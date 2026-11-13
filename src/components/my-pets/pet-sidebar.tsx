@@ -1,12 +1,11 @@
 // Left column of My Pets: the member's pets and "Add another pet".
 // Reads cookies and the database, so it must be inside <Suspense>.
 
-import Link from "next/link";
 import { redirect } from "next/navigation";
-import { Plus } from "lucide-react";
 import { getCurrentMember } from "@/lib/auth/member";
 import { getMyPets } from "@/lib/pets/queries";
 import { PetSidebarLinks } from "./pet-sidebar-links";
+import { AddPetButton } from "./pet-form-modal";
 
 export async function PetSidebar() {
   const member = await getCurrentMember();
@@ -19,13 +18,7 @@ export async function PetSidebar() {
         Your pets
       </h2>
       <PetSidebarLinks pets={pets} />
-      <Link
-        href="/my-pets/new"
-        className="flex items-center justify-center gap-2 rounded-16 border-[1.5px] border-dashed border-line-strong p-3 text-sm font-semibold text-olive-dark hover:border-olive hover:bg-sage-faint"
-      >
-        <Plus size={17} aria-hidden="true" />
-        Add another pet
-      </Link>
+      <AddPetButton memberId={member.id} />
     </aside>
   );
 }
