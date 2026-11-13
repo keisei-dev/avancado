@@ -352,10 +352,7 @@ export function CommunityBoard({
                               </ActionButton>
                             </form>
                           )}
-                          <DeleteCommunityPostButton
-                            postId={post.id}
-                            authorName={author}
-                          />
+                          <DeleteCommunityPostButton postId={post.id} />
                         </div>
                       </td>
                     </tr>

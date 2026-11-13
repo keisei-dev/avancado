@@ -357,10 +357,7 @@ export function SitterRequestsBoard({
                               </ActionButton>
                             </form>
                           )}
-                          <DeleteSitterRequestButton
-                            requestId={request.id}
-                            title={request.title}
-                          />
+                          <DeleteSitterRequestButton requestId={request.id} />
                         </div>
                       </td>
                     </tr>

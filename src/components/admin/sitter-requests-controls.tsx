@@ -229,45 +229,58 @@ export function ViewSitterRequestButton({
           </div>
         </div>
       </Modal>
-      <Modal
+      <DeleteSitterRequestConfirm
         open={confirmDelete}
+        requestId={request.id}
         onClose={() => setConfirmDelete(false)}
-        eyebrow="Permanent action"
-        title={`Delete “${request.title}”?`}
-        lead="This hides it from the Sitter Board. Use Hide if you might want to restore it later."
-        footer={
-          <>
-            <Button
-              variant="secondary"
-              onClick={() => {
-                setConfirmDelete(false);
-                setOpen(true);
-              }}
-            >
-              Cancel
-            </Button>
-            <form
-              action={deleteSitterRequest}
-              onSubmit={() => setConfirmDelete(false)}
-            >
-              <input type="hidden" name="requestId" value={request.id} />
-              <Button type="submit" variant="danger">
-                Delete request
-              </Button>
-            </form>
-          </>
-        }
+        onCancel={() => {
+          setConfirmDelete(false);
+          setOpen(true);
+        }}
       />
     </>
   );
 }
 
+function DeleteSitterRequestConfirm({
+  open,
+  requestId,
+  onClose,
+  onCancel,
+}: {
+  open: boolean;
+  requestId: string;
+  onClose: () => void;
+  onCancel?: () => void;
+}) {
+  return (
+    <Modal
+      open={open}
+      onClose={onClose}
+      title="Delete this sitter request?"
+      lead="This hides it from the Sitter Board. You can restore it later from Hidden."
+      footer={
+        <>
+          <Button variant="secondary" onClick={onCancel ?? onClose}>
+            Cancel
+          </Button>
+          <form action={deleteSitterRequest} onSubmit={onClose}>
+            <input type="hidden" name="requestId" value={requestId} />
+            <Button type="submit" variant="danger">
+              <Trash2 size={16} aria-hidden="true" />
+              Delete
+            </Button>
+          </form>
+        </>
+      }
+    />
+  );
+}
+
 export function DeleteSitterRequestButton({
   requestId,
-  title,
 }: {
   requestId: string;
-  title: string;
 }) {
   const [open, setOpen] = useState(false);
 
@@ -281,25 +294,10 @@ export function DeleteSitterRequestButton({
         <Trash2 size={15} aria-hidden="true" />
         Delete
       </button>
-      <Modal
+      <DeleteSitterRequestConfirm
         open={open}
+        requestId={requestId}
         onClose={() => setOpen(false)}
-        eyebrow="Permanent action"
-        title={`Delete “${title}”?`}
-        lead="This hides it from the Sitter Board. Use Hide if you might want to restore it later."
-        footer={
-          <>
-            <Button variant="secondary" onClick={() => setOpen(false)}>
-              Cancel
-            </Button>
-            <form action={deleteSitterRequest} onSubmit={() => setOpen(false)}>
-              <input type="hidden" name="requestId" value={requestId} />
-              <Button type="submit" variant="danger">
-                Delete request
-              </Button>
-            </form>
-          </>
-        }
       />
     </>
   );
