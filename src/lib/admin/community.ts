@@ -4,6 +4,13 @@ import { connection } from "next/server";
 import { PostStatus, PostType, ReportStatus } from "@/generated/prisma/client";
 import { prisma } from "@/lib/prisma/client";
 import { hasDatabaseEnv } from "@/lib/auth/admin";
+import {
+  appendRangeParams,
+  createdAtRangeWhere,
+  parseAdminTimeRange,
+  resolveAdminRange,
+  type AdminTimeRange,
+} from "@/lib/admin/date-range";
 
 export const ADMIN_COMMUNITY_FILTERS = [
   "all",
@@ -14,9 +21,14 @@ export const ADMIN_COMMUNITY_FILTERS = [
 
 export type AdminCommunityFilter = (typeof ADMIN_COMMUNITY_FILTERS)[number];
 
-export const ADMIN_COMMUNITY_RANGES = ["all", "7d", "30d"] as const;
+export const ADMIN_COMMUNITY_RANGES = [
+  "all",
+  "7d",
+  "30d",
+  "custom",
+] as const;
 
-export type AdminCommunityRange = (typeof ADMIN_COMMUNITY_RANGES)[number];
+export type AdminCommunityRange = AdminTimeRange;
 
 export type AdminCommunityReport = {
   id: string;
@@ -55,6 +67,8 @@ export type AdminCommunityListQuery = {
   q?: string | string[];
   filter?: string | string[];
   range?: string | string[];
+  from?: string | string[];
+  to?: string | string[];
   page?: string | string[];
   perPage?: string | string[];
 };
@@ -73,10 +87,7 @@ export function parseAdminCommunityFilter(
 export function parseAdminCommunityRange(
   value: string | undefined,
 ): AdminCommunityRange {
-  if (value && ADMIN_COMMUNITY_RANGES.includes(value as AdminCommunityRange)) {
-    return value as AdminCommunityRange;
-  }
-  return "all";
+  return parseAdminTimeRange(value);
 }
 
 export function parsePerPage(value: string | undefined): number {
@@ -94,6 +105,8 @@ export function communityListHref(opts: {
   q?: string;
   filter?: AdminCommunityFilter;
   range?: AdminCommunityRange;
+  from?: string;
+  to?: string;
   page?: number;
   perPage?: number;
 }): string {
@@ -105,7 +118,7 @@ export function communityListHref(opts: {
   const perPage = opts.perPage ?? 5;
   if (q) params.set("q", q);
   if (filter !== "all") params.set("filter", filter);
-  if (range !== "all") params.set("range", range);
+  appendRangeParams(params, range, opts.from, opts.to);
   if (page > 1) params.set("page", String(page));
   if (perPage !== 5) params.set("perPage", String(perPage));
   const query = params.toString();
@@ -136,11 +149,17 @@ function filterWhere(filter: AdminCommunityFilter) {
   }
 }
 
-function rangeWhere(range: AdminCommunityRange, now: Date) {
-  if (range === "all") return {};
-  const days = range === "7d" ? 7 : 30;
-  const from = new Date(now.getTime() - days * 24 * 60 * 60 * 1000);
-  return { createdAt: { gte: from } };
+function rangeWhere(
+  range: AdminCommunityRange,
+  now: Date,
+  from?: string,
+  to?: string,
+) {
+  return createdAtRangeWhere(
+    range,
+    now,
+    range === "custom" && from && to ? { from, to } : undefined,
+  );
 }
 
 const postSelect = {
@@ -217,7 +236,8 @@ export async function getAdminCommunityList(
 
   const q = (firstParam(query.q) ?? "").trim();
   const filter = parseAdminCommunityFilter(firstParam(query.filter));
-  const range = parseAdminCommunityRange(firstParam(query.range));
+  const resolved = resolveAdminRange(query);
+  const range = resolved.range;
   const perPage = parsePerPage(firstParam(query.perPage));
   const requestedPage = Math.max(1, Number(firstParam(query.page)) || 1);
   const now = new Date();
@@ -235,7 +255,10 @@ export async function getAdminCommunityList(
     };
   }
 
-  const scoped = { ...searchWhere(q), ...rangeWhere(range, now) };
+  const scoped = {
+    ...searchWhere(q),
+    ...rangeWhere(range, now, resolved.from, resolved.to),
+  };
   const where = { ...scoped, ...filterWhere(filter) };
 
   const [total, allCount, reportedCount, lostCount, hiddenCount] =

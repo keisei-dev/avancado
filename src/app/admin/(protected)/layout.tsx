@@ -4,7 +4,7 @@
 import { Suspense } from "react";
 import { connection } from "next/server";
 import { AdminShellFrame } from "@/components/admin/shell";
-import { getAdminNavCounts } from "@/lib/admin/mock-data";
+import { getAdminNavCounts } from "@/lib/admin/dashboard";
 import { requireAdmin } from "@/lib/auth/admin";
 
 export default function ProtectedAdminLayout({

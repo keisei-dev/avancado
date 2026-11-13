@@ -1,7 +1,6 @@
 import type { ButtonHTMLAttributes } from "react";
 import Link from "next/link";
 import {
-  Calendar,
   ChevronLeft,
   ChevronRight,
   Eye,
@@ -14,6 +13,7 @@ import {
   restoreSitterRequest,
 } from "@/app/admin/(protected)/sitter-requests/actions";
 import { RelativePostedAt } from "@/components/admin/community-controls";
+import { AdminRangePills } from "@/components/admin/range-pills";
 import {
   DeleteSitterRequestButton,
   ViewSitterRequestButton,
@@ -41,24 +41,17 @@ const FILTERS: { id: AdminSitterFilter; label: string }[] = [
   { id: "hidden", label: "Hidden" },
 ];
 
-const RANGES: { id: AdminSitterRange; label: string }[] = [
-  { id: "all", label: "All time" },
-  { id: "7d", label: "Last 7 days" },
-  { id: "30d", label: "Last 30 days" },
-];
-
 type SitterRequestsBoardProps = {
   list: AdminSitterListResult;
   q: string;
   filter: AdminSitterFilter;
   range: AdminSitterRange;
+  from?: string;
+  to?: string;
 };
 
 const PILL_BADGE =
   "inline-flex min-h-6 items-center gap-1 whitespace-nowrap rounded-full px-2.5 py-1 text-xs font-semibold leading-none";
-
-const CHIP =
-  "inline-flex h-8 shrink-0 items-center rounded-full px-3 text-[12px] font-semibold outline-none focus-visible:shadow-focus";
 
 function ActionButton({
   children,
@@ -104,9 +97,19 @@ export function SitterRequestsBoard({
   q,
   filter,
   range,
+  from: rangeFrom,
+  to: rangeTo,
 }: SitterRequestsBoardProps) {
   const from = list.total === 0 ? 0 : (list.page - 1) * list.perPage + 1;
   const to = Math.min(list.page * list.perPage, list.total);
+  const hrefOpts = {
+    q,
+    filter,
+    range,
+    from: rangeFrom,
+    to: rangeTo,
+    perPage: list.perPage,
+  };
 
   return (
     <div>
@@ -119,44 +122,42 @@ export function SitterRequestsBoard({
             Review and manage sitter request posts.
           </p>
         </div>
-        <div className="flex flex-wrap gap-1.5">
-          {RANGES.map((item) => {
-            const selected = range === item.id;
-            return (
-              <Link
-                key={item.id}
-                href={sitterListHref({
-                  q,
-                  filter,
-                  range: item.id,
-                  perPage: list.perPage,
-                })}
-                aria-current={selected ? "page" : undefined}
-                className={cn(
-                  CHIP,
-                  selected
-                    ? "border border-olive-hover bg-olive-hover text-white"
-                    : "border border-line bg-white text-brown hover:bg-ivory",
-                )}
-              >
-                {item.label}
-              </Link>
-            );
+        <AdminRangePills
+          range={range}
+          from={rangeFrom}
+          to={rangeTo}
+          options={[
+            { id: "all", label: "All time" },
+            { id: "7d", label: "Last 7 days" },
+            { id: "30d", label: "Last 30 days" },
+          ]}
+          hrefs={{
+            all: sitterListHref({
+              q,
+              filter,
+              range: "all",
+              perPage: list.perPage,
+            }),
+            "7d": sitterListHref({
+              q,
+              filter,
+              range: "7d",
+              perPage: list.perPage,
+            }),
+            "30d": sitterListHref({
+              q,
+              filter,
+              range: "30d",
+              perPage: list.perPage,
+            }),
+          }}
+          clearHref={sitterListHref({
+            q,
+            filter,
+            range: "all",
+            perPage: list.perPage,
           })}
-          {/* TODO: Custom date range from the prototype is not wired yet. */}
-          <button
-            type="button"
-            disabled
-            title="Custom date range is not available yet"
-            className={cn(
-              CHIP,
-              "cursor-not-allowed gap-1.5 border border-line bg-white text-muted opacity-45",
-            )}
-          >
-            <Calendar size={14} aria-hidden="true" />
-            Custom
-          </button>
-        </div>
+        />
       </div>
 
       <div className="mt-4 flex flex-wrap items-center gap-x-2 gap-y-2.5">
@@ -170,6 +171,12 @@ export function SitterRequestsBoard({
           ) : null}
           {range !== "all" ? (
             <input type="hidden" name="range" value={range} />
+          ) : null}
+          {range === "custom" && rangeFrom && rangeTo ? (
+            <>
+              <input type="hidden" name="from" value={rangeFrom} />
+              <input type="hidden" name="to" value={rangeTo} />
+            </>
           ) : null}
           {list.perPage !== 5 ? (
             <input type="hidden" name="perPage" value={list.perPage} />
@@ -189,12 +196,7 @@ export function SitterRequestsBoard({
             return (
               <Link
                 key={item.id}
-                href={sitterListHref({
-                  q,
-                  filter: item.id,
-                  range,
-                  perPage: list.perPage,
-                })}
+                href={sitterListHref({ ...hrefOpts, filter: item.id })}
                 aria-current={selected ? "page" : undefined}
                 className={cn(
                   "inline-flex h-8 shrink-0 items-center gap-1.5 rounded-full px-2.5 text-[12px] font-semibold outline-none focus-visible:shadow-focus",
@@ -378,9 +380,9 @@ export function SitterRequestsBoard({
             <UsersPerPageSelect
               value={list.perPage}
               hrefs={{
-                5: sitterListHref({ q, filter, range, perPage: 5 }),
-                10: sitterListHref({ q, filter, range, perPage: 10 }),
-                25: sitterListHref({ q, filter, range, perPage: 25 }),
+                5: sitterListHref({ ...hrefOpts, perPage: 5 }),
+                10: sitterListHref({ ...hrefOpts, perPage: 10 }),
+                25: sitterListHref({ ...hrefOpts, perPage: 25 }),
               }}
             />
             <nav aria-label="Pages" className="flex items-center gap-1">
@@ -392,10 +394,7 @@ export function SitterRequestsBoard({
               ) : (
                 <Link
                   href={sitterListHref({
-                    q,
-                    filter,
-                    range,
-                    perPage: list.perPage,
+                    ...hrefOpts,
                     page: list.page - 1,
                   })}
                   className="grid h-8 w-8 place-items-center rounded-10 border border-line bg-white text-brown outline-none hover:bg-ivory focus-visible:shadow-focus"
@@ -410,13 +409,7 @@ export function SitterRequestsBoard({
                 return (
                   <Link
                     key={page}
-                    href={sitterListHref({
-                      q,
-                      filter,
-                      range,
-                      perPage: list.perPage,
-                      page,
-                    })}
+                    href={sitterListHref({ ...hrefOpts, page })}
                     aria-current={current ? "page" : undefined}
                     className={cn(
                       "grid h-8 min-w-8 place-items-center rounded-10 px-2 text-[13px] font-semibold outline-none focus-visible:shadow-focus",
@@ -437,10 +430,7 @@ export function SitterRequestsBoard({
               ) : (
                 <Link
                   href={sitterListHref({
-                    q,
-                    filter,
-                    range,
-                    perPage: list.perPage,
+                    ...hrefOpts,
                     page: list.page + 1,
                   })}
                   className="grid h-8 w-8 place-items-center rounded-10 border border-line bg-white text-brown outline-none hover:bg-ivory focus-visible:shadow-focus"

@@ -7,8 +7,8 @@ import { requireAdmin } from "@/lib/auth/admin";
 import {
   getAdminCommunityList,
   parseAdminCommunityFilter,
-  parseAdminCommunityRange,
 } from "@/lib/admin/community";
+import { resolveAdminRange } from "@/lib/admin/date-range";
 
 export const metadata: Metadata = {
   title: "Community Moderation",
@@ -33,9 +33,16 @@ async function CommunityContent({
   const filter = parseAdminCommunityFilter(
     Array.isArray(query.filter) ? query.filter[0] : query.filter,
   );
-  const range = parseAdminCommunityRange(
-    Array.isArray(query.range) ? query.range[0] : query.range,
-  );
+  const { range, from, to } = resolveAdminRange(query);
 
-  return <CommunityBoard list={list} q={q} filter={filter} range={range} />;
+  return (
+    <CommunityBoard
+      list={list}
+      q={q}
+      filter={filter}
+      range={range}
+      from={from}
+      to={to}
+    />
+  );
 }
