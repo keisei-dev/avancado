@@ -41,7 +41,7 @@ export function applicationStage(
   return null;
 }
 
-function timeAgo(date: Date) {
+export function timeAgo(date: Date) {
   const seconds = Math.max(0, Math.floor((Date.now() - date.getTime()) / 1000));
   const units: [number, string][] = [
     [60 * 60 * 24 * 365, 'year'],
