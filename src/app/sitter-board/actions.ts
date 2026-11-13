@@ -1,10 +1,12 @@
 'use server';
 
+import { RequestStatus } from '@/generated/prisma/client';
 import { prisma } from '@/lib/prisma/client';
 
 export async function getSitterRequests() {
   try {
     const requests = await prisma.sitterRequest.findMany({
+      where: { status: { not: RequestStatus.HIDDEN } },
       orderBy: { createdAt: 'desc' },
       include: {
         pet: true,
