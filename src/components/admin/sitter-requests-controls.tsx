@@ -289,7 +289,7 @@ function DeleteSitterRequestConfirm({
     <Modal
       open={open}
       onClose={close}
-      eyebrow={<span className="text-olive">Permanent action</span>}
+      eyebrow={<span className="text-olive-dark">Permanent action</span>}
       title="Delete this sitter request?"
       lead="This permanently removes it from Avancado and cannot be undone. Use Hide if you might want to restore it later."
       footer={
