@@ -109,7 +109,7 @@ export function ReportModal({
         aria-labelledby={titleId}
         aria-describedby={descriptionId}
         tabIndex={-1}
-        className="relative w-full max-w-[376px] shrink-0 sm:w-[376px] max-h-[calc(100vh-40px)] overflow-y-auto rounded-3xl bg-white p-6 text-brown shadow-overlay outline-none"
+        className="relative w-full max-w-[540px] shrink-0 sm:w-[540px] max-h-[calc(100vh-40px)] overflow-y-auto rounded-3xl bg-white p-6 text-brown shadow-overlay outline-none"
       >
         <button
           type="button"
