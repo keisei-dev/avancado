@@ -1,6 +1,8 @@
 import Image from 'next/image';
 import Link from 'next/link';
+import { Search, Plus } from 'lucide-react';
 import { getSitterRequests } from './actions';
+import { buttonClass, Button } from '@/components/ui/button';
 
 export const instant = false;
 
@@ -9,22 +11,76 @@ export default async function SitterBoardPage() {
 
   if (!result.success || !result.data) {
     return (
-      <div className="p-6 text-red-500">
+      <div className="p-6 text-coral">
         {result.error || 'An error occurred while loading data.'}
       </div>
     );
   }
 
   return (
-    <main className="max-w-6xl mx-auto p-6">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">Sitter board</h1>
-        <p className="text-gray-500">Pet owners post care requests. Local sitters apply to help.</p>
+    <main className="max-w-[1200px] mx-auto px-7 py-12">
+      <div className="mb-8 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+        <div>
+          <span className="inline-flex items-center gap-1.5 text-xs font-semibold uppercase tracking-[0.06em] text-olive-dark mb-1">
+            NEIGHBOURHOOD CARE NETWORK
+          </span>
+          <h1 className="text-[30px] font-display font-bold tracking-[-0.02em] leading-[1.2] text-brown mb-2">
+            Sitter board
+          </h1>
+          <p className="text-muted text-sm">
+            Pet owners post care requests. Local sitters apply to help.
+          </p>
+        </div>
+        <Link href="/sitter-board/new">
+          <Button variant="primary" size="md">
+            <Plus size={16} aria-hidden="true" />
+            Request a sitter
+          </Button>
+        </Link>
       </div>
 
+      <div className="mb-6 inline-flex max-w-full items-center gap-1 bg-cream p-1 rounded-full overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+        <Link
+          href="/sitter-board"
+          className="bg-white text-brown font-semibold px-4 py-1.5 rounded-full text-sm shadow-card inline-flex items-center gap-2 transition-colors"
+        >
+          All requests
+          <span className="text-xs bg-line text-brown-2 px-1.5 py-0.5 rounded-full font-medium">
+            {result.data.length}
+          </span>
+        </Link>
+        <Link
+          href="/sitter-board/my-requests"
+          className="text-muted hover:text-brown font-medium px-4 py-1.5 rounded-full text-sm inline-flex items-center gap-2 transition-colors"
+        >
+          My requests
+          <span className="text-xs text-muted font-medium">3</span>
+        </Link>
+        <Link
+          href="/sitter-board/applied"
+          className="text-muted hover:text-brown font-medium px-4 py-1.5 rounded-full text-sm inline-flex items-center gap-2 transition-colors"
+        >
+          Applied
+          <span className="text-xs text-muted font-medium">3</span>
+        </Link>
+      </div>
+
+      {/* Search bar */}
+      <div className="mb-8 relative">
+        <span className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-muted">
+          <Search size={18} aria-hidden="true" />
+        </span>
+        <input
+          type="text"
+          placeholder="Search current requests by pet or neighbourhood..."
+          className="w-full pl-11 pr-4 py-3 rounded-16 border border-line bg-white text-brown placeholder:text-muted focus:outline-none focus-visible:shadow-focus text-sm transition-shadow shadow-card"
+        />
+      </div>
+
+      {/* Sitter request cards grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {result.data.length === 0 ? (
-          <p className="text-gray-500 col-span-2">No sitter requests found.</p>
+          <p className="text-muted col-span-2">No sitter requests found.</p>
         ) : (
           result.data.map((req) => {
             const startDateFormatted = new Date(req.startAt).toLocaleDateString('en-US', {
@@ -51,10 +107,10 @@ export default async function SitterBoardPage() {
             return (
               <div
                 key={req.id}
-                className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden flex flex-col justify-between hover:shadow-md transition-shadow"
+                className="bg-white rounded-2xl border border-line shadow-card overflow-hidden flex flex-col justify-between hover:shadow-raised transition-shadow"
               >
                 <div>
-                  <div className="relative w-full h-52 bg-gray-100">
+                  <div className="relative w-full h-52 bg-ivory">
                     {req.pet?.imageUrl ? (
                       <Image
                         src={req.pet.imageUrl}
@@ -63,31 +119,31 @@ export default async function SitterBoardPage() {
                         className="object-cover"
                       />
                     ) : (
-                      <div className="w-full h-full flex items-center justify-center text-gray-400 text-sm">
+                      <div className="w-full h-full flex items-center justify-center text-muted text-sm">
                         No Pet Image
                       </div>
                     )}
-                    <span className="absolute top-4 left-4 bg-white/90 backdrop-blur-sm text-gray-900 text-xs font-semibold px-3 py-1.5 rounded-full shadow-sm">
+                    <span className="absolute top-4 left-4 bg-white/90 backdrop-blur-sm text-brown text-xs font-semibold px-3 py-1.5 rounded-full shadow-card">
                       {startDateFormatted}
                     </span>
                   </div>
 
                   <div className="p-5">
-                    <div className="flex items-center justify-between text-xs font-semibold text-gray-500 tracking-wider mb-2">
-                      <span className="text-emerald-700 font-bold uppercase">♡ HELP REQUESTED</span>
+                    <div className="flex items-center justify-between text-xs font-semibold text-muted tracking-wider mb-2">
+                      <span className="text-success font-bold uppercase">♡ HELP REQUESTED</span>
                     </div>
 
-                    <h2 className="text-xl font-bold text-gray-900 mb-1 line-clamp-1">
+                    <h2 className="text-xl font-display font-bold text-brown mb-1 line-clamp-1">
                       {req.title}
                     </h2>
 
-                    <p className="text-sm text-gray-500 mb-4">
-                      <span className="font-medium text-gray-700">{req.pet?.name}</span>
+                    <p className="text-sm text-muted mb-4">
+                      <span className="font-medium text-brown">{req.pet?.name}</span>
                       {req.pet?.breed && ` · ${req.pet.breed}`}
                       {req.author?.name && ` · Posted by ${req.author.name}`}
                     </p>
 
-                    <div className="space-y-2 text-xs text-gray-600 border-t border-gray-100 pt-3">
+                    <div className="space-y-2 text-xs text-brown-2 border-t border-line pt-3">
                       <div className="flex items-center gap-4">
                         <span className="flex items-center gap-1.5">
                           📅 {startDateFormatted}
@@ -111,13 +167,13 @@ export default async function SitterBoardPage() {
                   </div>
                 </div>
 
-                <div className="px-5 py-4 border-t border-gray-100 flex items-center justify-between bg-gray-50/50">
-                  <span className="text-xs font-medium text-gray-600">
-                    <strong className="text-gray-900">{req.applications?.length || 0}</strong> applicants
+                <div className="px-5 py-4 border-t border-line flex items-center justify-between bg-ivory/50">
+                  <span className="text-xs font-medium text-muted">
+                    <strong className="text-brown">{req.applications?.length || 0}</strong> applicants
                   </span>
                   <Link
                     href={`/sitter-board/${req.id}`}
-                    className="text-xs font-semibold text-gray-700 border border-gray-300 px-4 py-2 rounded-full hover:bg-gray-100 transition-colors"
+                    className={buttonClass({ variant: 'secondary', size: 'sm' })}
                   >
                     View details
                   </Link>
