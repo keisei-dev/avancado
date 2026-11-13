@@ -3,8 +3,8 @@
 
 export default function NewPetPage() {
   return (
-    <main className="flex flex-1 flex-col gap-2 p-8">
+    <section className="flex flex-col gap-2">
       <h1 className="text-2xl font-bold">Add Pet</h1>
-    </main>
+    </section>
   );
 }
