@@ -372,7 +372,7 @@ function DeleteCommunityPostConfirm({
     <Modal
       open={open}
       onClose={close}
-      eyebrow={<span className="text-coral">Permanent action</span>}
+      eyebrow={<span className="text-olive">Permanent action</span>}
       title="Delete this post?"
       lead="This permanently removes it from Avancado and cannot be undone. Use Hide if you might want to restore it later."
       footer={
