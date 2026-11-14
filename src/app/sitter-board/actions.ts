@@ -5,30 +5,6 @@ import { prisma } from '@/lib/prisma/client';
 import { getCurrentMember } from '@/lib/auth/member';
 import { revalidatePath } from 'next/cache';
 
-export async function getSitterRequests() {
-  try {
-    const requests = await prisma.sitterRequest.findMany({
-      where: { status: { not: RequestStatus.HIDDEN } },
-      orderBy: { createdAt: 'desc' },
-      include: {
-        pet: {
-          select: { id: true, name: true, breed: true, imageUrl: true },
-        },
-        author: {
-          select: { id: true, name: true },
-        },
-        applications: {
-          select: { id: true },
-        },
-      },
-    });
-    return { success: true, data: requests };
-  } catch (error) {
-    console.error('Failed to fetch sitter requests:', error);
-    return { success: false, error: 'Failed to fetch sitter requests.' };
-  }
-}
-
 const boardRequestInclude = {
   pet: {
     select: { id: true, name: true, breed: true, imageUrl: true, isVaccinated: true },
