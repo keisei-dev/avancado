@@ -21,8 +21,7 @@ export type MapPlace = {
   category: MapCategory;
 };
 
-// Leaflet needs the browser, so the map only loads on the client.
-const MapCore = dynamic(() => import('./MapCore'), {
+const MapCore = dynamic(() => import('./map-core'), {
   ssr: false,
   loading: () => <div className="h-full w-full animate-pulse bg-cream" />,
 });
