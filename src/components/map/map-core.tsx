@@ -1,46 +1,17 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
-import { renderToStaticMarkup } from 'react-dom/server';
 import Image from 'next/image';
 import Link from 'next/link';
 import { MapContainer, Marker, TileLayer } from 'react-leaflet';
 import L from 'leaflet';
 import { ArrowRight, LocateFixed, Minus, Plus } from 'lucide-react';
 import 'leaflet/dist/leaflet.css';
-import { categoryIcon, categoryLabel } from './categories';
+import { categoryLabel } from './categories';
+import { placePin, TILE_ATTRIBUTION, TILE_URL, userPin } from './pins';
 import type { MapPlace } from './map-explorer';
 
 const VANCOUVER: [number, number] = [49.2827, -123.1207];
-
-function pinIcon(slug: string, active: boolean) {
-  const size = active ? 40 : 30;
-  const Icon = categoryIcon(slug);
-  const svg = renderToStaticMarkup(<Icon size={active ? 18 : 14} strokeWidth={2.2} />);
-  return L.divIcon({
-    className: '',
-    iconSize: [size, size],
-    iconAnchor: [size / 2, size * 1.2],
-    html: `<div class="grid place-items-center rounded-[50%_50%_50%_0] -rotate-45 border-2 border-white shadow-[0_3px_8px_rgba(0,0,0,0.25)] ${
-      active ? 'bg-olive-hover' : 'bg-olive'
-    }" style="width:${size}px;height:${size}px"><span class="rotate-45 text-white">${svg}</span></div>`,
-  });
-}
-
-const iconCache = new Map<string, L.DivIcon>();
-
-function icons(slug: string, active: boolean) {
-  const key = `${slug}-${active}`;
-  if (!iconCache.has(key)) iconCache.set(key, pinIcon(slug, active));
-  return iconCache.get(key)!;
-}
-
-const userIcon = L.divIcon({
-  className: '',
-  iconSize: [16, 16],
-  iconAnchor: [8, 8],
-  html: '<span class="block size-4 rounded-full border-[3px] border-white bg-sky-ink shadow-[0_0_0_6px_rgba(29,74,112,0.2)]"></span>',
-});
 
 export default function MapCore({
   places,
@@ -68,7 +39,6 @@ export default function MapCore({
   useEffect(() => {
     if (!map || places.length === 0) return;
     lastSelectedId.current = selected?.id;
-    // Wait for the layout so the map knows its real size.
     const timer = setTimeout(() => {
       map.invalidateSize();
       map.fitBounds(
@@ -81,7 +51,6 @@ export default function MapCore({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [map]);
 
-  // Glide to a newly selected place.
   useEffect(() => {
     if (!map || !selected || selected.id === lastSelectedId.current) return;
     lastSelectedId.current = selected.id;
@@ -127,10 +96,9 @@ export default function MapCore({
         scrollWheelZoom
         className="z-0 h-full w-full bg-white!"
       >
-        {/* Light grey tone so the green pins stand out. */}
         <TileLayer
-          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+          attribution={TILE_ATTRIBUTION}
+          url={TILE_URL}
           className="grayscale"
           opacity={0.7}
         />
@@ -141,7 +109,7 @@ export default function MapCore({
             <Marker
               key={place.id}
               position={[place.latitude, place.longitude]}
-              icon={icons(place.category.slug, active)}
+              icon={placePin(place.category.slug, active)}
               zIndexOffset={active ? 1000 : 0}
               title={place.name}
               eventHandlers={{ click: () => onSelect(place) }}
@@ -149,7 +117,7 @@ export default function MapCore({
           );
         })}
 
-        {myLocation && <Marker position={myLocation} icon={userIcon} title="You are here" />}
+        {myLocation && <Marker position={myLocation} icon={userPin} title="You are here" />}
       </MapContainer>
 
       <div className="absolute top-4 right-4 z-[1000] flex flex-col gap-2">

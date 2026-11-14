@@ -12,7 +12,7 @@ import {
   ShieldCheck,
 } from 'lucide-react';
 import { ReportRequestButton } from '@/components/sitter-board/report-request-button';
-import { timeAgo } from '@/components/sitter-board/request-card';
+import { timeAgo } from '@/lib/sitter-board/format';
 import { Avatar } from '@/components/ui/avatar';
 import { buttonClass } from '@/components/ui/button';
 import { getCurrentMember, isAdminMember } from '@/lib/auth/member';
