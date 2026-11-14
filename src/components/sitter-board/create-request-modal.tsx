@@ -15,7 +15,7 @@ export type PetOption = {
   vaccinated?: boolean;
 };
 
-// Value sent to the server: ISO string built in the browser (user's local timezone)
+// ISO string in the user's local time
 export type SitterRequestFormData = {
   petIds: string[];
   title: string;
@@ -135,7 +135,7 @@ export function CreateSitterRequestModal({
     setError("");
     try {
       await onSubmit({
-        petIds: [selectedPetId], // Only one pet for now; keep the array as-is when multi-pet support is added
+        petIds: [selectedPetId], // One pet for now
         title: title.trim(),
         description: description.trim(),
         areaName: location.trim(),
@@ -319,7 +319,7 @@ export function CreateSitterRequestModal({
                 onChange={(e) => {
                   const v = e.target.value;
                   setStartDate(v);
-                  // If the end date ends up before the start date, snap it to the start date
+                  // Keep end date after start date
                   if (endDate && v && endDate < v) setEndDate(v);
                 }}
                 className={fieldClass}
