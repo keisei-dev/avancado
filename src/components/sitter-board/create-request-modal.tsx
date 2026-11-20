@@ -37,10 +37,10 @@ export type CreateSitterRequestModalProps = {
 const FORM_ID = "sitter-request-form";
 const MAX_DAYS = 30;
 
-const labelClass = "block text-xs font-medium text-muted mb-1.5";
+const labelClass = "block text-sm font-semibold text-brown mb-2";
 const fieldClass =
-  "w-full px-4 py-2.5 rounded-full border border-line bg-white text-brown placeholder:text-muted text-sm focus:outline-none focus-visible:shadow-focus";
-const sectionTitleClass = "block text-base font-semibold text-brown mb-3";
+  "w-full px-4 py-3 rounded-12 border border-line-strong bg-white text-brown placeholder:text-muted text-[15px] focus:outline-none focus-visible:shadow-focus";
+const sectionTitleClass = "block text-lg font-semibold text-brown mb-4";
 const warnClass = "mt-1.5 text-xs text-coral";
 
 function todayStr() {
@@ -227,7 +227,7 @@ export function CreateSitterRequestModal({
       <form
         id={FORM_ID}
         onSubmit={handleSubmit}
-        className="-mr-2 max-h-[calc(100dvh-300px)] min-h-[200px] overflow-y-auto pr-2"
+        className="-mx-3 max-h-[calc(100dvh-300px)] min-h-[200px] overflow-y-auto px-3 py-1"
       >
         {/* 1. Choose your pet */}
         <section className="border-b border-line pb-6">
@@ -260,7 +260,7 @@ export function CreateSitterRequestModal({
                     role="radio"
                     aria-checked={isSelected}
                     onClick={() => setSelectedPetId(pet.id)}
-                    className={`relative flex h-full items-center gap-3.5 p-3.5 rounded-20 border-2 text-left transition-all focus-visible:shadow-focus focus-visible:outline-none ${
+                    className={`relative flex h-full items-center gap-3.5 p-3.5 rounded-16 border-2 text-left transition-all focus-visible:shadow-focus focus-visible:outline-none ${
                       isSelected
                         ? "border-olive bg-sage-faint shadow-card"
                         : "border-line bg-white hover:border-beige"
@@ -430,7 +430,7 @@ export function CreateSitterRequestModal({
                 placeholder="Care instructions, routines, medication, and what you would like the sitter to do..."
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
-                className="w-full px-4 py-3 rounded-20 border border-line bg-white text-brown placeholder:text-muted text-sm focus:outline-none focus-visible:shadow-focus resize-none"
+                className={`${fieldClass} resize-none`}
               />
             </div>
           </div>
