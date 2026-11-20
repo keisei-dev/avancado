@@ -9,6 +9,10 @@ import { getMyPetDetail } from "@/lib/pets/queries";
 import { ArchivePetButton } from "@/components/my-pets/archive-pet-button";
 import { EditPetButton } from "@/components/my-pets/pet-form-modal";
 
+import { HealthCard } from "@/components/my-pets/health-card";
+import { LOG_CONFIG } from "@/lib/pets/log-config";
+import { LOG_KINDS } from "@/lib/pets/types";
+
 export default function PetDetailPage({
   params,
 }: PageProps<"/my-pets/[petId]">) {
@@ -49,6 +53,37 @@ async function PetDashboard({
           </div>
         }
       />
+      <section className="flex flex-col gap-3">
+        <h2 className="font-display text-xl font-bold text-brown">
+          Health & activity
+        </h2>
+        <div className="grid gap-4 tablet:grid-cols-2">
+          {LOG_KINDS.filter(
+            (kind) =>
+              !LOG_CONFIG[kind].dogsOnly || detail.pet.species === "DOG",
+          ).map((kind) => {
+            const logs = detail.logs[kind];
+            const latest = logs[0] ? LOG_CONFIG[kind].summary(logs[0]) : null;
+            return (
+              <HealthCard
+                key={kind}
+                petId={detail.pet.id}
+                kind={kind}
+                subtitle={`${logs.length} ${logs.length === 1 ? "entry" : "entries"}`}
+              >
+                {latest ? (
+                  <div>
+                    <p className="text-xs text-muted">{latest.meta}</p>
+                    <p className="font-semibold text-brown">{latest.title}</p>
+                  </div>
+                ) : (
+                  <p className="text-sm text-muted">Nothing logged yet.</p>
+                )}
+              </HealthCard>
+            );
+          })}
+        </div>
+      </section>
     </div>
   );
 }
