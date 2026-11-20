@@ -59,14 +59,14 @@ export function HealthCard({
       <div className="flex-1">{children}</div>
 
       <Link
-        href={`/my-pets/${petId}/logs?kind=${viewLabel}`}
+        href={`/my-pets/${petId}/logs?kind=${kind}`}
         className={buttonClass({
           variant: "text",
           size: "sm",
           className: "self-start",
         })}
       >
-        View log
+        {viewLabel}
       </Link>
     </article>
   );
