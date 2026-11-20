@@ -1,19 +1,11 @@
-// Notion flow: View applicants and confirm sitter, Cancel sitter, Mark sitting done and review, Delete my request
-// TODO: implement
+import { connection } from 'next/server';
+import { redirect } from 'next/navigation';
 
-import { Suspense } from "react";
-
-export default function MySitterRequestDetailPage({
+// Owners manage applicants on the request detail page
+export default async function MySitterRequestDetailPage({
   params,
-}: PageProps<"/sitter-board/my-requests/[requestId]">) {
-  return (
-    <main className="flex flex-1 flex-col gap-2 p-8">
-      <h1 className="text-2xl font-bold">Manage Sitter Request</h1>
-      <Suspense fallback={<p>Loading…</p>}>
-        {params.then(({ requestId }) => (
-          <p>Request ID: {requestId}</p>
-        ))}
-      </Suspense>
-    </main>
-  );
+}: PageProps<'/sitter-board/my-requests/[requestId]'>) {
+  await connection();
+  const { requestId } = await params;
+  redirect(`/sitter-board/${requestId}#applicants`);
 }

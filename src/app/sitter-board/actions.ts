@@ -5,6 +5,7 @@ import { assertNotAdmin } from '@/lib/auth/admin';
 import { createNotification } from '@/lib/notifications/create';
 import { prisma } from '@/lib/prisma/client';
 import { getCurrentMember } from '@/lib/auth/member';
+import { getSitterStats } from '@/lib/sitter-board/stats';
 import { revalidatePath } from 'next/cache';
 
 const boardRequestInclude = {
@@ -17,12 +18,28 @@ const boardRequestInclude = {
   applications: {
     select: { id: true, applicantId: true, status: true },
   },
+  reviews: {
+    select: { reviewerId: true, rating: true },
+  },
+} as const;
+
+// Owners also see who applied
+const mineInclude = {
+  ...boardRequestInclude,
+  applications: {
+    select: {
+      id: true,
+      applicantId: true,
+      status: true,
+      applicant: { select: { id: true, name: true, image: true, isVerified: true } },
+    },
+  },
 } as const;
 
 export async function getSitterBoard() {
   try {
     const member = await getCurrentMember();
-    const visible = { status: { not: RequestStatus.HIDDEN } };
+    const visible = { status: { notIn: [RequestStatus.HIDDEN, RequestStatus.CANCELLED] } };
 
     const [all, mine, applied] = await Promise.all([
       prisma.sitterRequest.findMany({
@@ -34,7 +51,7 @@ export async function getSitterBoard() {
         ? prisma.sitterRequest.findMany({
             where: { ...visible, authorId: member.id },
             orderBy: { createdAt: 'desc' },
-            include: boardRequestInclude,
+            include: mineInclude,
           })
         : [],
       member
@@ -46,9 +63,14 @@ export async function getSitterBoard() {
         : [],
     ]);
 
+    const sitterIds = mine.flatMap((r) =>
+      r.applications.filter((a) => a.status === ApplyStatus.ACCEPTED).map((a) => a.applicantId),
+    );
+    const sitterStats = await getSitterStats(sitterIds);
+
     return {
       success: true,
-      data: { memberId: member?.id ?? null, all, mine, applied },
+      data: { memberId: member?.id ?? null, all, mine, applied, sitterStats },
     };
   } catch (error) {
     console.error('Failed to fetch sitter board:', error);
@@ -255,5 +277,59 @@ export async function withdrawApplication(requestId: string) {
   } catch (error) {
     console.error('Failed to withdraw application:', error);
     return { success: false, error: 'Failed to withdraw your application.' };
+  }
+}
+
+// Sitter's quick review of the owner after a finished sitting
+export async function reviewOwner(input: { requestId: string; mood: 'good' | 'bad' }) {
+  try {
+    const blocked = await assertNotAdmin();
+    if (blocked) return { success: false, error: blocked };
+
+    const member = await getCurrentMember();
+    if (!member) return { success: false, error: 'Please log in.' };
+    if (input.mood !== 'good' && input.mood !== 'bad') {
+      return { success: false, error: 'Choose how it went.' };
+    }
+
+    const request = await prisma.sitterRequest.findUnique({
+      where: { id: input.requestId },
+      select: {
+        id: true,
+        authorId: true,
+        status: true,
+        applications: { where: { applicantId: member.id }, select: { status: true } },
+      },
+    });
+    if (
+      !request ||
+      request.status !== RequestStatus.DONE ||
+      request.applications[0]?.status !== ApplyStatus.ACCEPTED
+    ) {
+      return { success: false, error: 'You can review only sittings you finished.' };
+    }
+
+    const existing = await prisma.review.findUnique({
+      where: { requestId_reviewerId: { requestId: request.id, reviewerId: member.id } },
+      select: { id: true },
+    });
+    if (existing) return { success: false, error: "You've already reviewed this sitting." };
+
+    // Good = 5, Not great = 1
+    await prisma.review.create({
+      data: {
+        requestId: request.id,
+        reviewerId: member.id,
+        revieweeId: request.authorId,
+        rating: input.mood === 'good' ? 5 : 1,
+        comment: '',
+      },
+    });
+
+    revalidatePath('/sitter-board');
+    return { success: true };
+  } catch (error) {
+    console.error('Failed to review owner:', error);
+    return { success: false, error: 'Failed to send your feedback.' };
   }
 }
