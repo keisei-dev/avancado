@@ -1,6 +1,16 @@
 import Image from 'next/image';
 import Link from 'next/link';
-import { Calendar, Clock, Activity, MapPin, ShieldCheck } from 'lucide-react';
+import type { ReactNode } from 'react';
+import {
+  Activity,
+  Calendar,
+  Check,
+  CircleCheck,
+  Clock,
+  MapPin,
+  ShieldCheck,
+  UsersRound,
+} from 'lucide-react';
 import { buttonClass } from '@/components/ui/button';
 import { timeAgo } from '@/lib/sitter-board/format';
 import type { getSitterBoard } from '@/app/sitter-board/actions';
@@ -21,8 +31,8 @@ const STATUS_LABEL: Record<string, { label: string; className: string }> = {
 export type ApplicationStage = 'APPLIED' | 'MATCHED' | 'DONE';
 
 const STAGE_LABEL: Record<ApplicationStage, { label: string; className: string }> = {
-  APPLIED: { label: 'Applied', className: 'bg-sky-soft text-sky-ink' },
-  MATCHED: { label: 'Matched', className: 'bg-sky-soft text-sky-ink' },
+  APPLIED: { label: 'Applied', className: 'bg-sage-soft text-olive-dark' },
+  MATCHED: { label: 'Matched', className: 'bg-sage-soft text-olive-dark' },
   DONE: { label: 'Done', className: 'bg-success-soft text-success' },
 };
 
@@ -40,6 +50,39 @@ export function applicationStage(
   }
   if (app.status === 'PENDING' && req.status === 'OPEN') return 'APPLIED';
   return null;
+}
+
+function StatusNote({
+  tone,
+  icon,
+  title,
+  text,
+  action,
+}: {
+  tone: 'blue' | 'green';
+  icon: ReactNode;
+  title: string;
+  text: string;
+  action?: ReactNode;
+}) {
+  const colors =
+    tone === 'blue'
+      ? 'border-sky-line bg-sky-soft [&_strong]:text-sky-ink'
+      : 'border-success-line bg-success-soft [&_strong]:text-success';
+  return (
+    <div className={`mt-4 flex items-center gap-3 rounded-16 border px-4 py-3 ${colors}`}>
+      <span className="grid size-9 shrink-0 place-items-center rounded-12 bg-white text-brown-2">
+        {icon}
+      </span>
+      <div className="min-w-0 flex-1">
+        <strong className="block text-[15px] font-semibold">{title}</strong>
+        <span className="block truncate text-[13px] text-brown-2" title={text}>
+          {text}
+        </span>
+      </div>
+      {action && <div className="shrink-0">{action}</div>}
+    </div>
+  );
 }
 
 const timeFormat: Intl.DateTimeFormatOptions = {
@@ -124,11 +167,21 @@ export function RequestCard({
               : req.author?.name && ` · Posted by ${req.author.name}`}
           </p>
 
-          {req.pet?.isVaccinated && (
-            <span className="mb-4 inline-flex items-center gap-1 text-xs font-semibold px-2.5 py-1 rounded-full bg-success-soft text-success">
+          {req.pet && (
+            <span
+              className={`mb-4 inline-flex items-center gap-1 text-xs font-semibold px-2.5 py-1 rounded-full ${
+                req.pet.isVaccinated ? 'bg-success-soft text-success' : 'bg-amber-soft text-amber-ink'
+              }`}
+            >
               <ShieldCheck size={14} aria-hidden="true" />
-              Vaccinated
+              {req.pet.isVaccinated ? 'Vaccinated' : 'Not vaccinated yet'}
             </span>
+          )}
+
+          {variant === 'applied' && (
+            <p className="mb-4 text-[15px] leading-relaxed text-muted">
+              {req.description.length > 110 ? `${req.description.slice(0, 110)}…` : req.description}
+            </p>
           )}
 
           <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm text-brown-2 pt-1">
@@ -152,13 +205,59 @@ export function RequestCard({
               {req.areaName}
             </span>
           </div>
+
+          {stage === 'APPLIED' && (
+            <StatusNote
+              tone="blue"
+              icon={<UsersRound size={16} aria-hidden="true" />}
+              title="Application sent"
+              text="The owner will select the applicant."
+            />
+          )}
+          {stage === 'MATCHED' && (
+            <StatusNote
+              tone="blue"
+              icon={<UsersRound size={16} aria-hidden="true" />}
+              title="Matched with a neighbour"
+              text="You can chat with the owner in Messages."
+              action={
+                <Link href="/messages" className={buttonClass({ variant: 'primary', size: 'sm' })}>
+                  <Check size={14} aria-hidden="true" />
+                  Send message
+                </Link>
+              }
+            />
+          )}
+          {stage === 'DONE' && (
+            <StatusNote
+              tone="green"
+              icon={<CircleCheck size={16} aria-hidden="true" />}
+              title="Care completed"
+              text="This request is ready for mutual reviews."
+              action={
+                <button
+                  type="button"
+                  disabled
+                  title="Reviews are coming soon"
+                  className={buttonClass({ variant: 'primary', size: 'sm' })}
+                >
+                  <Check size={14} aria-hidden="true" />
+                  Review
+                </button>
+              }
+            />
+          )}
         </div>
       </div>
 
       <div className="mx-5 py-4 border-t border-line flex flex-wrap items-center justify-between gap-2">
         <span className="text-sm text-muted">
-          <strong className="text-brown">{req.applications.length}</strong>{' '}
-          {req.applications.length === 1 ? 'applicant' : 'applicants'}
+          {(variant !== 'applied' || stage === 'DONE') && (
+            <>
+              <strong className="text-brown">{req.applications.length}</strong>{' '}
+              {req.applications.length === 1 ? 'applicant' : 'applicants'}
+            </>
+          )}
         </span>
         <div className="flex gap-2">
           {variant === 'mine' && (

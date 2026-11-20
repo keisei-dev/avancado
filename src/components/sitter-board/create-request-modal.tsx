@@ -84,7 +84,7 @@ export function CreateSitterRequestModal({
   const [isSuccess, setIsSuccess] = useState(false);
   const [error, setError] = useState("");
 
-  // ---------- Date/time calculation ----------
+  // Date/time calculation
   const effectiveEndDate = endDate || startDate; // Empty end date means a single-day request
   const multiDay = Boolean(startDate) && effectiveEndDate > startDate;
   const sameDay = Boolean(startDate) && effectiveEndDate === startDate;
@@ -103,7 +103,7 @@ export function CreateSitterRequestModal({
       ? Math.round((endAtDate.getTime() - startAtDate.getTime()) / 60000)
       : null;
 
-  // ---------- Validation messages ----------
+  // Validation messages
   let dateError = "";
   let timeError = "";
   if (startDate && effectiveEndDate < startDate) {
@@ -158,7 +158,7 @@ export function CreateSitterRequestModal({
     onClose();
   };
 
-  // ---------- Success view ----------
+  // Success view
   if (isSuccess) {
     return (
       <Modal
@@ -203,7 +203,7 @@ export function CreateSitterRequestModal({
     );
   }
 
-  // ---------- Form view ----------
+  // Form view
   return (
     <Modal
       open={open}

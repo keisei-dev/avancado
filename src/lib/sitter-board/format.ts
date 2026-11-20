@@ -1,16 +1,19 @@
 export function timeAgo(date: Date) {
-  const seconds = Math.max(0, Math.floor((Date.now() - date.getTime()) / 1000));
-  const units: [number, string][] = [
-    [60 * 60 * 24 * 365, 'year'],
-    [60 * 60 * 24 * 30, 'month'],
-    [60 * 60 * 24 * 7, 'week'],
-    [60 * 60 * 24, 'day'],
-    [60 * 60, 'hour'],
-    [60, 'minute'],
-  ];
-  for (const [size, unit] of units) {
-    const n = Math.floor(seconds / size);
-    if (n >= 1) return `${n} ${unit}${n > 1 ? 's' : ''} ago`;
-  }
-  return 'just now';
+  const now = new Date();
+  const minutes = Math.max(0, Math.floor((now.getTime() - date.getTime()) / 60000));
+  if (minutes < 1) return 'Just now';
+  if (minutes < 60) return `${minutes} minute${minutes > 1 ? 's' : ''} ago`;
+
+  const hours = Math.floor(minutes / 60);
+  if (hours < 24) return `${hours} hour${hours > 1 ? 's' : ''} ago`;
+
+  const days = Math.floor(hours / 24);
+  if (days === 1) return 'Yesterday';
+  if (days < 7) return `${days} days ago`;
+
+  return date.toLocaleDateString('en-US', {
+    month: 'short',
+    day: 'numeric',
+    ...(date.getFullYear() !== now.getFullYear() && { year: 'numeric' }),
+  });
 }

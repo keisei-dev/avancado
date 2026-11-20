@@ -9,8 +9,10 @@ import {
   Clock,
   Heart,
   MapPin,
+  MessageCircle,
   ShieldCheck,
 } from 'lucide-react';
+import { ApplicationAction } from '@/components/sitter-board/application-buttons';
 import { ReportRequestButton } from '@/components/sitter-board/report-request-button';
 import { timeAgo } from '@/lib/sitter-board/format';
 import { Avatar } from '@/components/ui/avatar';
@@ -33,6 +35,14 @@ const timeFormat: Intl.DateTimeFormatOptions = {
 // DOG -> Dog
 function titleCase(value: string) {
   return value.charAt(0) + value.slice(1).toLowerCase();
+}
+
+function AsideStatus({ children }: { children: string }) {
+  return (
+    <p className="rounded-12 bg-ivory px-4 py-3.5 text-center text-sm font-semibold text-muted">
+      {children}
+    </p>
+  );
 }
 
 function petAge(birthDate: Date | null) {
@@ -75,16 +85,31 @@ export default async function SitterDetailPage({ params }: PageProps) {
     ? (req.durationMinutes / 60).toFixed(1).replace('.0', '')
     : null;
   const applicantCount = req.applications.length;
+  const myApplication = member
+    ? req.applications.find((a) => a.applicantId === member.id)
+    : undefined;
+
+  const startTime = start.toLocaleTimeString('en-US', timeFormat);
+  const endTime = end.toLocaleTimeString('en-US', timeFormat);
+  const when = sameDay
+    ? `${shortDate(start)} from ${startTime} – ${endTime}`
+    : `from ${shortDate(start)}, ${startTime} to ${shortDate(end)}, ${endTime}`;
+
+  const closedText =
+    myApplication?.status === 'REJECTED'
+      ? 'Your application was not selected'
+      : req.status === 'DONE'
+      ? 'This sitting is complete'
+      : req.status === 'CANCELLED'
+        ? 'This request was cancelled'
+        : 'This request has been matched';
 
   const facts = [
     { icon: Calendar, label: 'Date', parts: dateParts },
     {
       icon: Clock,
       label: 'Time',
-      parts: [
-        `${start.toLocaleTimeString('en-US', timeFormat)} –`,
-        end.toLocaleTimeString('en-US', timeFormat),
-      ],
+      parts: [`${startTime} –`, endTime],
     },
     { icon: Activity, label: 'Duration', parts: [durationHours ? `${durationHours} hours` : 'N/A'] },
     { icon: MapPin, label: 'Location', parts: [req.areaName] },
@@ -280,29 +305,41 @@ export default async function SitterDetailPage({ params }: PageProps) {
                 Log in to offer your help.
               </p>
             </>
+          ) : req.status === 'OPEN' && (!myApplication || myApplication.status === 'PENDING') ? (
+            <ApplicationAction
+              applied={!!myApplication}
+              requestId={req.id}
+              petName={pet.name}
+              vaccinated={pet.isVaccinated}
+              when={when}
+              areaName={req.areaName}
+              note={
+                !member.isVerified && (
+                  <p className="mt-3 flex items-start gap-1.5 text-sm text-muted">
+                    <ShieldCheck size={15} className="mt-0.5 shrink-0 text-olive" aria-hidden="true" />
+                    <span>
+                      Optional: owners often pick neighbours with a verified badge.{' '}
+                      <Link
+                        href="/profile/me/verification"
+                        className="font-semibold text-olive-dark hover:underline"
+                      >
+                        Get verified
+                      </Link>
+                    </span>
+                  </p>
+                )
+              }
+            />
+          ) : myApplication?.status === 'ACCEPTED' && req.status === 'MATCHED' ? (
+            <Link
+              href="/messages"
+              className={buttonClass({ variant: 'primary', size: 'md', className: 'w-full' })}
+            >
+              <MessageCircle size={17} aria-hidden="true" />
+              Send message
+            </Link>
           ) : (
-            <>
-              <button
-                type="button"
-                className={buttonClass({ variant: 'primary', size: 'md', className: 'w-full' })}
-              >
-                Apply
-              </button>
-              {!member.isVerified && (
-                <p className="mt-3 flex items-start gap-1.5 text-sm text-muted">
-                  <ShieldCheck size={15} className="mt-0.5 shrink-0 text-olive" aria-hidden="true" />
-                  <span>
-                    Optional: owners often pick neighbours with a verified badge.{' '}
-                    <Link
-                      href="/profile/me/verification"
-                      className="font-semibold text-olive-dark hover:underline"
-                    >
-                      Get verified
-                    </Link>
-                  </span>
-                </p>
-              )}
-            </>
+            <AsideStatus>{closedText}</AsideStatus>
           )}
         </aside>
       </div>
