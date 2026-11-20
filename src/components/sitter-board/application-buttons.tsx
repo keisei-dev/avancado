@@ -1,12 +1,12 @@
 'use client';
 
 import { useState, useTransition, type ReactNode } from 'react';
-import { ShieldCheck } from 'lucide-react';
-import { applyToSitterRequest, withdrawApplication } from '@/app/sitter-board/actions';
+import { Check, Frown, ShieldCheck, Smile } from 'lucide-react';
+import { applyToSitterRequest, reviewOwner, withdrawApplication } from '@/app/sitter-board/actions';
 import { Button } from '@/components/ui/button';
 import { Modal } from '@/components/ui/modal';
 import { Textarea } from '@/components/ui/text-area';
-import { Toast, useToast } from '@/components/ui/toast';
+import { Toast } from '@/components/ui/toast';
 
 type ApplyProps = {
   requestId: string;
@@ -22,7 +22,8 @@ export function ApplicationAction({
   note,
   ...props
 }: ApplyProps & { applied: boolean; note?: ReactNode }) {
-  const { message: toast, showToast } = useToast();
+  // New id each time so the toast can show again after withdraw + apply
+  const [toastId, setToastId] = useState<number | null>(null);
 
   return (
     <>
@@ -30,11 +31,11 @@ export function ApplicationAction({
         <WithdrawButton requestId={props.requestId} />
       ) : (
         <>
-          <ApplyButton {...props} onApplied={() => showToast('Application sent. Track it under Applied.')} />
+          <ApplyButton {...props} onApplied={() => setToastId(Date.now())} />
           {note}
         </>
       )}
-      {toast ? <Toast key={toast} message={toast} /> : null}
+      {toastId && <Toast key={toastId} message="Application sent. Track it under Applied." />}
     </>
   );
 }
@@ -61,7 +62,11 @@ function ApplyButton({
 
   const submit = () => {
     startTransition(async () => {
-      const result = await applyToSitterRequest({ requestId, message, available });
+      const result = await applyToSitterRequest({
+        requestId,
+        message,
+        available,
+      });
       if (!result.success) {
         setError(result.error ?? 'Something went wrong.');
         return;
@@ -97,7 +102,9 @@ function ApplyButton({
         </p>
 
         <label className="mt-4 block">
-          <span className="mb-2 block text-[13px] font-semibold text-brown">Message to the owner</span>
+          <span className="mb-2 block text-[13px] font-semibold text-brown">
+            Message to the owner
+          </span>
           <Textarea
             value={message}
             onValueChange={(value) => {
@@ -169,6 +176,116 @@ function WithdrawButton({ requestId }: { requestId: string }) {
           {error}
         </p>
       )}
+    </>
+  );
+}
+
+export function ReviewOwnerButton({
+  requestId,
+  petName,
+  ownerName,
+  onDone,
+}: {
+  requestId: string;
+  petName: string;
+  ownerName: string;
+  onDone: (message: string) => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const [mood, setMood] = useState<'good' | 'bad' | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [pending, startTransition] = useTransition();
+
+  const close = () => {
+    if (pending) return;
+    setOpen(false);
+    setError(null);
+  };
+
+  const submit = () => {
+    if (!mood) return;
+    startTransition(async () => {
+      const result = await reviewOwner({ requestId, mood });
+      if (!result.success) {
+        setError(result.error ?? 'Something went wrong.');
+        return;
+      }
+      setOpen(false);
+      onDone('Thanks for your feedback!');
+    });
+  };
+
+  const choices = [
+    {
+      key: 'good',
+      label: 'Good',
+      Icon: Smile,
+      active: 'border-olive bg-sage-faint text-olive-dark ring-4 ring-sage-soft',
+    },
+    {
+      key: 'bad',
+      label: 'Not great',
+      Icon: Frown,
+      active: 'border-coral bg-coral-soft text-coral ring-4 ring-coral-soft',
+    },
+  ] as const;
+
+  return (
+    <>
+      <Button size="sm" onClick={() => setOpen(true)}>
+        <Check size={14} aria-hidden="true" />
+        Review
+      </Button>
+
+      <Modal
+        open={open}
+        onClose={close}
+        eyebrow="Complete sitter request"
+        title={`How was your experience with ${petName}?`}
+        lead={
+          <span className="block sm:-mr-10 sm:whitespace-nowrap">
+            Your feedback about {ownerName.trim().split(/\s+/)[0]} helps neighbours trust each
+            other.
+          </span>
+        }
+        footer={
+          <>
+            <Button variant="secondary" onClick={close} disabled={pending}>
+              Not now
+            </Button>
+            <Button loading={pending} disabled={!mood} onClick={submit}>
+              Submit review
+            </Button>
+          </>
+        }
+      >
+        <div className="flex justify-center gap-3.5">
+          {choices.map(({ key, label, Icon, active }) => (
+            <button
+              key={key}
+              type="button"
+              aria-pressed={mood === key}
+              onClick={() => setMood(key)}
+              className={`grid w-32 justify-items-center gap-2 rounded-16 border px-4 py-5 text-[15px] font-semibold transition-colors ${
+                mood === key ? active : 'border-line bg-white text-brown-2 hover:border-beige'
+              }`}
+            >
+              <Icon
+                size={36}
+                strokeWidth={1.6}
+                className={mood === key ? '' : key === 'good' ? 'text-olive' : 'text-olive-soft'}
+                aria-hidden="true"
+              />
+              {label}
+            </button>
+          ))}
+        </div>
+        {error && (
+          <p role="alert" className="mt-3 text-sm text-coral">
+            {error}
+          </p>
+        )}
+      </Modal>
     </>
   );
 }

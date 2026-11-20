@@ -18,7 +18,9 @@ import {
   RequestCard,
   applicationStage,
   type BoardRequest,
+  type SitterStatsMap,
 } from '@/components/sitter-board/request-card';
+import { Toast } from '@/components/ui/toast';
 
 export type SitterBoardTab = 'all' | 'mine' | 'applied';
 
@@ -27,6 +29,7 @@ type BoardData = {
   all: BoardRequest[];
   mine: BoardRequest[];
   applied: BoardRequest[];
+  sitterStats: SitterStatsMap;
 };
 
 const TABS: { key: SitterBoardTab; label: string; href: string }[] = [
@@ -90,9 +93,29 @@ export function SitterBoardView({ tab: initialTab }: { tab: SitterBoardTab }) {
   };
 
   const loadBoard = async () => applyBoardResult(await getSitterBoard());
+  // New id each time so the same message can show again
+  const [notice, setNotice] = useState<{ id: number; text: string } | null>(null);
+  const showNotice = (text: string) => setNotice({ id: Date.now(), text });
+
+  const onCardChanged = (message: string) => {
+    showNotice(message);
+    loadBoard();
+  };
 
   useEffect(() => {
-    getSitterBoard().then(applyBoardResult);
+    getSitterBoard().then((result) => {
+      applyBoardResult(result);
+      // e.g. /sitter-board/my-requests?status=MATCHED or ?deleted=1
+      const params = new URLSearchParams(window.location.search);
+      const status = params.get('status');
+      if (status && STATUS_FILTERS.mine.options.some((o) => o.key === status)) {
+        setStatusFilters((prev) => ({ ...prev, mine: status }));
+      }
+      if (params.has('deleted')) {
+        setNotice({ id: Date.now(), text: 'Your sitter request was deleted.' });
+        window.history.replaceState(null, '', window.location.pathname);
+      }
+    });
     getMyPetsForSitter().then((result) => {
       if (result.success && result.data) setPets(result.data);
     });
@@ -238,7 +261,14 @@ export function SitterBoardView({ tab: initialTab }: { tab: SitterBoardTab }) {
           />
         ) : (
           visibleRequests.map((req) => (
-            <RequestCard key={req.id} req={req} variant={tab} memberId={board.memberId} />
+            <RequestCard
+              key={req.id}
+              req={req}
+              variant={tab}
+              memberId={board.memberId}
+              sitterStats={board.sitterStats}
+              onChanged={onCardChanged}
+            />
           ))
         )}
       </div>
@@ -257,6 +287,8 @@ export function SitterBoardView({ tab: initialTab }: { tab: SitterBoardTab }) {
           onViewMyRequest={() => router.push('/sitter-board/my-requests')}
         />
       )}
+
+      {notice && <Toast key={notice.id} message={notice.text} />}
     </main>
   );
 }

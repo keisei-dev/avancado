@@ -8,23 +8,32 @@ import {
   CircleCheck,
   Clock,
   MapPin,
+  MessageCircle,
   ShieldCheck,
+  Smile,
+  Frown,
+  Star,
   UsersRound,
+  X,
 } from 'lucide-react';
 import { buttonClass } from '@/components/ui/button';
-import { timeAgo } from '@/lib/sitter-board/format';
+import { ReviewOwnerButton } from '@/components/sitter-board/application-buttons';
+import { CancelMatchButton, ReviewSitterButton } from '@/components/sitter-board/owner-actions';
+import { SitterMini } from '@/components/sitter-board/sitter-mini';
+import { firstName, hoursLabel, statsLine, timeAgo } from '@/lib/sitter-board/format';
 import type { getSitterBoard } from '@/app/sitter-board/actions';
 
-export type BoardRequest = NonNullable<
-  Awaited<ReturnType<typeof getSitterBoard>>['data']
->['all'][number];
+type BoardData = NonNullable<Awaited<ReturnType<typeof getSitterBoard>>['data']>;
+export type BoardRequest = BoardData['all'][number] | BoardData['mine'][number];
+type OwnerRequest = BoardData['mine'][number];
+export type SitterStatsMap = BoardData['sitterStats'];
 
 type CardVariant = 'all' | 'mine' | 'applied';
 
 const STATUS_LABEL: Record<string, { label: string; className: string }> = {
   OPEN: { label: 'Open', className: 'bg-sage-soft text-olive-dark' },
-  MATCHED: { label: 'Matched', className: 'bg-sky-soft text-sky-ink' },
-  DONE: { label: 'Done', className: 'bg-cream text-brown-2' },
+  MATCHED: { label: 'Matched', className: 'bg-sage-soft text-olive-dark' },
+  DONE: { label: 'Done', className: 'bg-success-soft text-success' },
   CANCELLED: { label: 'Cancelled', className: 'bg-coral-soft text-coral' },
 };
 
@@ -59,16 +68,17 @@ function StatusNote({
   text,
   action,
 }: {
-  tone: 'blue' | 'green';
+  tone: 'blue' | 'green' | 'red';
   icon: ReactNode;
   title: string;
   text: string;
   action?: ReactNode;
 }) {
-  const colors =
-    tone === 'blue'
-      ? 'border-sky-line bg-sky-soft [&_strong]:text-sky-ink'
-      : 'border-success-line bg-success-soft [&_strong]:text-success';
+  const colors = {
+    blue: 'border-sky-line bg-sky-soft [&_strong]:text-sky-ink',
+    green: 'border-success-line bg-success-soft [&_strong]:text-success',
+    red: 'border-coral/30 bg-coral-soft [&_strong]:text-coral',
+  }[tone];
   return (
     <div className={`mt-4 flex items-center gap-3 rounded-16 border px-4 py-3 ${colors}`}>
       <span className="grid size-9 shrink-0 place-items-center rounded-12 bg-white text-brown-2">
@@ -95,24 +105,48 @@ export function RequestCard({
   req,
   variant,
   memberId,
+  sitterStats,
+  onChanged,
 }: {
   req: BoardRequest;
   variant: CardVariant;
   memberId: string | null;
+  sitterStats?: SitterStatsMap;
+  onChanged?: (message: string) => void;
 }) {
   const start = new Date(req.startAt);
   const end = new Date(req.endAt);
   const sameDay = start.toDateString() === end.toDateString();
 
-  const badgeDate = start.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+  const badgeMonth = start.toLocaleDateString('en-US', { month: 'short' });
   const longDate = (d: Date) => d.toLocaleDateString('en-US', { month: 'long', day: 'numeric' });
   const dateLabel = sameDay ? longDate(start) : `${longDate(start)} – ${longDate(end)}`;
 
-  const durationHours = req.durationMinutes
-    ? (req.durationMinutes / 60).toFixed(1).replace('.0', '')
-    : null;
+  const duration = req.durationMinutes ? hoursLabel(req.durationMinutes) : null;
 
   const isMine = memberId !== null && req.author?.id === memberId;
+
+  // Only My requests data has applicant names
+  const ownerApps = variant === 'mine' ? (req as OwnerRequest).applications : [];
+  const owner = variant === 'mine';
+  const matched = ownerApps.find((a) => a.status === 'ACCEPTED');
+  const cancelled =
+    req.status === 'OPEN' ? ownerApps.find((a) => a.status === 'REJECTED') : undefined;
+  const myReview = req.reviews.find((r) => r.reviewerId === memberId);
+  const done = (message: string) => onChanged?.(message);
+  const sendMessageClass = buttonClass({
+    variant: 'secondary',
+    size: 'sm',
+    className: 'rounded-12! border-olive! text-olive-dark',
+  });
+  const reviewProps = matched && {
+    requestId: req.id,
+    sitter: matched.applicant,
+    petName: req.pet?.name ?? 'your pet',
+    dateLabel,
+    durationLabel: duration ?? '',
+    onDone: done,
+  };
 
   const stage = variant === 'applied' ? applicationStage(req, memberId) : null;
   const status = variant === 'applied' ? (stage ? STAGE_LABEL[stage] : null) : STATUS_LABEL[req.status];
@@ -135,7 +169,8 @@ export function RequestCard({
             </div>
           )}
           <span className="absolute top-4 left-4 bg-white/90 backdrop-blur-sm text-brown text-xs font-semibold px-3 py-1.5 rounded-full shadow-card">
-            {badgeDate}
+            <span className="font-medium text-brown-2">{badgeMonth}</span>{' '}
+            <strong className="text-[15px] font-bold">{start.getDate()}</strong>
           </span>
         </div>
 
@@ -155,7 +190,7 @@ export function RequestCard({
             </span>
           </div>
 
-          <h2 className="text-xl font-display font-bold text-brown mb-1 line-clamp-1">
+          <h2 className="text-xl font-display font-semibold tracking-[-0.02em] text-brown mb-1 line-clamp-1">
             {req.title}
           </h2>
 
@@ -194,10 +229,10 @@ export function RequestCard({
               {start.toLocaleTimeString('en-US', timeFormat)} –{' '}
               {end.toLocaleTimeString('en-US', timeFormat)}
             </span>
-            {durationHours && (
+            {duration && (
               <span className="flex items-center gap-2">
                 <Activity size={16} className="text-olive-soft shrink-0" aria-hidden="true" />
-                {durationHours} hours
+                {duration}
               </span>
             )}
             <span className="flex items-center gap-2">
@@ -206,6 +241,53 @@ export function RequestCard({
             </span>
           </div>
 
+          {owner && cancelled && (
+            <StatusNote
+              tone="red"
+              icon={<X size={16} aria-hidden="true" />}
+              title={`Match with ${firstName(cancelled.applicant.name)} was cancelled`}
+              text="Your request is open again. Choose another applicant."
+            />
+          )}
+          {owner && req.status === 'MATCHED' && matched && (
+            <div className="mt-4">
+              <SitterMini
+                name={matched.applicant.name}
+                image={matched.applicant.image}
+                verified={matched.applicant.isVerified}
+                label="Selected sitter"
+                stats={statsLine(sitterStats?.[matched.applicantId])}
+                action={
+                  <Link href="/messages" className={sendMessageClass}>
+                    <MessageCircle size={14} aria-hidden="true" />
+                    Send message
+                  </Link>
+                }
+              />
+            </div>
+          )}
+          {owner && req.status === 'DONE' && matched && reviewProps && (
+            <div className="mt-4">
+              <SitterMini
+                tone="green"
+                name={matched.applicant.name}
+                image={matched.applicant.image}
+                verified={matched.applicant.isVerified}
+                label="Completed with"
+                stats={statsLine(sitterStats?.[matched.applicantId])}
+                action={
+                  myReview ? (
+                    <span className="inline-flex items-center gap-1.5 text-sm font-semibold text-olive-dark">
+                      <Star size={15} className="text-star" fill="currentColor" aria-hidden="true" />
+                      You rated {myReview.rating}
+                    </span>
+                  ) : (
+                    <ReviewSitterButton {...reviewProps} label="Review" />
+                  )
+                }
+              />
+            </div>
+          )}
           {stage === 'APPLIED' && (
             <StatusNote
               tone="blue"
@@ -233,17 +315,29 @@ export function RequestCard({
               tone="green"
               icon={<CircleCheck size={16} aria-hidden="true" />}
               title="Care completed"
-              text="This request is ready for mutual reviews."
+              text={
+                myReview
+                  ? 'Thanks for reviewing this sitting.'
+                  : 'This request is ready for mutual reviews.'
+              }
               action={
-                <button
-                  type="button"
-                  disabled
-                  title="Reviews are coming soon"
-                  className={buttonClass({ variant: 'primary', size: 'sm' })}
-                >
-                  <Check size={14} aria-hidden="true" />
-                  Review
-                </button>
+                myReview ? (
+                  <span className="inline-flex items-center gap-1.5 text-sm font-semibold text-success">
+                    {myReview.rating >= 4 ? (
+                      <Smile size={16} aria-hidden="true" />
+                    ) : (
+                      <Frown size={16} aria-hidden="true" />
+                    )}
+                    Reviewed
+                  </span>
+                ) : (
+                  <ReviewOwnerButton
+                    requestId={req.id}
+                    petName={req.pet?.name ?? 'the pet'}
+                    ownerName={req.author?.name ?? 'the owner'}
+                    onDone={done}
+                  />
+                )
               }
             />
           )}
@@ -260,9 +354,9 @@ export function RequestCard({
           )}
         </span>
         <div className="flex gap-2">
-          {variant === 'mine' && (
+          {owner && req.status === 'OPEN' && (
             <Link
-              href={`/sitter-board/my-requests/${req.id}`}
+              href={`/sitter-board/${req.id}#applicants`}
               className={buttonClass({ variant: 'secondary', size: 'sm' })}
             >
               View applicants
@@ -276,6 +370,13 @@ export function RequestCard({
           </Link>
         </div>
       </div>
+
+      {owner && req.status === 'MATCHED' && matched && reviewProps && (
+        <div className="mx-5 mb-5 grid grid-cols-2 gap-2.5">
+          <CancelMatchButton requestId={req.id} sitterName={matched.applicant.name} onDone={done} />
+          <ReviewSitterButton {...reviewProps} label="Mark done" className="w-full" />
+        </div>
+      )}
     </div>
   );
 }

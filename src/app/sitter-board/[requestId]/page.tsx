@@ -6,15 +6,20 @@ import {
   ArrowLeft,
   Calendar,
   ChevronRight,
+  CircleCheck,
   Clock,
   Heart,
   MapPin,
   MessageCircle,
   ShieldCheck,
 } from 'lucide-react';
+import { ApplicantList } from '@/components/sitter-board/applicant-list';
 import { ApplicationAction } from '@/components/sitter-board/application-buttons';
+import { DeleteRequestButton } from '@/components/sitter-board/owner-actions';
 import { ReportRequestButton } from '@/components/sitter-board/report-request-button';
-import { timeAgo } from '@/lib/sitter-board/format';
+import { SitterMini } from '@/components/sitter-board/sitter-mini';
+import { firstName, hoursLabel, statsLine, timeAgo } from '@/lib/sitter-board/format';
+import { getSitterStats } from '@/lib/sitter-board/stats';
 import { Avatar } from '@/components/ui/avatar';
 import { buttonClass } from '@/components/ui/button';
 import { getCurrentMember, isAdminMember } from '@/lib/auth/member';
@@ -80,20 +85,38 @@ export default async function SitterDetailPage({ params }: PageProps) {
   const end = new Date(req.endAt);
   const sameDay = start.toDateString() === end.toDateString();
   const shortDate = (d: Date) => d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-  const dateParts = sameDay ? [shortDate(start)] : [`${shortDate(start)} –`, shortDate(end)];
-  const durationHours = req.durationMinutes
-    ? (req.durationMinutes / 60).toFixed(1).replace('.0', '')
-    : null;
+  const longDate = (d: Date) => d.toLocaleDateString('en-US', { month: 'long', day: 'numeric' });
+  const dateParts = sameDay ? [longDate(start)] : [`${longDate(start)} –`, longDate(end)];
   const applicantCount = req.applications.length;
   const myApplication = member
     ? req.applications.find((a) => a.applicantId === member.id)
     : undefined;
 
+  const stats = isMine ? await getSitterStats(req.applications.map((a) => a.applicantId)) : {};
+  const matched = req.applications.find((a) => a.status === 'ACCEPTED');
+  const sendMessageClass = buttonClass({
+    variant: 'secondary',
+    size: 'sm',
+    className: 'rounded-12! border-olive! text-olive-dark',
+  });
+
+  const applicants = req.applications.map((a) => ({
+    id: a.id,
+    userId: a.applicant.id,
+    name: a.applicant.name,
+    image: a.applicant.image,
+    isVerified: a.applicant.isVerified,
+    message: a.message,
+    appliedLabel: `Applied ${shortDate(a.createdAt)}`,
+    cancelled: a.status === 'REJECTED',
+    stats: stats[a.applicantId],
+  }));
+
   const startTime = start.toLocaleTimeString('en-US', timeFormat);
   const endTime = end.toLocaleTimeString('en-US', timeFormat);
   const when = sameDay
-    ? `${shortDate(start)} from ${startTime} – ${endTime}`
-    : `from ${shortDate(start)}, ${startTime} to ${shortDate(end)}, ${endTime}`;
+    ? `${longDate(start)} from ${startTime} – ${endTime}`
+    : `from ${longDate(start)}, ${startTime} to ${longDate(end)}, ${endTime}`;
 
   const closedText =
     myApplication?.status === 'REJECTED'
@@ -111,7 +134,7 @@ export default async function SitterDetailPage({ params }: PageProps) {
       label: 'Time',
       parts: [`${startTime} –`, endTime],
     },
-    { icon: Activity, label: 'Duration', parts: [durationHours ? `${durationHours} hours` : 'N/A'] },
+    { icon: Activity, label: 'Duration', parts: [req.durationMinutes ? hoursLabel(req.durationMinutes) : 'N/A'] },
     { icon: MapPin, label: 'Location', parts: [req.areaName] },
   ];
 
@@ -131,6 +154,7 @@ export default async function SitterDetailPage({ params }: PageProps) {
       </Link>
 
       <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_340px] gap-6 items-start">
+        <div className="min-w-0">
         {/* Main card */}
         <article className="bg-white rounded-2xl border border-line shadow-card overflow-hidden">
           <div className="relative w-full h-[360px] bg-ivory">
@@ -189,7 +213,31 @@ export default async function SitterDetailPage({ params }: PageProps) {
               {req.description}
             </p>
 
-            {isAdmin ? null : (
+            {isMine && req.status === 'MATCHED' && matched && (
+              <div className="mb-6">
+                <SitterMini
+                  name={matched.applicant.name}
+                  image={matched.applicant.image}
+                  verified={matched.applicant.isVerified}
+                  label="Selected sitter"
+                  stats={statsLine(stats[matched.applicantId])}
+                  action={
+                    <Link href="/messages" className={sendMessageClass}>
+                      <MessageCircle size={14} aria-hidden="true" />
+                      Send message
+                    </Link>
+                  }
+                />
+              </div>
+            )}
+
+            {isAdmin || (isMine && req.status === 'CANCELLED') ? null : isMine ? (
+              <DeleteRequestButton
+                requestId={req.id}
+                title={req.title}
+                applicantCount={applicantCount}
+              />
+            ) : (
               <ReportRequestButton
                 requestId={req.id}
                 signedIn={Boolean(member)}
@@ -199,8 +247,19 @@ export default async function SitterDetailPage({ params }: PageProps) {
           </div>
         </article>
 
+        {isMine && (
+          <ApplicantList
+            open={req.status === 'OPEN'}
+            requestId={req.id}
+            petName={pet.name}
+            dateLabel={dateParts.join(' ')}
+            applicants={applicants}
+          />
+        )}
+        </div>
+
         {/* Pet + action card */}
-        <aside className="bg-white rounded-2xl border border-line shadow-card p-6">
+        <aside className="bg-white rounded-2xl border border-line shadow-card p-6 lg:sticky lg:top-24">
           <div className="flex items-center gap-4 pb-5 border-b border-line">
             <div className="relative size-[72px] shrink-0 rounded-16 overflow-hidden bg-ivory">
               {pet.imageUrl && (
@@ -285,13 +344,28 @@ export default async function SitterDetailPage({ params }: PageProps) {
             <ChevronRight size={18} className="text-muted" aria-hidden="true" />
           </Link>
 
-          {isAdmin ? null : isMine ? (
-            <Link
-              href={`/sitter-board/my-requests/${req.id}`}
+          {isAdmin ? null : isMine && req.status === 'OPEN' ? (
+            <a
+              href="#applicants"
               className={buttonClass({ variant: 'primary', size: 'md', className: 'w-full' })}
             >
               Review applicants ({applicantCount})
+            </a>
+          ) : isMine && req.status === 'MATCHED' && matched ? (
+            <Link
+              href="/messages"
+              className={buttonClass({ variant: 'primary', size: 'md', className: 'w-full' })}
+            >
+              <MessageCircle size={17} aria-hidden="true" />
+              Message {firstName(matched.applicant.name)}
             </Link>
+          ) : isMine && req.status === 'DONE' ? (
+            <p className="flex items-center justify-center gap-2 rounded-12 bg-success-soft px-4 py-3.5 text-sm font-semibold text-success">
+              <CircleCheck size={16} aria-hidden="true" />
+              Sitting completed
+            </p>
+          ) : isMine ? (
+            <AsideStatus>{closedText}</AsideStatus>
           ) : !member ? (
             <>
               <Link
