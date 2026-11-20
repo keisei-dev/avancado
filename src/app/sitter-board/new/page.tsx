@@ -1,5 +1,5 @@
 // Notion flow: Sitter Board: Create a sitter request
-// TODO: implement
+// TODO: check page flow. Requests are created in the board modal for now.
 
 import { redirect } from 'next/navigation';
 import { getCurrentMember, isAdminMember } from '@/lib/auth/member';
