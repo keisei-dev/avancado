@@ -1,10 +1,13 @@
-// Notion flow: Message: Manage messages
-// TODO: implement
+import { redirect } from "next/navigation";
+import { getCurrentMember, isAdminMember } from "@/lib/auth/member";
+import { getConversations } from "@/lib/messages/queries";
+import { MessagesPage } from "@/components/messages/messages-page";
 
-export default function MessagesPage() {
-  return (
-    <main className="flex flex-1 flex-col gap-2 p-8">
-      <h1 className="text-2xl font-bold">Messages</h1>
-    </main>
-  );
+export const instant = false;
+export default async function Page() {
+  const member = await getCurrentMember();
+  if (!member) redirect("/login");
+  if (isAdminMember(member)) redirect("/admin");
+  const conversations = await getConversations(member.id);
+  return <MessagesPage conversations={conversations} memberId={member.id} />;
 }
