@@ -160,58 +160,58 @@ export function PostCard({
           </p>
         </div>
         {mine || !member?.isAdmin ? (
-        <div className="relative">
-          <button
-            aria-label="Post actions"
-            aria-expanded={menu}
-            onClick={() => setMenu(!menu)}
-            onKeyDown={(e) => {
-              if (e.key === "Escape") setMenu(false);
-            }}
-            className="grid size-9 place-items-center rounded-12 text-muted hover:bg-ivory"
-          >
-            <MoreVertical size={17} />
-          </button>
-          {menu && (
-            <>
-              <button
-                aria-label="Close post actions"
-                onClick={() => setMenu(false)}
-                className="fixed inset-0 z-10 cursor-default"
-              />
-              <div className="absolute top-10 right-0 z-20 w-40 rounded-12 border border-line bg-white p-1.5 shadow-raised">
-                {mine ? (
-                  <>
-                    {member?.isAdmin ? null : (
+          <div className="relative">
+            <button
+              aria-label="Post actions"
+              aria-expanded={menu}
+              onClick={() => setMenu(!menu)}
+              onKeyDown={(e) => {
+                if (e.key === "Escape") setMenu(false);
+              }}
+              className="grid size-9 place-items-center rounded-12 text-muted hover:bg-ivory"
+            >
+              <MoreVertical size={17} />
+            </button>
+            {menu && (
+              <>
+                <button
+                  aria-label="Close post actions"
+                  onClick={() => setMenu(false)}
+                  className="fixed inset-0 z-10 cursor-default"
+                />
+                <div className="absolute top-10 right-0 z-20 w-40 rounded-12 border border-line bg-white p-1.5 shadow-raised">
+                  {mine ? (
+                    <>
+                      {member?.isAdmin ? null : (
+                        <button
+                          onClick={() => open("edit")}
+                          className="flex w-full items-center gap-2 rounded-10 p-2 text-sm hover:bg-ivory"
+                        >
+                          <Edit3 size={14} />
+                          Edit
+                        </button>
+                      )}
                       <button
-                        onClick={() => open("edit")}
-                        className="flex w-full items-center gap-2 rounded-10 p-2 text-sm hover:bg-ivory"
+                        onClick={() => open("delete")}
+                        className="flex w-full items-center gap-2 rounded-10 p-2 text-sm text-coral hover:bg-ivory"
                       >
-                        <Edit3 size={14} />
-                        Edit
+                        <Trash2 size={14} />
+                        Delete
                       </button>
-                    )}
+                    </>
+                  ) : (
                     <button
-                      onClick={() => open("delete")}
-                      className="flex w-full items-center gap-2 rounded-10 p-2 text-sm text-coral hover:bg-ivory"
+                      onClick={() => open("report")}
+                      className="flex w-full items-center gap-2 rounded-10 p-2 text-sm hover:bg-ivory"
                     >
-                      <Trash2 size={14} />
-                      Delete
+                      <Flag size={14} />
+                      Report
                     </button>
-                  </>
-                ) : (
-                  <button
-                    onClick={() => open("report")}
-                    className="flex w-full items-center gap-2 rounded-10 p-2 text-sm hover:bg-ivory"
-                  >
-                    <Flag size={14} />
-                    Report
-                  </button>
-                )}
-              </div>
-            </>
-          )}
-        </div>
+                  )}
+                </div>
+              </>
+            )}
+          </div>
         ) : null}
       </div>
       <img
@@ -250,16 +250,25 @@ export function PostCard({
           <strong className="mr-1 font-semibold text-brown">{firstName}</strong>
           {post.caption}
         </p>
-        {lost && !mine && (
+        {lost && !mine && !member?.isAdmin && (
           <Button
             className="mt-4 w-full"
             loading={pending}
             onClick={() => {
-              if (requireAuth())
-                run(
-                  () => messagePostAuthor(post.id),
-                  () => {},
-                );
+              if (!requireAuth()) return;
+              setError("");
+              startTransition(async () => {
+                try {
+                  const result = await messagePostAuthor(post.id);
+                  if (result.error) setError(result.error);
+                  else if (result.conversationId)
+                    router.push(`/messages/${result.conversationId}`);
+                } catch {
+                  setError(
+                    "Conversation could not be opened. Please try again.",
+                  );
+                }
+              });
             }}
           >
             <Send size={16} />

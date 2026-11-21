@@ -218,6 +218,8 @@ export async function reportCommunityPost(postId: string, reason: string) {
 }
 
 export async function messagePostAuthor(postId: string) {
+  const blocked = await assertNotAdmin();
+  if (blocked) return { error: blocked };
   const member = await getCurrentMember();
   if (!member) redirect("/login");
   if (!uuid.test(postId)) return { error: "Invalid post." };
@@ -254,5 +256,5 @@ export async function messagePostAuthor(postId: string) {
   } catch {
     return { error: "Conversation could not be opened." };
   }
-  redirect(`/messages/${conversationId}`);
+  return { error: "", conversationId };
 }
