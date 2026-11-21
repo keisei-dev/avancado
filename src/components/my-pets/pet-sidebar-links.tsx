@@ -30,10 +30,10 @@ export function PetSidebarLinks({ pets }: PetSidebarLinksProps) {
             href={`/my-pets/${pet.id}`}
             aria-current={active ? "page" : undefined}
             className={cn(
-              "flex min-w-48 items-center gap-3 rounded-16 border p-2.5 transition-colors tablet:min-w-0",
+              "flex min-w-52 items-center gap-3 rounded-16 border p-2.5 transition-colors tablet:min-w-0",
               active
-                ? "border-olive bg-sage-faint"
-                : "border-line bg-white hover:border-line-strong",
+                ? "border-sage bg-sage-faint"
+                : "border-transparent hover:bg-ivory",
             )}
           >
             <PetPhoto name={pet.name} imageUrl={pet.imageUrl} />
