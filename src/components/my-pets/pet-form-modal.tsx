@@ -4,7 +4,8 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Pencil, Plus } from "lucide-react";
+import { Archive, Pencil, Plus } from "lucide-react";
+import { archivePet } from "@/app/my-pets/actions";
 import { Button } from "@/components/ui/button";
 import { Modal } from "@/components/ui/modal";
 import type { PetProfile } from "@/lib/pets/types";
@@ -53,6 +54,35 @@ export function EditPetButton({
 }) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
+  // One modal, two steps: the edit form, then the archive confirmation.
+  const [step, setStep] = useState<"edit" | "archive">("edit");
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState("");
+
+  function close() {
+    if (busy) return;
+    setOpen(false);
+    setStep("edit");
+    setError("");
+  }
+
+  function backToForm() {
+    setStep("edit");
+    setError("");
+  }
+
+  async function archive() {
+    setBusy(true);
+    const result = await archivePet(pet.id);
+    setBusy(false);
+    if (result.error) {
+      setError(result.error);
+      return;
+    }
+    setOpen(false);
+    setStep("edit");
+    router.push("/my-pets");
+  }
 
   return (
     <>
@@ -60,23 +90,67 @@ export function EditPetButton({
         <Pencil size={15} aria-hidden="true" />
         Edit profile
       </Button>
-      <Modal
-        open={open}
-        onClose={() => setOpen(false)}
-        eyebrow="My pets"
-        title={`Edit ${pet.name}`}
-        size="wide"
-      >
-        <PetForm
-          memberId={memberId}
-          pet={pet}
-          onCancel={() => setOpen(false)}
-          onDone={() => {
-            setOpen(false);
-            router.refresh();
-          }}
-        />
-      </Modal>
+
+      {step === "edit" ? (
+        <Modal
+          key="edit"
+          open={open}
+          onClose={close}
+          eyebrow="My pets"
+          title={`Edit ${pet.name}`}
+          size="wide"
+        >
+          <PetForm
+            memberId={memberId}
+            pet={pet}
+            onCancel={close}
+            onDone={() => {
+              close();
+              router.refresh();
+            }}
+            extraAction={
+              <Button
+                variant="text"
+                size="sm"
+                onClick={() => setStep("archive")}
+                className="text-coral hover:text-coral-hover"
+              >
+                <Archive size={15} aria-hidden="true" />
+                Archive pet
+              </Button>
+            }
+          />
+        </Modal>
+      ) : (
+        <Modal
+          key="archive"
+          open={open}
+          onClose={close}
+          title={`Archive ${pet.name}?`}
+          lead={`${pet.name} will be hidden from My Pets. Health records are kept.`}
+          footer={
+            <>
+              <Button variant="secondary" onClick={backToForm} disabled={busy}>
+                Back
+              </Button>
+              <Button variant="danger" loading={busy} onClick={archive}>
+                Archive
+              </Button>
+            </>
+          }
+        >
+          {error ? (
+            <p role="alert" className="text-sm text-coral">
+              {error}
+            </p>
+          ) : (
+            <p className="text-sm text-muted">
+              Pets with an open or matched sitter request can&apos;t be
+              archived.
+            </p>
+          )}
+        </Modal>
+      )}
     </>
   );
 }
