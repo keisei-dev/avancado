@@ -11,7 +11,7 @@ export const metadata = { title: "Add a pet" };
 export default function NewPetPage() {
   return (
     <section className="flex flex-col gap-4">
-      <h1 className="font-display text-2xl font-bold text-brown">Add a pet</h1>
+      <h2 className="font-display text-2xl font-bold text-brown">Add a pet</h2>
       <Suspense
         fallback={
           <p className="text-sm text-muted" role="status">

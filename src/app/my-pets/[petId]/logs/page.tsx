@@ -66,9 +66,9 @@ async function LogList({
           <p className="text-xs font-semibold tracking-[0.06em] text-olive-dark uppercase">
             {detail.pet.name}
           </p>
-          <h1 className="font-display text-2xl font-bold text-brown">
+          <h2 className="text-[28px] font-display text-2xl font-bold text-brown">
             {config.title}
-          </h1>
+          </h2>
         </div>
         <AddLogButton petId={petId} kind={kind} />
       </header>
