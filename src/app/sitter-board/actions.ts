@@ -1,8 +1,11 @@
 'use server';
 
-import { RequestStatus } from '@/generated/prisma/client';
+import { ApplyStatus, RequestStatus } from '@/generated/prisma/client';
+import { assertNotAdmin } from '@/lib/auth/admin';
+import { createNotification } from '@/lib/notifications/create';
 import { prisma } from '@/lib/prisma/client';
 import { getCurrentMember } from '@/lib/auth/member';
+import { getSitterStats } from '@/lib/sitter-board/stats';
 import { revalidatePath } from 'next/cache';
 
 const boardRequestInclude = {
@@ -15,12 +18,28 @@ const boardRequestInclude = {
   applications: {
     select: { id: true, applicantId: true, status: true },
   },
+  reviews: {
+    select: { reviewerId: true, rating: true },
+  },
+} as const;
+
+// Owners also see who applied
+const mineInclude = {
+  ...boardRequestInclude,
+  applications: {
+    select: {
+      id: true,
+      applicantId: true,
+      status: true,
+      applicant: { select: { id: true, name: true, image: true, isVerified: true } },
+    },
+  },
 } as const;
 
 export async function getSitterBoard() {
   try {
     const member = await getCurrentMember();
-    const visible = { status: { not: RequestStatus.HIDDEN } };
+    const visible = { status: { notIn: [RequestStatus.HIDDEN, RequestStatus.CANCELLED] } };
 
     const [all, mine, applied] = await Promise.all([
       prisma.sitterRequest.findMany({
@@ -32,7 +51,7 @@ export async function getSitterBoard() {
         ? prisma.sitterRequest.findMany({
             where: { ...visible, authorId: member.id },
             orderBy: { createdAt: 'desc' },
-            include: boardRequestInclude,
+            include: mineInclude,
           })
         : [],
       member
@@ -44,9 +63,14 @@ export async function getSitterBoard() {
         : [],
     ]);
 
+    const sitterIds = mine.flatMap((r) =>
+      r.applications.filter((a) => a.status === ApplyStatus.ACCEPTED).map((a) => a.applicantId),
+    );
+    const sitterStats = await getSitterStats(sitterIds);
+
     return {
       success: true,
-      data: { memberId: member?.id ?? null, all, mine, applied },
+      data: { memberId: member?.id ?? null, all, mine, applied, sitterStats },
     };
   } catch (error) {
     console.error('Failed to fetch sitter board:', error);
@@ -154,5 +178,158 @@ export async function createSitterRequest(input: {
   } catch (error) {
     console.error('Failed to create sitter request:', error);
     return { success: false, error: 'Failed to create request.' };
+  }
+}
+
+export async function applyToSitterRequest(input: {
+  requestId: string;
+  message: string;
+  available: boolean;
+}) {
+  try {
+    const blocked = await assertNotAdmin();
+    if (blocked) return { success: false, error: blocked };
+
+    const member = await getCurrentMember();
+    if (!member) return { success: false, error: 'Please log in to apply.' };
+
+    const message = input.message.trim();
+    if (!message) return { success: false, error: 'Write a short message to the owner.' };
+    if (message.length > 500) {
+      return { success: false, error: 'Keep your message under 500 characters.' };
+    }
+    if (!input.available) {
+      return { success: false, error: 'Please confirm you are available.' };
+    }
+
+    const request = await prisma.sitterRequest.findUnique({
+      where: { id: input.requestId },
+      select: { id: true, authorId: true, status: true, pet: { select: { name: true } } },
+    });
+    if (!request || request.status === RequestStatus.HIDDEN) {
+      return { success: false, error: 'This request could not be found.' };
+    }
+    if (request.authorId === member.id) {
+      return { success: false, error: "You can't apply to your own request." };
+    }
+    if (request.status !== RequestStatus.OPEN) {
+      return { success: false, error: 'This request is no longer open.' };
+    }
+
+    const existing = await prisma.sitterApply.findUnique({
+      where: { requestId_applicantId: { requestId: request.id, applicantId: member.id } },
+      select: { id: true },
+    });
+    if (existing) return { success: false, error: "You've already applied to this request." };
+
+    await prisma.sitterApply.create({
+      data: { requestId: request.id, applicantId: member.id, message },
+    });
+
+    await createNotification({
+      userId: request.authorId,
+      type: 'APPLICATION_RECEIVED',
+      requestId: request.id,
+      actorName: member.name,
+      petName: request.pet.name,
+    });
+
+    revalidatePath(`/sitter-board/${request.id}`);
+    revalidatePath('/sitter-board');
+    return { success: true };
+  } catch (error) {
+    console.error('Failed to apply to sitter request:', error);
+    return { success: false, error: 'Failed to send your application.' };
+  }
+}
+
+export async function withdrawApplication(requestId: string) {
+  try {
+    const member = await getCurrentMember();
+    if (!member) return { success: false, error: 'Please log in.' };
+
+    const application = await prisma.sitterApply.findUnique({
+      where: { requestId_applicantId: { requestId, applicantId: member.id } },
+      select: {
+        id: true,
+        status: true,
+        request: { select: { authorId: true, pet: { select: { name: true } } } },
+      },
+    });
+    if (!application) return { success: false, error: 'Application not found.' };
+    if (application.status !== ApplyStatus.PENDING) {
+      return { success: false, error: 'This application can no longer be withdrawn.' };
+    }
+
+    await prisma.sitterApply.delete({ where: { id: application.id } });
+
+    await createNotification({
+      userId: application.request.authorId,
+      type: 'APPLICATION_WITHDRAWN',
+      requestId,
+      actorName: member.name,
+      petName: application.request.pet.name,
+    });
+
+    revalidatePath(`/sitter-board/${requestId}`);
+    revalidatePath('/sitter-board');
+    return { success: true };
+  } catch (error) {
+    console.error('Failed to withdraw application:', error);
+    return { success: false, error: 'Failed to withdraw your application.' };
+  }
+}
+
+// Sitter's quick review of the owner after a finished sitting
+export async function reviewOwner(input: { requestId: string; mood: 'good' | 'bad' }) {
+  try {
+    const blocked = await assertNotAdmin();
+    if (blocked) return { success: false, error: blocked };
+
+    const member = await getCurrentMember();
+    if (!member) return { success: false, error: 'Please log in.' };
+    if (input.mood !== 'good' && input.mood !== 'bad') {
+      return { success: false, error: 'Choose how it went.' };
+    }
+
+    const request = await prisma.sitterRequest.findUnique({
+      where: { id: input.requestId },
+      select: {
+        id: true,
+        authorId: true,
+        status: true,
+        applications: { where: { applicantId: member.id }, select: { status: true } },
+      },
+    });
+    if (
+      !request ||
+      request.status !== RequestStatus.DONE ||
+      request.applications[0]?.status !== ApplyStatus.ACCEPTED
+    ) {
+      return { success: false, error: 'You can review only sittings you finished.' };
+    }
+
+    const existing = await prisma.review.findUnique({
+      where: { requestId_reviewerId: { requestId: request.id, reviewerId: member.id } },
+      select: { id: true },
+    });
+    if (existing) return { success: false, error: "You've already reviewed this sitting." };
+
+    // Good = 5, Not great = 1
+    await prisma.review.create({
+      data: {
+        requestId: request.id,
+        reviewerId: member.id,
+        revieweeId: request.authorId,
+        rating: input.mood === 'good' ? 5 : 1,
+        comment: '',
+      },
+    });
+
+    revalidatePath('/sitter-board');
+    return { success: true };
+  } catch (error) {
+    console.error('Failed to review owner:', error);
+    return { success: false, error: 'Failed to send your feedback.' };
   }
 }

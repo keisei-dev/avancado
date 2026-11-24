@@ -393,7 +393,7 @@ export function UsersBoard({
                           <DeleteUserButton
                             userId={user.id}
                             userName={name}
-                            disabled={isSelf}
+                            disabled={isSelf || user.role === "ADMIN"}
                           />
                         </div>
                       </td>
