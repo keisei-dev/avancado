@@ -1,11 +1,12 @@
 "use server";
 
-import { headers } from "next/headers";
+import { cookies, headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { hasDatabaseEnv, hasSupabaseEnv } from "@/lib/auth/admin";
 import { isAdminMember, provisionMember } from "@/lib/auth/member";
+import { clearRoleCookie, writeRoleCookie } from "@/lib/auth/role-cookie";
 
 export type AuthState = {
   error: string | null;
@@ -80,6 +81,7 @@ export async function loginMember(
   } catch {
     return { error: "We couldn’t connect. Please try again." };
   }
+  writeRoleCookie(await cookies(), isAdmin);
   revalidatePath("/", "layout");
   redirect(isAdmin ? "/admin" : "/");
 }
@@ -148,6 +150,7 @@ export async function signupMember(
     return { error: "We couldn’t connect. Please try again." };
   }
   if (signedIn) {
+    writeRoleCookie(await cookies(), false);
     revalidatePath("/", "layout");
     redirect("/");
   }
@@ -251,6 +254,7 @@ export async function logoutMember() {
     const { error } = await supabase.auth.signOut({ scope: "local" });
     if (error) throw new Error("Could not log out. Please try again.");
   }
+  clearRoleCookie(await cookies());
   revalidatePath("/", "layout");
   redirect("/login");
 }

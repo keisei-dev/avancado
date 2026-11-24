@@ -7,6 +7,7 @@ export {
   ADMIN_LOGIN_PATH,
   MEMBER_LOGIN_PATH,
   isAdminProtectedPath,
+  isMemberSitePath,
 } from "@/lib/auth/paths";
 
 type AdminRecord = {
@@ -66,7 +67,8 @@ export async function requireAdmin(): Promise<AdminUser> {
 
   const admin = await findAdminUser(user.id);
   if (!admin) {
-    redirect("/");
+    // Refresh av_role from Prisma so a stale admin cookie cannot bounce / ↔ /admin.
+    redirect("/auth/role?next=/");
   }
 
   const email = admin.email || user.email || "";
