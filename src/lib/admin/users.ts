@@ -4,6 +4,7 @@ import { connection } from "next/server";
 import {
   AccountStatus,
   DocumentType,
+  UserRole,
   VerificationStatus,
 } from "@/generated/prisma/client";
 import { prisma } from "@/lib/prisma/client";
@@ -28,6 +29,7 @@ export type AdminManagedUser = {
   email: string;
   image: string | null;
   accountStatus: AccountStatus;
+  role: UserRole;
   isVerified: boolean;
   createdAt: Date;
   verificationLabel: AdminUserVerificationLabel;
@@ -137,6 +139,7 @@ function toManagedUser(row: {
   email: string;
   image: string | null;
   accountStatus: AccountStatus;
+  role: UserRole;
   isVerified: boolean;
   createdAt: Date;
   idVerifications: {
@@ -160,6 +163,7 @@ function toManagedUser(row: {
     email: row.email,
     image: row.image,
     accountStatus: row.accountStatus,
+    role: row.role,
     isVerified: row.isVerified,
     createdAt: row.createdAt,
     verificationLabel,
@@ -173,6 +177,7 @@ const userSelect = {
   email: true,
   image: true,
   accountStatus: true,
+  role: true,
   isVerified: true,
   createdAt: true,
   idVerifications: {

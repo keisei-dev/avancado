@@ -47,13 +47,41 @@ export function DeleteUserButton({
   disabled?: boolean;
 }) {
   const [open, setOpen] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [pending, setPending] = useState(false);
+
+  const close = () => {
+    if (pending) return;
+    setError(null);
+    setOpen(false);
+  };
+
+  async function submit(formData: FormData) {
+    setError(null);
+    setPending(true);
+    try {
+      const result = await deleteUser(formData);
+      if (result.error) {
+        setError(result.error);
+        return;
+      }
+      setOpen(false);
+    } catch {
+      setError("This account could not be deleted. Try again.");
+    } finally {
+      setPending(false);
+    }
+  }
 
   return (
     <>
       <button
         type="button"
         disabled={disabled}
-        onClick={() => setOpen(true)}
+        onClick={() => {
+          setError(null);
+          setOpen(true);
+        }}
         className="inline-flex h-8 items-center gap-1.5 rounded-10 border border-line bg-white px-2.5 text-[12px] font-medium text-coral disabled:cursor-not-allowed disabled:opacity-45"
       >
         <Trash2 size={14} aria-hidden="true" />
@@ -61,24 +89,33 @@ export function DeleteUserButton({
       </button>
       <Modal
         open={open}
-        onClose={() => setOpen(false)}
-        eyebrow="Permanent action"
+        onClose={close}
+        eyebrow={<span className="text-olive-dark">Permanent action</span>}
         title={`Delete ${userName}’s account?`}
-        lead="This permanently removes it from Avancado and cannot be undone. Use Hide if you might want to restore it later."
+        lead="This permanently deletes this user and all of their data. This can't be undone."
         footer={
           <>
-            <Button variant="secondary" onClick={() => setOpen(false)}>
+            <Button variant="secondary" onClick={close} disabled={pending}>
               Cancel
             </Button>
-            <form action={deleteUser} onSubmit={() => setOpen(false)}>
+            <form action={submit}>
               <input type="hidden" name="userId" value={userId} />
-              <Button type="submit" variant="danger">
+              <Button type="submit" variant="danger" loading={pending}>
                 Delete permanently
               </Button>
             </form>
           </>
         }
-      />
+      >
+        {error ? (
+          <p
+            role="alert"
+            className="rounded-12 border border-coral/20 bg-coral-soft px-3 py-2 text-sm text-coral"
+          >
+            {error}
+          </p>
+        ) : null}
+      </Modal>
     </>
   );
 }
