@@ -14,7 +14,7 @@ type StatTileProps = {
   value: ReactNode;
   label: string;
   note?: ReactNode;
-  small?: boolean; // for words like "Dogs & Cats" instead of a number
+  small?: boolean;
 };
 
 export function StatTile({

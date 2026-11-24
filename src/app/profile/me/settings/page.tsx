@@ -1,10 +1,14 @@
-// Notion flow: Profile: Profile settings (email, password)
-// TODO: implement
+import { redirect } from "next/navigation";
+import SettingForm from "@/components/profile/setting-form";
+import { getCurrentMember } from "@/lib/auth/member";
 
-export default function ProfileSettingsPage() {
+export default async function AccountSettingsPage() {
+  const member = await getCurrentMember();
+  if (!member) redirect("/login");
+
   return (
-    <main className="flex flex-1 flex-col gap-2 p-8">
-      <h1 className="text-2xl font-bold">Profile Settings</h1>
+    <main className="p-6 sm:p-8">
+      <SettingForm mode="page" email={member.email} />
     </main>
   );
 }

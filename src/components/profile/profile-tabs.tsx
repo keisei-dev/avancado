@@ -36,10 +36,9 @@ type ProfileTabsProps = {
 
   communityPosts?: CommunityPostView[];
   member?: { id: string; name: string; image: string | null } | null;
-  canEdit?: boolean; // whether the viewer can edit this profile (true for own profile, false for public profile)
+  canEdit?: boolean;
 };
 
-// The database saves "DOG" / "CAT". Show them as "Dogs" / "Cats".
 const SPECIES_LABELS: Record<string, string> = { DOG: "Dogs", CAT: "Cats" };
 
 export function ProfileTabs({
@@ -180,7 +179,6 @@ export function ProfileTabs({
               </div>
             </div>
 
-            {/* Visitors: hide the Reviews card when empty. "New sitter" above already explains why. */}
             {(canEdit || reviews.length > 0) && (
             <div className="rounded-16 border border-line bg-white p-6">
               <h2 className="mb-2 text-lg font-semibold">Reviews</h2>

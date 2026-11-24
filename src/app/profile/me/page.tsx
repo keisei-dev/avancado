@@ -5,15 +5,16 @@ import VerificationPanel from "@/components/profile/verification-panel";
 import { ProfileTabs } from "@/components/profile/profile-tabs";
 import type { CommunityPostView } from "@/components/community/post-card";
 import { getProfileData } from "@/lib/profile/get-profile-data";
+import { getVerificationStatus } from "@/lib/profile/get-verification-status";
 
 export default async function ProfilePage() {
   const member = await getCurrentMember();
+
 
   if (!member) {
     redirect("/login");
   }
 
-  // Same data as the public profile, but for me (and I'm also the viewer)
   const data = await getProfileData(member.id, member.id);
   if (!data) notFound();
 
@@ -21,9 +22,9 @@ export default async function ProfilePage() {
     ({ likes, ...post }) => ({ ...post, liked: likes.length > 0 }),
   );
 
+  const verification = await getVerificationStatus(member.id, member.isVerified);
+
   return (
-    // Same as the demo: max 1200px wide, 28px each side (16px on phones).
-    // Two columns from the tablet size (900px): profile card 320px + the rest.
     <main className="mx-auto grid w-full grid-cols-1 gap-8 p-7 sm:grid-cols-[320px_1fr] sm:p-8">
       <div>
         <ProfileSummaryCard
@@ -34,7 +35,10 @@ export default async function ProfilePage() {
         />
       </div>
       <div className="flex min-w-0 flex-col gap-4">
-        <VerificationPanel />
+        <VerificationPanel
+          status={verification.status}
+          rejectionReason={verification.rejectionReason}
+        />
         <ProfileTabs
           canEdit
           name={data.user.name}

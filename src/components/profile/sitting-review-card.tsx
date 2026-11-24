@@ -1,4 +1,3 @@
-// One review from a pet owner: who wrote it, stars, and their comment
 import { Avatar } from "@/components/ui/avatar";
 import { StarRating } from "@/components/ui/star-rating";
 

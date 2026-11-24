@@ -1,8 +1,6 @@
 import { prisma } from "@/lib/prisma/client";
 import type { PetProfile } from "@/lib/pets/types";
 
-// Loads everything a profile page shows, for any user.
-// viewerId = who is looking (used for the "liked" heart on posts).
 export async function getProfileData(userId: string, viewerId: string) {
     const user = await prisma.user.findFirst({
         where: { id: userId, accountStatus: "ACTIVE" },
@@ -13,16 +11,14 @@ export async function getProfileData(userId: string, viewerId: string) {
             sittingExperience: true,
         },
     });
-    if (!user) return null; // not found, or suspended
+    if (!user) return null;
 
-    // Only reviews they got as a sitter (not as an owner)
     const sitterReviewWhere = {
         revieweeId: userId,
         status: "ACTIVE" as const,
         request: { authorId: { not: userId } },
     };
 
-    // Fetch reviews for the user as a sitter
     const reviews = await prisma.review.findMany({
         where: sitterReviewWhere,
         orderBy: { createdAt: "desc" },
@@ -33,7 +29,6 @@ export async function getProfileData(userId: string, viewerId: string) {
     });
 
     const sitterRating = await prisma.review.aggregate({ where: sitterReviewWhere, _avg: { rating: true }, _count: { _all: true } });
-    // Active pets only (ARCHIVED = the owner hid it), oldest first like My Pets
     const petRows = await prisma.pet.findMany({
         where: { ownerId: userId, status: "ACTIVE" },
         orderBy: { createdAt: "asc" },
@@ -44,8 +39,6 @@ export async function getProfileData(userId: string, viewerId: string) {
         },
     });
 
-    // Same shape as the My Pets pages, so we can reuse PetProfileCard.
-    // Dates and Decimal become plain values.
     const pets: PetProfile[] = petRows.map((pet) => ({
         ...pet,
         birthDate: pet.birthDate ? pet.birthDate.toISOString().slice(0, 10) : null,

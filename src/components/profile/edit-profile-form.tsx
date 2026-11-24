@@ -40,11 +40,11 @@ export default function EditProfileForm({
   async function saveAndClose(previous: SaveState, form: FormData) {
     const result = await updateProfile(previous, form);
     if (result.saved) {
-      window.dispatchEvent(new Event(PROFILE_SAVED_EVENT)); // the profile page shows the toast
+      window.dispatchEvent(new Event(PROFILE_SAVED_EVENT));
       if (mode === "page") {
         router.push("/profile/me");
       } else {
-        router.back(); // closes the modal (back to /profile/me)
+        router.back();
       }
     }
     return result;

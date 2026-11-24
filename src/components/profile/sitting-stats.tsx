@@ -1,5 +1,3 @@
-// Pet sitting tab: rating, sits completed, cares for, certificate
-// (Sitting experience isn't a column. It's shown by sits completed + rating.)
 import { Award, CalendarCheck, PawPrint, Sprout, Star } from "lucide-react";
 import { EmptyState } from "@/components/ui/empty-state";
 import { StatTile } from "@/components/profile/stat-tile";
@@ -42,7 +40,7 @@ export default function SittingStats({
         />
       ) : null}
 
-      {/* New sitter: no sits yet, so show a friendly message instead of zeros */}
+      {/* New sitter*/}
       {completedSits === 0 ? (
         <div className="flex items-center gap-3 rounded-lg bg-sage-faint p-4">
           <span className="grid h-10 w-10 place-items-center rounded-full bg-sage-soft text-olive-dark">

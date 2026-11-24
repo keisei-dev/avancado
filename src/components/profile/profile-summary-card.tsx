@@ -1,4 +1,3 @@
-// Big photo, name, email, member since, badge, Edit profile and Account settings buttons
 import { Avatar } from "@/components/ui/avatar";
 import Link from "next/link";
 import {
@@ -42,7 +41,6 @@ export default function ProfileSummaryCard({
 }) {
   return (
     <div className="relative flex flex-col items-center gap-3 overflow-hidden rounded-16 border border-line bg-white px-6 pt-8 pb-6">
-      {/* Soft green band behind the photo (decoration only) */}
       <div
         aria-hidden="true"
         className="absolute inset-x-0 top-0 h-20 bg-linear-to-br from-olive to-amber"

@@ -1,8 +1,5 @@
 "use client";
 
-// Shows "Profile updated" after the Edit profile modal saves.
-// The modal sends a "profile-saved" signal, then closes. This component lives in
-// the profile layout (always on screen), so it's still here to show the toast.
 import { useEffect, useState } from "react";
 import { Toast } from "@/components/ui/toast";
 
@@ -17,6 +14,5 @@ export default function ProfileSavedToast() {
     return () => window.removeEventListener(PROFILE_SAVED_EVENT, show);
   }, []);
 
-  // A new key each time, so saving twice shows the toast twice
   return count > 0 ? <Toast key={count} message="Your profile has been updated." /> : null;
 }
