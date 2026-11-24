@@ -1,5 +1,6 @@
 "use server";
 
+import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import {
   MEMBER_LOGIN_PATH,
@@ -7,6 +8,7 @@ import {
   hasSupabaseEnv,
   isAdmin,
 } from "@/lib/auth/admin";
+import { clearRoleCookie, writeRoleCookie } from "@/lib/auth/role-cookie";
 import { createClient } from "@/lib/supabase/server";
 
 export type LoginState = {
@@ -58,6 +60,7 @@ export async function loginAdmin(
     };
   }
 
+  writeRoleCookie(await cookies(), true);
   redirect("/admin");
 }
 
@@ -66,5 +69,6 @@ export async function logoutAdmin() {
     const supabase = await createClient();
     await supabase.auth.signOut();
   }
+  clearRoleCookie(await cookies());
   redirect(MEMBER_LOGIN_PATH);
 }

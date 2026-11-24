@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { ArrowLeft, LogOut } from "lucide-react";
+import { LogOut } from "lucide-react";
 import { logoutAdmin } from "@/app/admin/login/actions";
 import { BrandMark } from "@/components/admin/brand-mark";
 import { ADMIN_NAV, isAdminNavActive } from "@/components/admin/nav";
@@ -83,13 +83,6 @@ export function AdminSidebar({
           })}
         </nav>
         <div className="mt-auto grid gap-2.5">
-          <Link
-            href="/"
-            className="flex items-center gap-2 rounded-12 px-3 py-2 text-sm text-white/70 hover:bg-white/10 hover:text-white"
-          >
-            <ArrowLeft aria-hidden="true" size={18} />
-            Back to user site
-          </Link>
           <div className="flex items-center gap-2.5 rounded-12 bg-white/10 px-3 py-3">
             <span className="grid h-[34px] w-[34px] shrink-0 place-items-center rounded-full bg-sage text-xs font-bold text-olive-hover">
               {initials}
