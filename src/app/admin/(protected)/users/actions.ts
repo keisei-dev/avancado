@@ -3,7 +3,9 @@
 import { revalidatePath } from "next/cache";
 import { AccountStatus, VerificationStatus } from "@/generated/prisma/client";
 import { requireAdmin } from "@/lib/auth/admin";
+import { DeleteUserError, hardDeleteUser } from "@/lib/admin/delete-user";
 import { prisma } from "@/lib/prisma/client";
+import { deleteAuthUser } from "@/lib/supabase/admin";
 
 const UUID_PATTERN =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -62,29 +64,53 @@ export async function restoreUser(formData: FormData) {
   revalidatePath(USERS_PATH);
 }
 
+export type DeleteUserResult = {
+  error: string | null;
+  removed?: boolean;
+};
+
 /**
- * Prototype "Delete permanently". AccountStatus has no DELETED value, so this
- * hides the account (HIDDEN) instead of removing the row.
- * TODO: persist a deleted state when the schema supports it.
+ * Permanently removes the Prisma user, then the matching Supabase Auth user.
+ * Auth deletion uses SUPABASE_SERVICE_ROLE_KEY and never runs in the browser.
  */
-export async function deleteUser(formData: FormData) {
+export async function deleteUser(
+  formData: FormData,
+): Promise<DeleteUserResult> {
   const admin = await requireAdmin();
   const userId = readId(formData, "userId");
-  if (!userId || userId === admin.id) {
-    return;
+  if (!userId) {
+    return { error: "This account could not be deleted." };
+  }
+  if (userId === admin.id) {
+    return { error: "You can't delete your own admin account." };
   }
 
-  await prisma.user.update({
-    where: { id: userId },
-    data: { accountStatus: AccountStatus.HIDDEN },
-  });
-  await logAdminAction(
-    admin.id,
-    "DELETE_USER",
-    userId,
-    "HIDDEN until AccountStatus supports DELETED",
-  );
+  try {
+    await prisma.$transaction(async (tx) => {
+      await hardDeleteUser(tx, userId, admin.id);
+    });
+  } catch (error) {
+    if (error instanceof DeleteUserError) {
+      return { error: error.message, removed: error.alreadyRemoved };
+    }
+    console.error("deleteUser database", error);
+    return { error: "This account could not be deleted. Try again." };
+  }
+
+  try {
+    await deleteAuthUser(userId);
+  } catch (error) {
+    console.error("deleteUser auth", error);
+    return {
+      error:
+        "Their profile and data were deleted. The login could not be removed, so they may still be able to sign in.",
+      removed: true,
+    };
+  }
+
   revalidatePath(USERS_PATH);
+  revalidatePath("/admin");
+  return { error: null };
 }
 
 export async function approveVerification(formData: FormData) {
