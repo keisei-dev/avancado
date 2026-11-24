@@ -12,8 +12,8 @@ export function isAdminProtectedPath(pathname: string): boolean {
 }
 
 /**
- * Paths an ADMIN may open without being sent to /admin. Everything else on
- * the member site redirects via redirectAdminToDashboard().
+ * Paths an ADMIN may open without being sent to /admin. Proxy sends every
+ * other path to /admin when the av_role cookie says admin.
  */
 const ADMIN_OUTSIDE_CONSOLE_PREFIXES = [
   "/admin",

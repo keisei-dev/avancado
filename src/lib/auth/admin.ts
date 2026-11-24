@@ -1,8 +1,7 @@
 import { connection } from "next/server";
-import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import { isMemberSitePath, MEMBER_LOGIN_PATH } from "@/lib/auth/paths";
+import { MEMBER_LOGIN_PATH } from "@/lib/auth/paths";
 
 export {
   ADMIN_LOGIN_PATH,
@@ -68,7 +67,8 @@ export async function requireAdmin(): Promise<AdminUser> {
 
   const admin = await findAdminUser(user.id);
   if (!admin) {
-    redirect("/");
+    // Refresh av_role from Prisma so a stale admin cookie cannot bounce / ↔ /admin.
+    redirect("/auth/role?next=/");
   }
 
   const email = admin.email || user.email || "";
@@ -106,29 +106,6 @@ export async function assertNotAdmin(): Promise<string | null> {
   }
 
   return ADMIN_USER_ACTION_ERROR;
-}
-
-/**
- * Sends Prisma ADMIN users from member pages to /admin. Skips /admin, login,
- * auth callback, /api, and /dev. Guests and regular members are unchanged.
- * Reads role from User.role the same way requireAdmin() does.
- */
-export async function redirectAdminToDashboard(): Promise<void> {
-  const pathname = (await headers()).get("x-pathname") ?? "";
-  if (!isMemberSitePath(pathname)) return;
-
-  if (!hasSupabaseEnv() || !hasDatabaseEnv()) return;
-
-  await connection();
-
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user || !(await isAdmin(user.id))) return;
-
-  redirect("/admin");
 }
 
 async function findAdminUser(userId: string): Promise<AdminRecord | null> {
