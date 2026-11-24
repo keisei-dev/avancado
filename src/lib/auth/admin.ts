@@ -1,12 +1,14 @@
 import { connection } from "next/server";
+import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import { MEMBER_LOGIN_PATH } from "@/lib/auth/paths";
+import { isMemberSitePath, MEMBER_LOGIN_PATH } from "@/lib/auth/paths";
 
 export {
   ADMIN_LOGIN_PATH,
   MEMBER_LOGIN_PATH,
   isAdminProtectedPath,
+  isMemberSitePath,
 } from "@/lib/auth/paths";
 
 type AdminRecord = {
@@ -104,6 +106,29 @@ export async function assertNotAdmin(): Promise<string | null> {
   }
 
   return ADMIN_USER_ACTION_ERROR;
+}
+
+/**
+ * Sends Prisma ADMIN users from member pages to /admin. Skips /admin, login,
+ * auth callback, /api, and /dev. Guests and regular members are unchanged.
+ * Reads role from User.role the same way requireAdmin() does.
+ */
+export async function redirectAdminToDashboard(): Promise<void> {
+  const pathname = (await headers()).get("x-pathname") ?? "";
+  if (!isMemberSitePath(pathname)) return;
+
+  if (!hasSupabaseEnv() || !hasDatabaseEnv()) return;
+
+  await connection();
+
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user || !(await isAdmin(user.id))) return;
+
+  redirect("/admin");
 }
 
 async function findAdminUser(userId: string): Promise<AdminRecord | null> {

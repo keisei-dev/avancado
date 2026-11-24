@@ -1,15 +1,22 @@
 import type { Metadata } from "next";
-import { Suspense } from "react";
+import { Suspense, type ReactNode } from "react";
 import { Geist_Mono, Inter, Plus_Jakarta_Sans } from "next/font/google";
 import "./globals.css";
 
 import { AppShell } from "@/components/layout/app-shell";
 import { TopBar } from "@/components/layout/top-bar";
+import { redirectAdminToDashboard } from "@/lib/auth/admin";
 import { getCurrentMember, isAdminMember } from "@/lib/auth/member";
 import { logoutMember } from "@/app/(auth)/actions";
 
 import { getMyNotifications } from "@/lib/notifications/queries";
 import { markAllReadAction, markReadAction } from "@/app/notifications/actions";
+
+async function MemberSiteGate({ children }: { children: ReactNode }) {
+  // Central gate: Prisma ADMIN users never stay on member pages.
+  await redirectAdminToDashboard();
+  return children;
+}
 
 async function MemberTopBar() {
   const member = await getCurrentMember();
@@ -72,22 +79,24 @@ export default function RootLayout({
             </main>
           }
         >
-          <AppShell
-            topBar={
-              <Suspense
-                fallback={
-                  <div
-                    className="h-16 border-b border-line bg-ivory"
-                    aria-label="Loading account"
-                  />
-                }
-              >
-                <MemberTopBar />
-              </Suspense>
-            }
-          >
-            {children}
-          </AppShell>
+          <MemberSiteGate>
+            <AppShell
+              topBar={
+                <Suspense
+                  fallback={
+                    <div
+                      className="h-16 border-b border-line bg-ivory"
+                      aria-label="Loading account"
+                    />
+                  }
+                >
+                  <MemberTopBar />
+                </Suspense>
+              }
+            >
+              {children}
+            </AppShell>
+          </MemberSiteGate>
         </Suspense>
       </body>
     </html>
