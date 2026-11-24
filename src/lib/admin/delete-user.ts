@@ -1,7 +1,10 @@
 import { Prisma, UserRole } from "@/generated/prisma/client";
 
 export class DeleteUserError extends Error {
-  constructor(message: string) {
+  constructor(
+    message: string,
+    readonly alreadyRemoved = false,
+  ) {
     super(message);
     this.name = "DeleteUserError";
   }
@@ -23,7 +26,7 @@ export async function hardDeleteUser(
     select: { id: true, role: true },
   });
   if (!user) {
-    throw new DeleteUserError("This account no longer exists.");
+    throw new DeleteUserError("This account no longer exists.", true);
   }
   if (user.role === UserRole.ADMIN) {
     throw new DeleteUserError("Admin accounts can't be deleted.");
@@ -70,7 +73,12 @@ export async function hardDeleteUser(
       where: { requestId: { in: requestIds } },
     });
     await tx.report.deleteMany({
-      where: { OR: [{ requestId: { in: requestIds } }, { review: { requestId: { in: requestIds } } }] },
+      where: {
+        OR: [
+          { requestId: { in: requestIds } },
+          { review: { requestId: { in: requestIds } } },
+        ],
+      },
     });
     await tx.review.deleteMany({ where: { requestId: { in: requestIds } } });
     await tx.sitterRequest.deleteMany({ where: { id: { in: requestIds } } });

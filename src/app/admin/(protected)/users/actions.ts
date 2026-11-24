@@ -66,6 +66,7 @@ export async function restoreUser(formData: FormData) {
 
 export type DeleteUserResult = {
   error: string | null;
+  removed?: boolean;
 };
 
 /**
@@ -90,14 +91,11 @@ export async function deleteUser(
     });
   } catch (error) {
     if (error instanceof DeleteUserError) {
-      return { error: error.message };
+      return { error: error.message, removed: error.alreadyRemoved };
     }
     console.error("deleteUser database", error);
     return { error: "This account could not be deleted. Try again." };
   }
-
-  revalidatePath(USERS_PATH);
-  revalidatePath("/admin");
 
   try {
     await deleteAuthUser(userId);
@@ -105,10 +103,13 @@ export async function deleteUser(
     console.error("deleteUser auth", error);
     return {
       error:
-        "The profile was deleted, but the login could not be removed. Try again.",
+        "Their profile and data were deleted. The login could not be removed, so they may still be able to sign in.",
+      removed: true,
     };
   }
 
+  revalidatePath(USERS_PATH);
+  revalidatePath("/admin");
   return { error: null };
 }
 

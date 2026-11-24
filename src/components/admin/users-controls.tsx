@@ -46,14 +46,19 @@ export function DeleteUserButton({
   userName: string;
   disabled?: boolean;
 }) {
+  const router = useRouter();
   const [open, setOpen] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
+  const [removed, setRemoved] = useState(false);
 
   const close = () => {
     if (pending) return;
+    const shouldRefresh = removed;
     setError(null);
+    setRemoved(false);
     setOpen(false);
+    if (shouldRefresh) router.refresh();
   };
 
   async function submit(formData: FormData) {
@@ -61,6 +66,11 @@ export function DeleteUserButton({
     setPending(true);
     try {
       const result = await deleteUser(formData);
+      if (result.removed) {
+        setRemoved(true);
+        setError(result.error);
+        return;
+      }
       if (result.error) {
         setError(result.error);
         return;
@@ -80,6 +90,7 @@ export function DeleteUserButton({
         disabled={disabled}
         onClick={() => {
           setError(null);
+          setRemoved(false);
           setOpen(true);
         }}
         className="inline-flex h-8 items-center gap-1.5 rounded-10 border border-line bg-white px-2.5 text-[12px] font-medium text-coral disabled:cursor-not-allowed disabled:opacity-45"
@@ -90,24 +101,40 @@ export function DeleteUserButton({
       <Modal
         open={open}
         onClose={close}
-        eyebrow={<span className="text-olive-dark">Permanent action</span>}
-        title={`Delete ${userName}’s account?`}
-        lead="This permanently deletes this user and all of their data. This can't be undone."
+        eyebrow={
+          <span className="text-olive-dark">
+            {removed ? "Account removed" : "Permanent action"}
+          </span>
+        }
+        title={
+          removed ? `${userName} was removed` : `Delete ${userName}’s account?`
+        }
+        lead={
+          removed
+            ? (error ?? "This user and their data were deleted from Avancado.")
+            : "This permanently deletes this user and all of their data. This can't be undone."
+        }
         footer={
-          <>
-            <Button variant="secondary" onClick={close} disabled={pending}>
-              Cancel
+          removed ? (
+            <Button variant="secondary" onClick={close}>
+              Close
             </Button>
-            <form action={submit}>
-              <input type="hidden" name="userId" value={userId} />
-              <Button type="submit" variant="danger" loading={pending}>
-                Delete permanently
+          ) : (
+            <>
+              <Button variant="secondary" onClick={close} disabled={pending}>
+                Cancel
               </Button>
-            </form>
-          </>
+              <form action={submit}>
+                <input type="hidden" name="userId" value={userId} />
+                <Button type="submit" variant="danger" loading={pending}>
+                  Delete permanently
+                </Button>
+              </form>
+            </>
+          )
         }
       >
-        {error ? (
+        {!removed && error ? (
           <p
             role="alert"
             className="rounded-12 border border-coral/20 bg-coral-soft px-3 py-2 text-sm text-coral"
