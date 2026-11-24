@@ -4,6 +4,7 @@ import { connection } from "next/server";
 import {
   AccountStatus,
   DocumentType,
+  UserRole,
   VerificationStatus,
 } from "@/generated/prisma/client";
 import { prisma } from "@/lib/prisma/client";
@@ -98,8 +99,13 @@ export function usersListHref(opts: {
   return query ? `/admin/users?${query}` : "/admin/users";
 }
 
+function memberScope() {
+  return { role: UserRole.USER };
+}
+
 function pendingWhere() {
   return {
+    ...memberScope(),
     idVerifications: {
       some: { status: VerificationStatus.PENDING },
     },
@@ -212,7 +218,7 @@ export async function getAdminUserList(
     };
   }
 
-  const where = { ...searchWhere(q), ...filterWhere(filter) };
+  const where = { ...memberScope(), ...searchWhere(q), ...filterWhere(filter) };
 
   const [
     total,
@@ -229,16 +235,27 @@ export async function getAdminUserList(
       select: userSelect,
       orderBy: { createdAt: "desc" },
     }),
-    prisma.user.count({ where: searchWhere(q) }),
-    prisma.user.count({ where: { ...searchWhere(q), ...pendingWhere() } }),
+    prisma.user.count({ where: { ...memberScope(), ...searchWhere(q) } }),
     prisma.user.count({
-      where: { ...searchWhere(q), isVerified: true },
+      where: { ...memberScope(), ...searchWhere(q), ...pendingWhere() },
     }),
     prisma.user.count({
-      where: { ...searchWhere(q), isVerified: false, NOT: pendingWhere() },
+      where: { ...memberScope(), ...searchWhere(q), isVerified: true },
     }),
     prisma.user.count({
-      where: { ...searchWhere(q), accountStatus: AccountStatus.HIDDEN },
+      where: {
+        ...memberScope(),
+        ...searchWhere(q),
+        isVerified: false,
+        NOT: pendingWhere(),
+      },
+    }),
+    prisma.user.count({
+      where: {
+        ...memberScope(),
+        ...searchWhere(q),
+        accountStatus: AccountStatus.HIDDEN,
+      },
     }),
   ]);
 
