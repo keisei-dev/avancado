@@ -6,7 +6,6 @@ import { notFound, redirect } from "next/navigation";
 import { PetProfileCard } from "@/components/my-pets/pet-profile-card";
 import { getCurrentMember } from "@/lib/auth/member";
 import { getMyPetDetail } from "@/lib/pets/queries";
-import { ArchivePetButton } from "@/components/my-pets/archive-pet-button";
 import { EditPetButton } from "@/components/my-pets/pet-form-modal";
 
 import { HealthCard } from "@/components/my-pets/health-card";
@@ -54,12 +53,7 @@ async function PetDashboard({
     <div className="flex flex-col gap-6">
       <PetProfileCard
         pet={detail.pet}
-        action={
-          <div className="flex gap-2 tablet:flex-col tablet:items-end">
-            <EditPetButton memberId={member.id} pet={detail.pet} />
-            <ArchivePetButton petId={detail.pet.id} petName={detail.pet.name} />
-          </div>
-        }
+        action={<EditPetButton memberId={member.id} pet={detail.pet} />}
       />
       <section className="flex flex-col gap-3">
         <div className="flex flex-wrap items-end justify-between gap-2">
@@ -67,7 +61,7 @@ async function PetDashboard({
             <p className="text-xs font-semibold tracking-[0.06em] text-olive-dark uppercase">
               Health report
             </p>
-            <h2 className="font-display text-xl font-bold text-brown">
+            <h2 className="mt-1 font-display text-2xl font-bold tracking-tight text-brown">
               Health & activity
             </h2>
           </div>

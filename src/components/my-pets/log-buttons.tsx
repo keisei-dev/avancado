@@ -6,11 +6,12 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Pencil, Plus, Trash2 } from "lucide-react";
 import { deleteLog } from "@/app/my-pets/actions";
-import { Button, IconButton } from "@/components/ui/button";
+import { Button } from "@/components/ui/button";
 import { Modal } from "@/components/ui/modal";
 import { LOG_CONFIG, type AnyLog } from "@/lib/pets/log-config";
 import type { LogKind } from "@/lib/pets/types";
 import { LogForm } from "./log-form";
+import { cn } from "@/lib/cn";
 
 export function AddLogButton({
   petId,
@@ -19,7 +20,6 @@ export function AddLogButton({
 }: {
   petId: string;
   kind: LogKind;
-  /** Icon-only "+" (dashboard cards). */
   compact?: boolean;
 }) {
   const config = LOG_CONFIG[kind];
@@ -29,14 +29,17 @@ export function AddLogButton({
   return (
     <>
       {compact ? (
-        <IconButton
-          aria-label={`Add ${config.singular}`}
+        <button
+          type="button"
           onClick={() => setOpen(true)}
+          aria-label={`Add ${config.singular}`}
+          title={`Add ${config.singular}`}
+          className="grid size-8 shrink-0 place-items-center rounded-full border border-line-strong bg-white text-olive-dark transition-colors hover:border-olive hover:bg-sage-faint focus-visible:shadow-focus focus-visible:outline-none"
         >
-          <Plus size={18} aria-hidden="true" />
-        </IconButton>
+          <Plus size={16} aria-hidden="true" />
+        </button>
       ) : (
-        <Button size="sm" onClick={() => setOpen(true)}>
+        <Button onClick={() => setOpen(true)}>
           <Plus size={16} aria-hidden="true" />
           Add {config.singular}
         </Button>
@@ -65,10 +68,12 @@ export function LogEntryActions({
   petId,
   kind,
   log,
+  label,
 }: {
   petId: string;
   kind: LogKind;
   log: AnyLog;
+  label: string;
 }) {
   const config = LOG_CONFIG[kind];
   const router = useRouter();
@@ -76,6 +81,8 @@ export function LogEntryActions({
   const [deleting, setDeleting] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
+  const ENTRY_BUTTON =
+    "grid size-10 place-items-center rounded-12 border border-line bg-white transition-colors focus-visible:shadow-focus focus-visible:outline-none";
 
   function closeDelete() {
     if (busy) return;
@@ -96,20 +103,31 @@ export function LogEntryActions({
   }
 
   return (
-    <div className="flex shrink-0 gap-1">
-      <Button variant="text" size="sm" onClick={() => setEditing(true)}>
-        <Pencil size={15} aria-hidden="true" />
-        Edit
-      </Button>
-      <Button
-        variant="text"
-        size="sm"
-        onClick={() => setDeleting(true)}
-        className="text-coral hover:text-coral"
+    <div className="flex shrink-0 gap-2">
+      <button
+        type="button"
+        onClick={() => setEditing(true)}
+        aria-label={`Edit ${label}`}
+        title="Edit"
+        className={cn(
+          ENTRY_BUTTON,
+          "text-brown-2 hover:border-line-strong hover:bg-ivory",
+        )}
       >
-        <Trash2 size={15} aria-hidden="true" />
-        Delete
-      </Button>
+        <Pencil size={17} aria-hidden="true" />
+      </button>
+      <button
+        type="button"
+        onClick={() => setDeleting(true)}
+        aria-label={`Delete ${label}`}
+        title="Delete"
+        className={cn(
+          ENTRY_BUTTON,
+          "text-coral hover:border-coral-line hover:bg-coral-soft",
+        )}
+      >
+        <Trash2 size={17} aria-hidden="true" />
+      </button>
 
       <Modal
         open={editing}

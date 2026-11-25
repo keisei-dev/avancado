@@ -3,11 +3,11 @@
 
 import type { ReactNode } from "react";
 import Link from "next/link";
-import { buttonClass } from "@/components/ui/button";
 import { LOG_CONFIG } from "@/lib/pets/log-config";
 import type { LogKind } from "@/lib/pets/types";
 import { AddLogButton } from "./log-buttons";
 import { cn } from "@/lib/cn";
+import { ChevronRight } from "lucide-react";
 
 // Icon colours, like the design reference.
 const ICON_TONES: Record<LogKind, string> = {
@@ -60,13 +60,10 @@ export function HealthCard({
 
       <Link
         href={`/my-pets/${petId}/logs?kind=${kind}`}
-        className={buttonClass({
-          variant: "text",
-          size: "sm",
-          className: "self-start",
-        })}
+        className="inline-flex items-center gap-0.5 self-start text-[13px] font-semibold text-olive-dark transition-colors hover:text-olive focus-visible:rounded-10 focus-visible:shadow-focus focus-visible:outline-none"
       >
         {viewLabel}
+        <ChevronRight size={15} aria-hidden="true" />
       </Link>
     </article>
   );

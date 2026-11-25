@@ -1,5 +1,6 @@
-// Top card of the pet dashboard. Server-safe.
+// Top card of the pet dashboard: large photo on the left. Server-safe.
 
+import type { ReactNode } from "react";
 import { Badge } from "@/components/ui/badge";
 import {
   genderLabel,
@@ -13,8 +14,7 @@ import { PetPhoto } from "./pet-photo";
 
 export type PetProfileCardProps = {
   pet: PetProfile;
-  /** The "Edit profile" button. Added in the next step. */
-  action?: React.ReactNode;
+  action?: ReactNode;
 };
 
 export function PetProfileCard({ pet, action }: PetProfileCardProps) {
@@ -25,16 +25,19 @@ export function PetProfileCard({ pet, action }: PetProfileCardProps) {
   ].filter(Boolean);
 
   return (
-    <section className="flex flex-col gap-4 rounded-20 border border-line bg-white p-5 shadow-card tablet:flex-row tablet:items-start">
+    <section className="relative grid gap-5 rounded-20 border border-line bg-white p-4 shadow-card tablet:grid-cols-[200px_minmax(0,1fr)] tablet:items-center tablet:gap-6">
       <PetPhoto
         name={pet.name}
         imageUrl={pet.imageUrl}
-        className="size-24 rounded-16"
+        iconSize={40}
+        className="h-56 w-full rounded-16 tablet:size-[200px]"
       />
-      <div className="min-w-0 flex-1">
-        <h1 className="font-display text-2xl font-bold text-brown">
+
+      {/* pr-40 keeps the text away from the buttons in the corner. */}
+      <div className="min-w-0 tablet:pr-40">
+        <h2 className="font-display text-[28px] font-bold tracking-tight text-brown">
           {pet.name}
-        </h1>
+        </h2>
         <div className="mt-2 flex flex-wrap gap-1.5">
           <Badge tone="default">{speciesLabel(pet.species)}</Badge>
           {pet.gender !== "UNKNOWN" && (
@@ -53,12 +56,17 @@ export function PetProfileCard({ pet, action }: PetProfileCardProps) {
           Updated {relativeDay(pet.updatedAt)}
         </p>
         {pet.notes && (
-          <p className="mt-3 text-sm whitespace-pre-line text-brown">
+          <p className="mt-3 max-w-[520px] text-[15px] leading-relaxed whitespace-pre-line text-brown-2">
             {pet.notes}
           </p>
         )}
       </div>
-      {action}
+
+      {action && (
+        <div className="tablet:absolute tablet:top-4 tablet:right-4">
+          {action}
+        </div>
+      )}
     </section>
   );
 }

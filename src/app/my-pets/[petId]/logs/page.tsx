@@ -66,9 +66,9 @@ async function LogList({
           <p className="text-xs font-semibold tracking-[0.06em] text-olive-dark uppercase">
             {detail.pet.name}
           </p>
-          <h1 className="font-display text-2xl font-bold text-brown">
+          <h2 className="text-[28px] font-display text-2xl font-bold text-brown">
             {config.title}
-          </h1>
+          </h2>
         </div>
         <AddLogButton petId={petId} kind={kind} />
       </header>
@@ -86,18 +86,23 @@ async function LogList({
             return (
               <li
                 key={String(log.id)}
-                className="flex flex-col gap-2 rounded-16 border border-line bg-white p-4 tablet:flex-row tablet:items-start tablet:justify-between"
+                className="flex items-center gap-3 rounded-16 border border-line bg-white py-3 pr-3 pl-4 transition-colors hover:border-line-strong"
               >
-                <div className="min-w-0">
-                  <p className="text-xs text-muted">{summary.meta}</p>
+                <div className="min-w-0 flex-1">
                   <p className="font-semibold text-brown">{summary.title}</p>
+                  <p className="text-[13px] text-muted">{summary.meta}</p>
                   {summary.note && (
-                    <p className="mt-1 text-sm whitespace-pre-line text-muted">
+                    <p className="mt-0.5 truncate text-[13px] text-brown-2">
                       {summary.note}
                     </p>
                   )}
                 </div>
-                <LogEntryActions petId={petId} kind={kind} log={log} />
+                <LogEntryActions
+                  petId={petId}
+                  kind={kind}
+                  log={log}
+                  label={summary.title}
+                />
               </li>
             );
           })}

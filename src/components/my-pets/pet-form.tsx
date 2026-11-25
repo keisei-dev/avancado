@@ -22,14 +22,19 @@ const GENDERS = { Female: "FEMALE", Male: "MALE" } as const;
 
 export type PetFormProps = {
   memberId: string;
-  /** Edit mode when set. */
   pet?: PetProfile;
+  extraAction?: ReactNode;
   onCancel?: () => void;
-  /** Called after a successful save. Default: open the pet's page. */
   onDone?: (petId: string) => void;
 };
 
-export function PetForm({ memberId, pet, onCancel, onDone }: PetFormProps) {
+export function PetForm({
+  memberId,
+  pet,
+  extraAction,
+  onCancel,
+  onDone,
+}: PetFormProps) {
   const router = useRouter();
   const [species, setSpecies] = useState<"DOG" | "CAT">(pet?.species ?? "DOG");
   const [gender, setGender] = useState<"FEMALE" | "MALE">(
@@ -213,15 +218,18 @@ export function PetForm({ memberId, pet, onCancel, onDone }: PetFormProps) {
       )}
 
       {/* Same look as the Modal footer, but inside <form> so Submit works. */}
-      <div className="mt-6 flex flex-col-reverse gap-2.5 border-t border-line pt-5 tablet:flex-row tablet:justify-end">
-        {onCancel && (
-          <Button variant="secondary" onClick={onCancel} disabled={pending}>
-            Cancel
+      <div className="mt-6 flex flex-col-reverse gap-2.5 border-t border-line pt-5 tablet:flex-row tablet:items-center tablet:justify-between">
+        <div>{extraAction}</div>
+        <div className="flex flex-col-reverse gap-2.5 tablet:flex-row">
+          {onCancel && (
+            <Button variant="secondary" onClick={onCancel} disabled={pending}>
+              Cancel
+            </Button>
+          )}
+          <Button type="submit" loading={pending}>
+            {pet ? "Save changes" : "Add pet"}
           </Button>
-        )}
-        <Button type="submit" loading={pending}>
-          {pet ? "Save changes" : "Add pet"}
-        </Button>
+        </div>
       </div>
     </form>
   );
