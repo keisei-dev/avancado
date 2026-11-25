@@ -3,7 +3,6 @@
 
 import type { ReactNode } from "react";
 import Link from "next/link";
-import { buttonClass } from "@/components/ui/button";
 import { LOG_CONFIG } from "@/lib/pets/log-config";
 import type { LogKind } from "@/lib/pets/types";
 import { AddLogButton } from "./log-buttons";
