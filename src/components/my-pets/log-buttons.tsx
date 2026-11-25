@@ -11,6 +11,7 @@ import { Modal } from "@/components/ui/modal";
 import { LOG_CONFIG, type AnyLog } from "@/lib/pets/log-config";
 import type { LogKind } from "@/lib/pets/types";
 import { LogForm } from "./log-form";
+import { cn } from "@/lib/cn";
 
 export function AddLogButton({
   petId,
@@ -67,10 +68,12 @@ export function LogEntryActions({
   petId,
   kind,
   log,
+  label,
 }: {
   petId: string;
   kind: LogKind;
   log: AnyLog;
+  label: string;
 }) {
   const config = LOG_CONFIG[kind];
   const router = useRouter();
@@ -78,6 +81,8 @@ export function LogEntryActions({
   const [deleting, setDeleting] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
+  const ENTRY_BUTTON =
+    "grid size-10 place-items-center rounded-12 border border-line bg-white transition-colors focus-visible:shadow-focus focus-visible:outline-none";
 
   function closeDelete() {
     if (busy) return;
@@ -98,20 +103,31 @@ export function LogEntryActions({
   }
 
   return (
-    <div className="flex shrink-0 gap-1">
-      <Button variant="text" size="sm" onClick={() => setEditing(true)}>
-        <Pencil size={15} aria-hidden="true" />
-        Edit
-      </Button>
-      <Button
-        variant="text"
-        size="sm"
-        onClick={() => setDeleting(true)}
-        className="text-coral hover:text-coral"
+    <div className="flex shrink-0 gap-2">
+      <button
+        type="button"
+        onClick={() => setEditing(true)}
+        aria-label={`Edit ${label}`}
+        title="Edit"
+        className={cn(
+          ENTRY_BUTTON,
+          "text-brown-2 hover:border-line-strong hover:bg-ivory",
+        )}
       >
-        <Trash2 size={15} aria-hidden="true" />
-        Delete
-      </Button>
+        <Pencil size={17} aria-hidden="true" />
+      </button>
+      <button
+        type="button"
+        onClick={() => setDeleting(true)}
+        aria-label={`Delete ${label}`}
+        title="Delete"
+        className={cn(
+          ENTRY_BUTTON,
+          "text-coral hover:border-coral-line hover:bg-coral-soft",
+        )}
+      >
+        <Trash2 size={17} aria-hidden="true" />
+      </button>
 
       <Modal
         open={editing}
