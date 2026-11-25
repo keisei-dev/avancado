@@ -61,7 +61,7 @@ async function PetDashboard({
             <p className="text-xs font-semibold tracking-[0.06em] text-olive-dark uppercase">
               Health report
             </p>
-            <h2 className="font-display text-xl font-bold text-brown">
+            <h2 className="mt-1 font-display text-2xl font-bold tracking-tight text-brown">
               Health & activity
             </h2>
           </div>

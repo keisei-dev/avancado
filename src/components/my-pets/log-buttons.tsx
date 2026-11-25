@@ -6,7 +6,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Pencil, Plus, Trash2 } from "lucide-react";
 import { deleteLog } from "@/app/my-pets/actions";
-import { Button, IconButton } from "@/components/ui/button";
+import { Button } from "@/components/ui/button";
 import { Modal } from "@/components/ui/modal";
 import { LOG_CONFIG, type AnyLog } from "@/lib/pets/log-config";
 import type { LogKind } from "@/lib/pets/types";
@@ -19,7 +19,6 @@ export function AddLogButton({
 }: {
   petId: string;
   kind: LogKind;
-  /** Icon-only "+" (dashboard cards). */
   compact?: boolean;
 }) {
   const config = LOG_CONFIG[kind];
@@ -29,14 +28,17 @@ export function AddLogButton({
   return (
     <>
       {compact ? (
-        <IconButton
-          aria-label={`Add ${config.singular}`}
+        <button
+          type="button"
           onClick={() => setOpen(true)}
+          aria-label={`Add ${config.singular}`}
+          title={`Add ${config.singular}`}
+          className="grid size-8 shrink-0 place-items-center rounded-full border border-line-strong bg-white text-olive-dark transition-colors hover:border-olive hover:bg-sage-faint focus-visible:shadow-focus focus-visible:outline-none"
         >
-          <Plus size={18} aria-hidden="true" />
-        </IconButton>
+          <Plus size={16} aria-hidden="true" />
+        </button>
       ) : (
-        <Button size="sm" onClick={() => setOpen(true)}>
+        <Button onClick={() => setOpen(true)}>
           <Plus size={16} aria-hidden="true" />
           Add {config.singular}
         </Button>
